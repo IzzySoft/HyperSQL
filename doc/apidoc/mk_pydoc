@@ -1,0 +1,18 @@
+#!/bin/bash
+# Generate the Api Reference using pydoc
+
+cd ${0%/*}
+
+# cleanup first
+rm -f *.txt
+rm -f *.html
+
+# get the code here
+cp ../../HyperSQL.py .
+
+# Generate the apidoc
+pydoc ./HyperSQL.py > HyperSQL.txt
+pydoc -w ./HyperSQL.py
+
+# cleanup
+rm -f HyperSQL.py*

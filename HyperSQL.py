@@ -26,10 +26,11 @@
     Author contact information: randy-san@users.sourceforge.net
 """
 
-import os, sys, string, time, ConfigParser
+import os, sys, string, time, ConfigParser, fileinput, re
 
 
 class ViewInfo:
+    """ Object to hold information about a view """
     def __init__(self):
 	self.viewName = ""
 	self.lineNumber = -1
@@ -38,6 +39,7 @@ class ViewInfo:
         self.parent = None
 
 class FunctionInfo:
+    """ Object to hold information about a function """
     def __init__(self):
 	self.functionName = ""
 	self.lineNumber = -1
@@ -46,6 +48,7 @@ class FunctionInfo:
         self.parent = None
 
 class ProcedureInfo:
+    """ Object to hold information about a procedure """
     def __init__(self):
 	self.procedureName = ""
 	self.lineNumber = -1
@@ -54,6 +57,7 @@ class ProcedureInfo:
         self.parent = None
 
 class PackageInfo:
+    """ Object to hold information about a package """
     def __init__(self):
 	self.packageName = ""
 	self.lineNumber = -1
@@ -64,6 +68,7 @@ class PackageInfo:
         self.parent = None
 
 class FileInfo:
+    """ Object to hold information about a file """
     def __init__(self):
 	self.fileName = ""
         self.fileType = "" # cpp files are only scanned for sql "where used" information
@@ -73,6 +78,7 @@ class FileInfo:
 
 
 class MetaInfo:
+    """ Object to hold global information (e.g. configuration options) """
     def __init__(self):
 	self.fileInfoList = []
         self.fileWithPathnamesIndex_FileName = ""
@@ -113,51 +119,60 @@ def CaseInsensitiveComparison(a, b):
 
 
 def FindFilesAndBuildFileList(dir, fileInfoList, meta_info):
+    """
+    Recursively scans the source directory specified (1st param) for
+    relevant files according to the file extensions configured in meta_info
+    (3rd param), while excluding RCS directories (such as 'RCS', 'CVS', and
+    '.svn'). Information for matching files is stored in fileInfoList (2nd param).
+    """
 
     # get a list of this directory's contents
     # these items are relative and not absolute
     names=os.listdir(dir)
 
-    # Setup names for RCS dirs
-    rcsnames = ['RCS', 'CVS', '.svn']
-
     # iterate through the file list
     for i in names: 
 
-	if i in rcsnames: # do not look in RCS
-	    continue
-	if i == "old_directories": # do not look in old directories
+      if i in meta_info.rcsnames: # do not look in RCS/CVS/SVN/... special dirs
 	    continue
 
-	# convert from relative to absolute addressing
-	# to allow recursive calls
-	f1=os.path.join(dir, i)
+      # convert from relative to absolute addressing
+      # to allow recursive calls
+      f1=os.path.join(dir, i)
 
-	# if this item is also a directory, recurse it too
-	if os.path.isdir(f1):
-	    FindFilesAndBuildFileList(f1, fileInfoList, meta_info)
+      # if this item is also a directory, recurse it too
+      if os.path.isdir(f1):
+        FindFilesAndBuildFileList(f1, fileInfoList, meta_info)
 	    
-        # file found, only add specific file extensions to the list
-	else:
-            fspl = f1.split('.')
-            ext  = fspl[len(fspl)-1]
-            if ext in meta_info.sql_file_exts:
-		temp = FileInfo()
-		temp.fileName = f1
-		temp.fileType = "sql"
-		if temp.uniqueNumber == 0:
-		    temp.uniqueNumber = meta_info.NextIndex()
-		fileInfoList.append(temp)
-            if ext in meta_info.cpp_file_exts:
-		temp = FileInfo()
-		temp.fileName = f1
-		temp.fileType = "cpp"
-		if temp.uniqueNumber == 0:
-		    temp.uniqueNumber = meta_info.NextIndex()
-		fileInfoList.append(temp)
+      else:  # file found, only add specific file extensions to the list
+        fspl = f1.split('.')
+        ext  = fspl[len(fspl)-1]
+        if ext in meta_info.sql_file_exts:
+          temp = FileInfo()
+          temp.fileName = f1
+          temp.fileType = "sql"
+          if temp.uniqueNumber == 0:
+            temp.uniqueNumber = meta_info.NextIndex()
+          fileInfoList.append(temp)
+        if ext in meta_info.cpp_file_exts:
+          temp = FileInfo()
+          temp.fileName = f1
+          temp.fileType = "cpp"
+          if temp.uniqueNumber == 0:
+            temp.uniqueNumber = meta_info.NextIndex()
+          fileInfoList.append(temp)
 
 
 def ScanFilesForViewsAndPackages(meta_info):
+    """
+    Scans files from meta_info.fileInfoList for views and packages and collects
+    some metadata about them (name, file, lineno). When encountering a package
+    spec, it also scans for its functions and procedures.
+    It simply searches the source file for keywords. With each object info,
+    file name and line number are stored (and can be used to identify parent
+    and children) - for functions and procedures contained in packages, a link
+    to their parent is stored along.
+    """
 
     fileInfoList = meta_info.fileInfoList
 
@@ -251,6 +266,11 @@ def ScanFilesForViewsAndPackages(meta_info):
 
 
 def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
+    """
+    Scans files collected in meta_info.fileInfoList and checks them line by line
+    with meta_info.<object>list for calls to those objects. If it finds any, it
+    updates <object>list where_used property accordingly.
+    """
 
     fileInfoList = meta_info.fileInfoList
 
@@ -386,6 +406,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
     print
 
 def MakeNavBar():
+    """Generates HTML code for the general navigation links to all the index pages"""
     s = "<TABLE ID='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD ID='navbar' WIDTH='600px'>\n"
     s += '    <A href="' + metaInfo.packageIndex_FileName + '">Package Index</A> &nbsp;&nbsp; \n'
@@ -404,7 +425,7 @@ def MakeNavBar():
     return s
 
 def MakeHTMLHeader(meta_info, title_name):
-    """Allows for common header with menu for all pages"""
+    """Generates common HTML header with menu for all pages"""
 
     s =  '<html><head>\n'
     s += '  <TITLE>' + metaInfo.title_prefix + ': ' + title_name + '</TITLE>'
@@ -415,7 +436,7 @@ def MakeHTMLHeader(meta_info, title_name):
     return s
 
 def MakeHTMLFooter():
-    """Allows for common footer on all pages"""
+    """Generates common HTML footer for all pages"""
     s = "<HR CLASS='bottomstart'>\n"
     s += "<DIV ID='bottombar'>\n"
     s += MakeNavBar()
@@ -426,7 +447,7 @@ def MakeHTMLFooter():
 
 
 def CreateHTMLDirectory(metaInfo):
-    # create the html directory if needed
+    """Creates the html directory if needed"""
     splitted = metaInfo.htmlDir.split(os.sep)
     temp = ""
     for path_element in splitted: # loop through path components, making directories as needed
@@ -438,6 +459,7 @@ def CreateHTMLDirectory(metaInfo):
 
 
 def MakeFileIndexWithPathNames(meta_info):
+    """Generate HTML index page for all files, ordered by path names"""
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
@@ -469,6 +491,7 @@ def MakeFileIndexWithPathNames(meta_info):
 	
 
 def MakeFileIndexNoPathNames(meta_info):
+    """Generate HTML index page for all files, ordered by file names, ignoring the path for ordering"""
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
@@ -500,6 +523,7 @@ def MakeFileIndexNoPathNames(meta_info):
 	
 
 def MakeViewIndex(meta_info):
+    """Generate HTML index page for all views"""
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
@@ -543,6 +567,7 @@ def MakeViewIndex(meta_info):
 
 
 def MakePackageIndex(meta_info):
+    """Generate HTML index page for all packages"""
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
@@ -584,6 +609,7 @@ def MakePackageIndex(meta_info):
 
 
 def MakeFunctionIndex(meta_info):
+    """Generate HTML index page for all functions"""
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
@@ -628,6 +654,7 @@ def MakeFunctionIndex(meta_info):
 
 
 def MakeProcedureIndex(meta_info):
+    """Generate HTML index page for all procedures"""
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
@@ -672,6 +699,7 @@ def MakeProcedureIndex(meta_info):
     outfile.close()
 
 def MakePackagesWithFuncsAndProcsIndex(meta_info):
+    """Generate HTML index page for all packages, including their functions and procedures"""
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
@@ -764,10 +792,27 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
 
 
 def CreateHyperlinkedSourceFilePages(meta_info):
+    """
+    Generates pages with the complete source code of each file, including link
+    targets (A NAME=) for each line. This way we can link directly to the line
+    starting the definition of an object, or where it is called (used) from.
+    Very basic syntax highlighting is performed here as well.
+    """
 
     fileInfoList = meta_info.fileInfoList
     html_dir = meta_info.htmlDir
     top_level_directory = meta_info.topLevelDirectory
+
+    sqlkeywords = []
+    sqltypes    = []
+    for line in fileinput.input(os.path.split(sys.argv[0])[0] + os.sep + 'sql.keywords'):
+      if line.strip()[0]=='#':
+        continue
+      sqlkeywords.append(line.strip())
+    for line in fileinput.input(os.path.split(sys.argv[0])[0] + os.sep + 'sql.types'):
+      if line.strip()[0]=='#':
+        continue
+      sqltypes.append(line.strip())
 
     dot_count = 1
     for file_info in fileInfoList:
@@ -803,9 +848,47 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         outfile.write('<code><pre><br>')
 
         for line_number in range(len(infile_line_list)):
+            if infile_line_list[line_number].strip()[0:2]=='--':
+              text = '<SPAN CLASS="sqlcomment">' + infile_line_list[line_number] + '</SPAN>'
+            else:
+              text = infile_line_list[line_number]
+              prel = len(text) - len(text.lstrip())
+              text = text[0:prel]
+              commentmode = 0 # 0 no comment, 1 '--', 2 '/*'
+              for elem in infile_line_list[line_number].split():
+                if elem[len(elem)-1] in [',', ';', ')', '}', ']'] and len(elem)>1:
+                  selem = elem[0:len(elem)-1]
+                  echar  = elem[len(elem)-1]
+                  if echar in [')', '}', ']']:
+                    echar = '<SPAN CLASS="sqlbrace">' + echar + '</SPAN>'
+                else:
+                  selem = elem
+                  echar  = ''
+                if selem[0:1] in ['(', '{', '['] and len(selem)>1:
+                  schar = '<SPAN CLASS="sqlbrace">' + selem[0:1] + '</SPAN>'
+                  selem = selem[1:]
+                else:
+                  schar = ''
+                if commentmode==0:
+                  if selem[0:2]=='--':
+                    text += schar + '<SPAN CLASS="sqlcomment">' + echar + selem
+                    commentmode = 1
+                  elif selem in sqlkeywords:
+                    text += schar + '<SPAN CLASS="sqlkeyword">' + selem + '</SPAN> ' + echar
+                  elif selem in sqltypes:
+                    text += schar + '<SPAN CLASS="sqltype">' + selem + '</SPAN> ' + echar
+                  elif selem in ['(', ')', '[', ']', '{', '}']:
+                    text += '<SPAN CLASS="sqlbrace">' + selem + echar + '</SPAN>'
+                  else:
+                    text += schar + selem + echar + ' '
+                else: # 1 for now
+                  text += schar + selem + echar
+              if commentmode==1:
+                text += '</SPAN>'
+              text += "\n"
             zeroes = (1 + line_number_width - len(`line_number`)) * "0" # leading zeroes for line numbers
             outfile.write("<A NAME=\"" + `line_number` + "\"></A>") # hyperlink target
-            outfile.write(zeroes + `line_number` + ": " + infile_line_list[line_number]) #text
+            outfile.write(zeroes + `line_number` + ": " + text) #text
 
         outfile.write("</pre></code><br>")
         outfile.write(MakeHTMLFooter())
@@ -816,6 +899,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
 
 
 def CreateIndexPage(meta_info):
+    """Generates the main index page"""
 
     html_dir = meta_info.htmlDir
     script_name = meta_info.scriptName
@@ -854,6 +938,7 @@ def CreateIndexPage(meta_info):
 
 
 def CreateWhereUsedPages(meta_info):
+    """Generate a where-used-page for each object"""
 
     html_dir = meta_info.htmlDir
     fileInfoList = meta_info.fileInfoList
@@ -1097,6 +1182,7 @@ if __name__ == "__main__":
     metaInfo.sql_file_exts = confGetList('Default','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
     metaInfo.cpp_file_exts = confGetList('Default','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
     metaInfo.css_file      = confGet('Default','css_file','hypersql.css')
+    metaInfo.rcsnames      = confGetList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
     metaInfo.fileWithPathnamesIndex_FileName = confGet('FileNames','FileWithPathnamesIndex','FileNameIndexWithPathnames.html')
     metaInfo.fileNoPathnamesIndex_FileName   = confGet('FileNames','FileNoPathnamesIndex','FileNameIndexNoPathnames.html')
     metaInfo.viewIndex_FileName              = confGet('FileNames','viewIndex','ViewIndex.html')
@@ -1109,7 +1195,7 @@ if __name__ == "__main__":
 
     metaInfo.topLevelDirectory = top_level_directory
     metaInfo.scriptName = sys.argv[0]
-    metaInfo.versionString = "1.2" 
+    metaInfo.versionString = "1.3" 
     metaInfo.toDoList = """
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #   TO-DO LIST

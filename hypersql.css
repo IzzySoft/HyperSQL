@@ -26,6 +26,11 @@ pre {
   margin-right: 10px;
 }
 
+.sqlkeyword, .sqltype, .sqlbrace { font-weight: bold; }
+.sqlkeyword { color: #900; }
+.sqltype {color: #00f; }
+.sqlcomment { color: #660; }
+
 /*
  * Navigation
  */
