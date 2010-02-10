@@ -1,0 +1,73 @@
+/*
+ * ===============================================
+ * Stylesheet for HyperSQL
+ * Modify if you like :-)
+ * ===============================================
+ */
+
+/*
+ * General stuff
+ */
+body { background: #fff; }
+
+body, table, td, th {
+  font-size: 13px;
+  font-family: Verdana, Arial, Helvetica, sans-serif
+}
+
+/*
+ * Code Formatting
+ */
+code, pre { background: #ffc; }
+
+pre {
+  border: 2px ridge #ccc;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+/*
+ * Navigation
+ */
+#navbar {
+  background: #eef;
+  font-weight: bold;
+  text-align: center;
+}
+
+.topend { margin-bottom: 20px; }
+.bottomstart { margin-top: 20px; }
+#bottombar { text-align: center; }
+
+#generated {
+  margin: 10px;
+  font-size: 10px;
+}
+
+.title {
+  text-align: right;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 16px;
+}
+
+/*
+ * Table stuff
+ */
+table.apilist {
+  background: transparent;
+  border: 1px outset #808080;
+}
+
+table.apilist th { background: #ccf; }
+table.apilist th.sub { background: #eef; }
+
+/*
+ * Header
+ */
+h1, h2, h3, h4 { text-align: center; }
+
+h1 { font-size: 18px; }
+h2 { font-size: 16px; }
+h3 { font-size: 15px; }
+h4 { font-size: 14px; font-style: italic; }
