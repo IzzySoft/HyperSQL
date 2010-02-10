@@ -1,0 +1,52 @@
+HyperSQL
+========
+
+Preface
+-------
+
+HyperSQL is like a doxygen for SQL, hypermapping SQL views, packages, procedures,
+and functions to HTML source code listings and showing all code locations where
+these are used. The internal "where used" functionality also scans C++ and Java
+source files.
+
+History
+-------
+
+The original version (1.0) was written by Randy Phillips in September 2001, and
+no update was ever published since (see http://hypersql.sourceforge.net/). It
+looks very much like he abandoned the project - since the mail address specified
+on the project site bounces, though he seems to own its domain.
+
+Since I very much liked the idea of HyperSQL, but felt it needs some polish, I
+decided to do that myself - so on one day in February 2010, I sat down and wrote
+v1.1; I probably will do some more work on it, and make some more releases (sent
+to Randy for now to be published).
+
+Features
+--------
+
+* flexible configuration by use of .ini files
+* generates nicely formatted HTML files, CSS adjustable by use of .css files
+* parses SQL, C++ and Java files according to file extensions you configured
+* generates hyperlinked listings of all objects found (SQL views, packages,
+  functions, procedures, etc.)
+* hyperlinks object names to their appearance in the source code
+* generates "where used" lists, to show where your objects have been used
+  by other objects (if they have) - helps you to find unused code if not,
+  or example usages if found
+
+Usage
+-----
+
+There's not much to say about:
+
+* Check the HyperSQL.ini file for configuration. Optionally make a copy, and
+  adjust it to your needs
+* Run HyperSQL.py without any parameter (uses HyperSQL.ini located in the
+  directory you are in) to parse the code from below the directory you
+  specified in HyperSQL.ini, and generates HTML in the specified output directory
+* Run HyperSQL.py with the name of your project as only parameter, like
+  "HyperSQL.py myProject". This would use "myProject.ini" if found, otherwise
+  "myproject.ini" - and if that's also not found, fall back to HyperSQL.ini
+
+That's it - enjoy!

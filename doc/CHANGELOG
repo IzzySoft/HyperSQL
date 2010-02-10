@@ -1,0 +1,20 @@
+# History of Changes for HyperSQL
+
+v1.2 (10.02.2010)
+-----------------
++ improved config parser: now the .ini file does not have to contain all keywords
++ implemented fallback on search for the config file. Now searches for the
+  project specific file (the new optional command line parameter + '.ini') first,
+  then lowercase filename, then HyperSQL.ini (plus lowercase), and finally falls
+  back to internally defined defaults
+
+v1.1 (09.02.2010)
+-----------------
+* updated version by Izzy
++ configuration moved into .ini file
++ optional command line parameter to specify the project (and hence the .ini used)
+* completely reworked look-and-feel of the HTML pages created (javadoc like)
+
+v1.0 (09.2001)
+-----------------
+* initial version by Randy

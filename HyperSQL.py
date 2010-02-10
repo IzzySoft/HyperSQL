@@ -6,6 +6,9 @@
     Version 1.0 written by Randy Phillips September 2001
     Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 
+    Version 1.1+ written by Itzchak Rehberg
+    Copyright 2010 Itzchak Rehberg & IzzySoft
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -1034,58 +1037,79 @@ def CreateWhereUsedPages(meta_info):
     print
 
 
+def confName(projName):
+    """ Get the name of the .ini file to use for configuration """
+    if os.path.exists(projName+'.ini'):
+      return projName+'.ini'
+    if os.path.exists(projName.lower()+'.ini'):
+      return projName.lower()+'.ini'
+    if os.path.exists('HyperSQL.ini'):
+      return 'HyperSQL.ini'
+    if os.path.exists('hypersql.ini'):
+      return 'hypersql.ini'
+    return ''
 
+def confGet(sect,opt,default=''):
+    """
+    Get an option from the config as string
+    Parameters: section name, option name, default value
+    """
+    if config.has_option(sect,opt):
+      return config.get(sect,opt)
+    else:
+      return default
+
+def confGetList(sect,opt,default=[]):
+    """
+    Get an option from the config as list
+    Parameters: section name, option name, default value
+    """
+    if config.has_option(sect,opt):
+      return config.get(sect,opt).split(' ')
+    else:
+      return default
+
+def confGetBool(sect,opt,default=False):
+    """
+    Get an option from the config as boolean value
+    Parameters: section name, option name, default value
+    """
+    if config.has_option(sect,opt):
+      return config.getboolean(sect,opt)
+    else:
+      return default
 
 if __name__ == "__main__":
 
-    if len(sys.argv)>1:
-      pname = sys.argv[1]
-    else:
-      pname = 'HyperSQL'
-
-    metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    
-    # Presets
-    top_level_directory = '.'
-    metaInfo.title_prefix  = 'HyperSQL'
-    metaInfo.sql_file_exts = ['sql', 'pkg', 'pkb', 'pks', 'pls']
-    metaInfo.cpp_file_exts = ['c', 'cpp', 'h']
-    metaInfo.css_file      = 'hypersql.css'
-    metaInfo.fileWithPathnamesIndex_FileName = "FileNameIndexWithPathnames.html"
-    metaInfo.fileNoPathnamesIndex_FileName = "FileNameIndexNoPathnames.html"
-    metaInfo.viewIndex_FileName = "ViewIndex.html"
-    metaInfo.packageIndex_FileName = "PackageIndex.html"
-    metaInfo.functionIndex_FileName = "FunctionIndex.html"
-    metaInfo.procedureIndex_FileName = "ProcedureIndex.html"
-    metaInfo.packageFuncProdIndex_FileName = "PackagesWithFuncsAndProcsIndex.html"
-    metaInfo.htmlDir = os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep
-    purgeOnStart = False
-
     # Read the config file
-    configFile = pname + '.ini';
-    print 'Reading config file ' + configFile
-
-    if os.path.exists(configFile):
-      config = ConfigParser.ConfigParser()
+    if len(sys.argv)>1:
+      configFile = confName(sys.argv[1])
+    else:
+      configFile = confName('HyperSQL')
+    config = ConfigParser.ConfigParser()
+    if configFile != '':
+      print 'Reading config file ' + configFile
       config.read(configFile)
-      top_level_directory = config.get('Default','top_level_directory') # directory under which all files will be scanned
-      metaInfo.title_prefix  = config.get('Default','title_prefix')
-      metaInfo.sql_file_exts = config.get('Default','sql_file_exts').split(' ') # Extensions for files to treat as SQL
-      metaInfo.cpp_file_exts = config.get('Default','cpp_file_exts').split(' ') # Extensions for files to treat as C
-      metaInfo.css_file      = config.get('Default','css_file')
-      metaInfo.fileWithPathnamesIndex_FileName = config.get('FileNames','FileWithPathnamesIndex')
-      metaInfo.fileNoPathnamesIndex_FileName   = config.get('FileNames','FileNoPathnamesIndex')
-      metaInfo.viewIndex_FileName = config.get('FileNames','viewIndex')
-      metaInfo.packageIndex_FileName = config.get('FileNames','packageIndex')
-      metaInfo.functionIndex_FileName = config.get('FileNames','functionIndex')
-      metaInfo.procedureIndex_FileName = config.get('FileNames','procedureIndex')
-      metaInfo.packageFuncProdIndex_FileName = config.get('FileNames','packageFuncProdIndex')
-      metaInfo.htmlDir = config.get('FileNames','htmlDir')
-      purgeOnStart = config.getboolean('Default','purge_on_start')
+
+    top_level_directory = confGet('Default','top_level_directory','.') # directory under which all files will be scanned
+    metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
+    metaInfo.title_prefix  = confGet('Default','title_prefix','HyperSQL')
+    metaInfo.sql_file_exts = confGetList('Default','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
+    metaInfo.cpp_file_exts = confGetList('Default','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
+    metaInfo.css_file      = confGet('Default','css_file','hypersql.css')
+    metaInfo.fileWithPathnamesIndex_FileName = confGet('FileNames','FileWithPathnamesIndex','FileNameIndexWithPathnames.html')
+    metaInfo.fileNoPathnamesIndex_FileName   = confGet('FileNames','FileNoPathnamesIndex','FileNameIndexNoPathnames.html')
+    metaInfo.viewIndex_FileName              = confGet('FileNames','viewIndex','ViewIndex.html')
+    metaInfo.packageIndex_FileName           = confGet('FileNames','packageIndex','PackageIndex.html')
+    metaInfo.functionIndex_FileName          = confGet('FileNames','functionIndex','FunctionIndex.html')
+    metaInfo.procedureIndex_FileName         = confGet('FileNames','procedureIndex','ProcedureIndex.html')
+    metaInfo.packageFuncProdIndex_FileName   = confGet('FileNames','packageFuncProdIndex','PackagesWithFuncsAndProcsIndex.html')
+    metaInfo.htmlDir = confGet('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
+    purgeOnStart = confGetBool('Default','purge_on_start',False)
 
     metaInfo.topLevelDirectory = top_level_directory
     metaInfo.scriptName = sys.argv[0]
-    metaInfo.versionString = "1.1" 
+    metaInfo.versionString = "1.2" 
     metaInfo.toDoList = """
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #   TO-DO LIST
@@ -1094,6 +1118,7 @@ if __name__ == "__main__":
     # B) block comments are not ignored (/* comment block */)
     # C) C++ files need doxygen hyperlinks for where used pages
     # D) Scan Java files for where used
+    # E) Scan javadoc style comments
     #
     # If you have an idea for improving hyperSQL, let me know - Randy
     #
