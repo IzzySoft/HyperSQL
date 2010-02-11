@@ -1,0 +1,79 @@
+Support for Javadoc style comments
+==================================
+
+HyperSQL versions after v1.3 include support for Javadoc style comments. There
+is no plausibility check currently, so it's up to you to take care for correct
+spelling, syntax, and logic. Basically, you could define a procedure with an
+return value - sure, PL/SQL doesn't support this - but HyperSQL wouldn't complain.
+Just when writing the HTML code, it would ignore the @return value specified.
+
+Same applies to the other keywords: if your inline documentation contains tags
+unsupported by HyperSQL, they will be silently ignored - so you can keep them in
+the hope they will be added (and file a ticket to request this), all other stuff
+will still be processed. A side effect of this is, you won't be informed about
+possible typos - so maybe I will log those keywords somehow.
+
+
+Description
+-----------
+
+HyperSQLs Javadoc parser is somehow limited - which forces you to stick to its
+rules. Together with those for the syntax highlighter, the good thing about it
+is it enforces a clean coding style ;) Please don't ask for it: These limitations
+will stay. It works this way, and I don't have the time for something more
+sophisticated.
+
+So these are the rules, explained using an example:
+
+  /** This is an example procedure. It does something special.
+   *  I just cannot remember what.
+   * @procedure special
+   * @param in varchar2 command_me The special thing to do
+   * @param in number many_times How often this should be done
+   * @param inout varchar2 the_thing The thing to manipulate
+   * @version $Id$
+   */
+
+Everything between the opening tag ('/**') and the first line starting with '@'
+will be treated as the description. For the overviews, a short description will
+be created from this - by cutting everything following the first "stop mark
+character" (dot, semi colon, line break). So in our example, the short desc
+would be "This is an example procedure."
+
+It is a good idea to start each new line with the star - this way, when browsing
+your code, it is easy to tell how far the comment goes. HyperSQL expects you
+doing so.
+
+All tag information has to be kept in one line - line breaks inside a tag are
+not permitted, and will lead to errors (subsequent lines will be ignored). I
+was too lazy to support multi-line tags, sorry.
+
+Moreover, all Javadoc information for a given object has to be kept in one block,
+i.e. enclosed between '/**' and '*/' - the parser will close at the '*/' mark.
+If you miss the object type, everything else is probably lost (since HyperSQL
+would not know where it belongs to). However, this may still work if your Javadoc
+block starts immediately in the first two lines following the object declaration
+itself, e.g.:
+
+  CREATE OR REPLACE PACKAGE something AS
+    /** This is some package */
+
+This fallback may be made optional in the future, so you can switch it off if
+needed.
+
+
+Supported Tags
+--------------
+
+Object types:
+
+ * @function <name>
+ * @procedure <name>
+ * @view <name>
+ * @pkg <name>
+
+Other tags:
+
+ * @param [in|out|inout] <type> [<name> [<description>]
+ * @return <type> [<name> [<description>]
+ * @version <text>
