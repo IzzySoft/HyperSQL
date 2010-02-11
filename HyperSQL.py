@@ -28,59 +28,83 @@
 
 import os, sys, string, time, ConfigParser, fileinput, re
 
+class JavaDoc:
+    """Object to hold details from javadoc style comments"""
+    def __init__(self):
+        self.lineNumber = -1
+        self.lines = 0
+        self.name = ''
+        self.objectType = ''
+        self.params = []
+        self.retVals = []
+        self.desc = ''
+        self.version = ''
+
+class JavaDocParam:
+    """Parameters passed to a function/Procedure. Used by JavaDoc.params and JavaDoc.retVals"""
+    def __init__(self):
+        self.inout = 'in' # 'in', 'out', or 'inout'. Ignored for retVals
+        self.sqltype = 'VARCHAR2'
+        self.default = ''
+        self.desc = ''
+        self.name = ''
 
 class ViewInfo:
     """ Object to hold information about a view """
     def __init__(self):
-	self.viewName = ""
-	self.lineNumber = -1
-	self.whereUsed = {} # file name key, fileInfo and line number list
-	self.uniqueNumber = 0 # used to create unique file name for where used list
+        self.viewName = ""
+        self.lineNumber = -1
+        self.whereUsed = {} # file name key, fileInfo and line number list
+        self.uniqueNumber = 0 # used to create unique file name for where used list
         self.parent = None
+        self.javadoc = JavaDoc()
 
 class FunctionInfo:
     """ Object to hold information about a function """
     def __init__(self):
-	self.functionName = ""
-	self.lineNumber = -1
-	self.whereUsed = {} # file name key, fileInfo and line number list
-	self.uniqueNumber = 0 # used to create unique file name for where used list
+        self.functionName = ""
+        self.lineNumber = -1
+        self.whereUsed = {} # file name key, fileInfo and line number list
+        self.uniqueNumber = 0 # used to create unique file name for where used list
         self.parent = None
+        self.javadoc = JavaDoc()
 
 class ProcedureInfo:
     """ Object to hold information about a procedure """
     def __init__(self):
-	self.procedureName = ""
-	self.lineNumber = -1
-	self.whereUsed = {} # file name key, fileInfo and line number list
-	self.uniqueNumber = 0 # used to create unique file name for where used list
+        self.procedureName = ""
+        self.lineNumber = -1
+        self.whereUsed = {} # file name key, fileInfo and line number list
+        self.uniqueNumber = 0 # used to create unique file name for where used list
         self.parent = None
+        self.javadoc = JavaDoc()
 
 class PackageInfo:
     """ Object to hold information about a package """
     def __init__(self):
-	self.packageName = ""
-	self.lineNumber = -1
-	self.functionInfoList = []
-	self.procedureInfoList = []
-	self.whereUsed = {} # file name key, fileInfo and line number list
-	self.uniqueNumber = 0 # used to create unique file name for where used list
+        self.packageName = ""
+        self.lineNumber = -1
+        self.functionInfoList = []
+        self.procedureInfoList = []
+        self.whereUsed = {} # file name key, fileInfo and line number list
+        self.uniqueNumber = 0 # used to create unique file name for where used list
         self.parent = None
+        self.javadoc = JavaDoc()
 
 class FileInfo:
     """ Object to hold information about a file """
     def __init__(self):
-	self.fileName = ""
+        self.fileName = ""
         self.fileType = "" # cpp files are only scanned for sql "where used" information
-	self.viewInfoList = []
-	self.packageInfoList = []
-	self.uniqueNumber = 0 # used to create unique file name for where used list
+        self.viewInfoList = []
+        self.packageInfoList = []
+        self.uniqueNumber = 0 # used to create unique file name for where used list
 
 
 class MetaInfo:
     """ Object to hold global information (e.g. configuration options) """
     def __init__(self):
-	self.fileInfoList = []
+        self.fileInfoList = []
         self.fileWithPathnamesIndex_FileName = ""
         self.fileNoPathnamesIndex_FileName = ""
         self.viewIndex_FileName = ""
@@ -162,6 +186,145 @@ def FindFilesAndBuildFileList(dir, fileInfoList, meta_info):
             temp.uniqueNumber = meta_info.NextIndex()
           fileInfoList.append(temp)
 
+def ScanJavaDoc(text,lineno=0):
+    """
+    Scans the text array (param 1) for the javadoc style comments starting at
+    line lineno (param 2). Called from ScanFilesForViewsAndPackages.
+    Returns a list of instances of the JavaDoc class - one instance per javadoc
+    comment block.
+    """
+    elem = 'desc'
+    res  = []
+    opened = False
+    otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
+    tags   = ['param', 'return', 'version'] # other supported tags
+    for lineNumber in range(lineno,len(text)):
+      line = text[lineNumber].strip()
+      if not opened and line[0:3] != '/**':
+        continue
+      if line[0:1] == '*' and line[0:2] != '*/':
+        line = line[1:].strip()
+      if line == '*/':
+        res.append(item)
+        elem = 'desc'
+        opened = False
+        continue
+      if elem == 'desc':
+        if line[0:3] == '/**':
+          opened = True
+          item = JavaDoc()
+          item.lineNumber = lineNumber
+          item.desc += line[3:].strip()
+          continue
+        if line[0:1] != '@':
+          if line[len(line)-2:] == '*/':
+            item.desc += line[0:len(line)-2]
+            res.append(item)
+            opened = False
+            elem = 'desc'
+            continue
+          else:
+            item.desc += ' ' + line
+            continue
+        else:
+          elem = ''
+      if elem == '':
+        if line[0:1] != '@': # unexpected and unsupported
+          continue
+        doc = line.split()
+        tag = doc[0][1:]
+        if tag in otypes: # line describes supported object type + name
+          item.objectType = doc[0][1:]
+          item.name = doc[1]
+        elif tag in tags: # other supported tag
+          if tag == 'param':    # @param inout type [name [desc]]
+            p = JavaDocParam()
+            if doc[1] in ['in','out','inout']:
+              p.inout   = doc[1].upper()
+              p.sqltype = doc[2].upper()
+              if len(doc) > 3:
+                p.name = doc[3]
+                for w in range(4,len(doc)):
+                  p.desc += doc[w] + ' '
+                p.desc = p.desc.strip()
+            else:
+              p.sqltype = doc[1]
+              if len(doc) > 2:
+                p.name = doc[2]
+                for w in range(3,len(doc)):
+                  p.desc += doc[w] + ' '
+                p.desc = p.desc.strip()
+            item.params.append(p)
+          elif tag == 'return': # @return type [name [desc]
+            p = JavaDocParam()
+            p.sqltype = doc[1].upper()
+            if len(doc)>2:
+              p.name = doc[2]
+              for w in range(3,len(doc)):
+                p.desc += doc[w] + ' '
+            item.retVals.append(p)
+          elif tag == 'version':
+            item.version = line[len(tag)+1:].strip()
+        else:             # unsupported tag, ignore
+          continue
+        
+    return res
+
+def JavaDocShortDesc(desc):
+    """
+    Generate a short desc from the given desc
+    Truncates after the first occurence of ".;\n" - whichever from this
+    characters comes first
+    """
+    dot = []
+    if desc.find('.')>0:
+      dot.append( desc.find('.') )
+    if desc.find(';')>0:
+      dot.append( desc.find(';') )
+    if desc.find('\n')>0:
+      dot.append( desc.find('\n') )
+    if len(dot)>0:
+      cut = min(dot)
+      return desc[0:cut]
+    else:
+      return desc
+
+def JavaDocApiElem(jdoc,unum):
+    """
+    Generates HTML block from JavaDoc Api Info for the element passed
+    Param: instance of JavaDoc class, int unique number
+    """
+    html = '<A NAME="'+jdoc.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%" ALIGN="center"><TR><TH>' + jdoc.name + '</TH>\n'
+    html += '<TR><TD><DL>\n';
+    if jdoc.objectType in ['function', 'procedure']:
+      html += '  <DT>Syntax:</DT><DD>' + jdoc.name + ' ('
+      for p in range(len(jdoc.params)):
+        html += jdoc.params[p].name + ' ' + jdoc.params[p].inout + ' ' + jdoc.params[p].sqltype
+        if p<len(jdoc.params):
+          html += ', '
+      html += ')</DD>\n'
+      if len(jdoc.params) > 0:
+        html += ' <DT>Parameters:</DT><DD><UL STYLE="list-style-type: none">'
+        for p in range(len(jdoc.params)):
+          html += '<LI>' + jdoc.params[p].inout + ' ' + jdoc.params[p].sqltype + ' <B>' + jdoc.params[p].name + '</B>'
+          if jdoc.params[p].desc != '':
+            html += ': ' + jdoc.params[p].desc
+          html += '</LI>'
+        html += '</UL></DD>\n'
+      if jdoc.objectType == 'function':
+        html += ' <DT>Return values:</DT><DD><UL STYLE="list-style-type: none">'
+        for p in range(len(jdoc.retVals)):
+          html += '<LI>' + jdoc.retVals[p].sqltype + ' <B>' + jdoc.retVals[p].name + '</B>'
+          if jdoc.retVals[p].desc != '':
+            html += ': ' + jdoc.retVals[p].desc
+          html += '</LI>'
+        html += '</UL></DD>\n'
+    if jdoc.desc != '':
+      html += ' <DT>Description:</DT><DD>' + jdoc.desc + '</DD>\n'
+    if jdoc.version != '':
+      html += '<DT>Version Info:</DT><DD>' + jdoc.version + '</DD>\n'
+    html += '</DL></TD></TR></TABLE>\n'
+    return html
 
 def ScanFilesForViewsAndPackages(meta_info):
     """
@@ -196,6 +359,8 @@ def ScanFilesForViewsAndPackages(meta_info):
 	fileLines = infile.readlines()
 	infile.close()
 
+	# scan this file for possible JavaDoc style comments
+	jdoc = ScanJavaDoc(fileLines)
 
 	# if we find a package definition, this flag tells us to also look for
 	# functions and procedures.  If we don't find a package definition, there
@@ -226,6 +391,10 @@ def ScanFilesForViewsAndPackages(meta_info):
                     view_info.parent = file_info
 		    view_info.viewName = token_list[token_index+2]
 		    view_info.lineNumber = lineNumber
+                    for j in range(len(jdoc)):
+                      ln = jdoc[j].lineNumber - lineNumber
+                      if (CaseInsensitiveComparison(view_info.viewName,jdoc[j].name)==0 and jdoc[j].objectType=='view') or (ln>0 and ln<4):
+                        view_info.javadoc = jdoc[j]
 		    file_info.viewInfoList.append(view_info)
 
 	    # find package definitions - set flag if found
@@ -238,6 +407,10 @@ def ScanFilesForViewsAndPackages(meta_info):
                     package_info.parent = file_info
 		    package_info.packageName = token_list[token_index+2]
 		    package_info.lineNumber = lineNumber
+                    for j in range(len(jdoc)):
+                      ln = jdoc[j].lineNumber - lineNumber
+                      if (CaseInsensitiveComparison(package_info.packageName,jdoc[j].name)==0 and jdoc[j].objectType=='package') or (ln>0 and ln<4):
+                        package_info.javadoc = jdoc[j]
 		    file_info.packageInfoList.append(package_info) # permanent storage
 		    package_count += 1 # use this flag below
 		    
@@ -250,6 +423,10 @@ def ScanFilesForViewsAndPackages(meta_info):
                     function_info.parent = file_info.packageInfoList[package_count]
 		    function_info.functionName = function_name
 		    function_info.lineNumber = lineNumber
+                    for j in range(len(jdoc)):
+                      ln = jdoc[j].lineNumber - lineNumber
+                      if (CaseInsensitiveComparison(function_name,jdoc[j].name)==0 and jdoc[j].objectType=='function') or (ln>0 and ln<4):
+                        function_info.javadoc = jdoc[j]
 		    file_info.packageInfoList[package_count].functionInfoList.append(function_info)
 		    
 		# now find procedures
@@ -259,6 +436,10 @@ def ScanFilesForViewsAndPackages(meta_info):
                     procedure_info.parent = file_info.packageInfoList[package_count]
 		    procedure_info.procedureName = procedure_name
 		    procedure_info.lineNumber = lineNumber
+                    for j in range(len(jdoc)):
+                      ln = jdoc[j].lineNumber - lineNumber
+                      if (CaseInsensitiveComparison(procedure_name,jdoc[j].name)==0 and jdoc[j].objectType=='procedure') or (ln>0 and ln<4):
+                        procedure_info.javadoc = jdoc[j]
 		    file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
     # print carriage return after last dot
@@ -552,7 +733,7 @@ def MakeViewIndex(meta_info):
 	HTMLref += "_" + `view_tuple[2].uniqueNumber` + ".html"
 	HTMLref += "#" + `view_tuple[1].lineNumber`
 	outfile.write("  <TR><TD><A href=\"" + HTMLref + "\">" + view_tuple[1].viewName.lower() + "</A></TD>")
-        outfile.write("<TD>&nbsp;</TD>") # plsqldoc info for the package should go here
+        outfile.write("<TD>" + JavaDocShortDesc(view_tuple[1].javadoc.desc) + "</TD>")
 
 	if len(view_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `view_tuple[1].uniqueNumber` + ".html"
@@ -579,8 +760,8 @@ def MakePackageIndex(meta_info):
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
-	for package_info in file_info.packageInfoList:
-	    packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
+        for package_info in file_info.packageInfoList:
+            packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
@@ -590,14 +771,20 @@ def MakePackageIndex(meta_info):
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
     outfile.write("  <TR><TH>Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
 
-    for package_tuple in packagetuplelist: # list of tuples describing every package
-	# file name and line number as an HTML reference
-	HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
-	HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
-	HTMLref += "#" + `package_tuple[1].lineNumber`
-        outfile.write("  <TR><TD><A href=\"" + HTMLref + "\">" + package_tuple[1].packageName.lower() + "</A></TD>")
-        outfile.write("<TD>&nbsp;</TD>") # plsqldoc info for the package should go here
-	if len(package_tuple[1].whereUsed.keys()) > 0:
+    for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
+        HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
+        HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
+        if package_tuple[1].javadoc.name == '':
+            HTMLjref = ''
+        else:
+            HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + '_' + `package_tuple[1].uniqueNumber`
+        HTMLref += "#" + `package_tuple[1].lineNumber`
+        if HTMLjref == '':
+            outfile.write("  <TR><TD>" + package_tuple[1].packageName.lower() + " <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+        else:
+            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A> <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+        outfile.write("<TD>" + JavaDocShortDesc(package_tuple[1].javadoc.desc) + "</TD>")
+        if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
             outfile.write("<TD><A href=\"" + HTMLwhereusedref + "\">where used list</A></TD></TR>\n")
         else:
@@ -621,8 +808,8 @@ def MakeFunctionIndex(meta_info):
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
-	for package_info in file_info.packageInfoList:
-	    for function_info in package_info.functionInfoList:
+        for package_info in file_info.packageInfoList:
+            for function_info in package_info.functionInfoList:
                 functiontuplelist.append((function_info.functionName.upper(), function_info, file_info, package_info)) # append as tuple for case insensitive sort
 
     functiontuplelist.sort(TupleCompareFirstElements)
@@ -633,15 +820,21 @@ def MakeFunctionIndex(meta_info):
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
     outfile.write("  <TR><TH>Function</TH><TH>from Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
 
-    for function_tuple in functiontuplelist: # list of tuples describing every function
-	# file name and line number as an HTML reference
-	HTMLref = os.path.split(function_tuple[2].fileName)[1].replace(".", "_")
-	HTMLref += "_" + `function_tuple[2].uniqueNumber` + ".html"
-	HTMLref += "#" + `function_tuple[1].lineNumber`
-	outfile.write("  <TR><TD><A href=\"" + HTMLref + "\">" + function_tuple[1].functionName.lower() + "</A></TD>")
+    for function_tuple in functiontuplelist: # list of tuples describing every function file name and line number as an HTML reference
+        HTMLref = os.path.split(function_tuple[2].fileName)[1].replace(".", "_")
+        HTMLref += "_" + `function_tuple[2].uniqueNumber` + ".html"
+        if function_tuple[1].javadoc.name == '':
+            HTMLjref = ''
+        else:
+            HTMLjref = HTMLref + '#' + function_tuple[1].javadoc.name + '_' + `function_tuple[1].uniqueNumber`
+        HTMLref += "#" + `function_tuple[1].lineNumber`
+        if HTMLjref == '':
+            outfile.write("  <TR><TD>" + function_tuple[1].functionName.lower() + " <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+        else:
+            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + function_tuple[1].functionName.lower() + "</A> <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
         outfile.write("<TD>" + function_tuple[3].packageName.lower() + "</TD>")
-        outfile.write("<TD>&nbsp;</TD>") # plsqldoc info for the package should go here
-	if len(function_tuple[1].whereUsed.keys()) > 0:
+        outfile.write("<TD>" + JavaDocShortDesc(function_tuple[1].javadoc.desc) + "</TD>")
+        if len(function_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `function_tuple[1].uniqueNumber` + ".html"
             outfile.write("<TD><A href=\"" + HTMLwhereusedref + "\">where used list</A></TD>\n")
         else:
@@ -666,9 +859,9 @@ def MakeProcedureIndex(meta_info):
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
-	for package_info in file_info.packageInfoList:
-	    for procedure_info in package_info.procedureInfoList:
-		proceduretuplelist.append((procedure_info.procedureName.upper(), procedure_info, file_info, package_info)) # append as tuple for case insensitive sort
+        for package_info in file_info.packageInfoList:
+            for procedure_info in package_info.procedureInfoList:
+                proceduretuplelist.append((procedure_info.procedureName.upper(), procedure_info, file_info, package_info)) # append as tuple for case insensitive sort
 
     proceduretuplelist.sort(TupleCompareFirstElements)
 
@@ -679,15 +872,21 @@ def MakeProcedureIndex(meta_info):
     outfile.write("  <TR><TH>Procedure</TH><TH>from Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
 
     for procedure_tuple in proceduretuplelist: # list of tuples describing every function
-
-	# file name and line number as an HTML reference
-	HTMLref = os.path.split(procedure_tuple[2].fileName)[1].replace(".", "_")
-	HTMLref += "_" + `procedure_tuple[2].uniqueNumber` + ".html"
-	HTMLref += "#" + `procedure_tuple[1].lineNumber`
-	outfile.write("  <TR><TD><A href=\"" + HTMLref + "\">" + procedure_tuple[1].procedureName.lower() + "</A></TD>")
-	outfile.write("<TD>" + procedure_tuple[3].packageName.lower() + "</TD>")
-        outfile.write("<TD>&nbsp;</TD>") # plsqldoc info for the package should go here
-	if len(procedure_tuple[1].whereUsed.keys()) > 0:
+        # file name and line number as an HTML reference
+        HTMLref = os.path.split(procedure_tuple[2].fileName)[1].replace(".", "_")
+        HTMLref += "_" + `procedure_tuple[2].uniqueNumber` + ".html"
+        if procedure_tuple[1].javadoc.name == '':
+            HTMLjref = ''
+        else:
+            HTMLjref = HTMLref + '#' + procedure_tuple[1].javadoc.name + '_' + `procedure_tuple[1].uniqueNumber`
+        HTMLref += "#" + `procedure_tuple[1].lineNumber`
+        if HTMLjref == '':
+            outfile.write("  <TR><TD>" + procedure_tuple[1].procedureName.lower() + " <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+        else:
+            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + procedure_tuple[1].procedureName.lower() + "</A> <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+        outfile.write("<TD>" + procedure_tuple[3].packageName.lower() + "</TD>")
+        outfile.write("<TD>" + JavaDocShortDesc(procedure_tuple[1].javadoc.desc) + "</TD>")
+        if len(procedure_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `procedure_tuple[1].uniqueNumber` + ".html"
             outfile.write("<TD><A href=\"" + HTMLwhereusedref + "\">where used list</A></TD>")
         else:
@@ -711,8 +910,8 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
-	for package_info in file_info.packageInfoList:
-	    packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
+        for package_info in file_info.packageInfoList:
+            packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
@@ -721,35 +920,35 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
     outfile.write("<H1>Index Of All Packages, Their Functions And Procedures</H1>\n")
 
     for package_tuple in packagetuplelist:
-	# file name and line number as an HTML reference
-	HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
-	HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
-	HTMLref += "#" + `package_tuple[1].lineNumber`
+        # file name and line number as an HTML reference
+        HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
+        HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
+        HTMLref += "#" + `package_tuple[1].lineNumber`
         outfile.write("<TABLE CLASS='apilist' ALIGN='center' WIDTH='98%'>\n  <TR><TH COLSPAN='2'>" + package_tuple[1].packageName.lower() + "</TH></TR>\n")
-	outfile.write("  <TR><TD ALIGN='center'><A href=\"" + HTMLref + "\">Code</A>""</TD><TD ALIGN='center'>\n")
-	if len(package_tuple[1].whereUsed.keys()) > 0:
+        outfile.write("  <TR><TD ALIGN='center'><A href=\"" + HTMLref + "\">Code</A>""</TD><TD ALIGN='center'>\n")
+        if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
             outfile.write("<A href=\"" + HTMLwhereusedref + "\">used</A>")
         else:
             outfile.write("no use found by HyperSQL")
         outfile.write("</TD></TR>\n")
 
-	# functions in this package
-	functiontuplelist = []
-	for function_info in package_tuple[1].functionInfoList:
-	    functiontuplelist.append((function_info.functionName.upper(), function_info, package_tuple[2])) # append as tuple for case insensitive sort
+        # functions in this package
+        functiontuplelist = []
+        for function_info in package_tuple[1].functionInfoList:
+            functiontuplelist.append((function_info.functionName.upper(), function_info, package_tuple[2])) # append as tuple for case insensitive sort
 
-	functiontuplelist.sort(TupleCompareFirstElements)
-	if len(functiontuplelist) != 0:
+        functiontuplelist.sort(TupleCompareFirstElements)
+        if len(functiontuplelist) != 0:
             outfile.write("  <TR><TH class='sub' COLSPAN='2'>Functions</TH></TR>\n  <TR><TD COLSPAN='2'>")
             outfile.write("<TABLE ALIGN='center'>\n")
             outfile.write("    <TR><TD ALIGN='center'><B>Function</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
-	for function_tuple in functiontuplelist:
+        for function_tuple in functiontuplelist:
             HTMLref = os.path.split(function_tuple[2].fileName)[1].replace(".", "_")
             HTMLref += "_" + `function_tuple[2].uniqueNumber` + ".html"
             HTMLref += "#" + `function_tuple[1].lineNumber`
-	    outfile.write("    <TR><TD><A href=\"" + HTMLref + "\">" + function_tuple[1].functionName.lower() + "</A></TD>\n")
-            outfile.write("        <TD>&nbsp;</TD>\n") # plsqldoc should go here
+            outfile.write("    <TR><TD><A href=\"" + HTMLref + "\">" + function_tuple[1].functionName.lower() + "</A></TD>\n")
+            outfile.write("<TD>" + JavaDocShortDesc(function_tuple[1].javadoc.desc) + "</TD>")
             outfile.write("        <TD>")
             if len(function_tuple[1].whereUsed.keys()) > 0:
                 HTMLwhereusedref = "where_used_" + `function_tuple[1].uniqueNumber` + ".html"
@@ -757,25 +956,25 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
             else:
                 outfile.write("no use found by HyperSQL")
             outfile.write("</TD></TR>\n")
-	if len(functiontuplelist) != 0:
+        if len(functiontuplelist) != 0:
             outfile.write("</TABLE></TD></TR>\n")
 	    
-	# procedures in this package
-	proceduretuplelist = []
-	for procedure_info in package_tuple[1].procedureInfoList:
-	    proceduretuplelist.append((procedure_info.procedureName.upper(), procedure_info, package_tuple[2])) # append as tuple for case insensitive sort
+        # procedures in this package
+        proceduretuplelist = []
+        for procedure_info in package_tuple[1].procedureInfoList:
+            proceduretuplelist.append((procedure_info.procedureName.upper(), procedure_info, package_tuple[2])) # append as tuple for case insensitive sort
 
-	proceduretuplelist.sort(TupleCompareFirstElements)
-	if len(proceduretuplelist) != 0:
+        proceduretuplelist.sort(TupleCompareFirstElements)
+        if len(proceduretuplelist) != 0:
             outfile.write("  <TR><TH class='sub' COLSPAN='2'>Procedures</TH></TR>\n  <TR><TD COLSPAN='2'>")
             outfile.write("<TABLE ALIGN='center'>\n")
             outfile.write("    <TR><TD ALIGN='center'><B>Procedure</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
-	for procedure_tuple in proceduretuplelist:
+        for procedure_tuple in proceduretuplelist:
             HTMLref = os.path.split(procedure_tuple[2].fileName)[1].replace(".", "_")
             HTMLref += "_" + `procedure_tuple[2].uniqueNumber` + ".html"
             HTMLref += "#" + `procedure_tuple[1].lineNumber`
-	    outfile.write("    <TR><TD><A href=\"" + HTMLref + "\">" + procedure_tuple[1].procedureName.lower() + "</A></TD>\n")
-            outfile.write("        <TD>&nbsp;</TD>\n") # plsqldoc should go here
+            outfile.write("    <TR><TD><A href=\"" + HTMLref + "\">" + procedure_tuple[1].procedureName.lower() + "</A></TD>\n")
+            outfile.write("<TD>" + JavaDocShortDesc(procedure_tuple[1].javadoc.desc) + "</TD>")
             outfile.write("        <TD>")
             if len(procedure_tuple[1].whereUsed.keys()) > 0:
                 HTMLwhereusedref = "where_used_" + `procedure_tuple[1].uniqueNumber` + ".html"
@@ -783,7 +982,7 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
             else:
                 outfile.write("no use found by HyperSQL")
             outfile.write("</TD></TR>\n")
-	if len(proceduretuplelist) != 0:
+        if len(proceduretuplelist) != 0:
             outfile.write("</TABLE></TD></TR>\n")
         outfile.write("</TABLE>\n")
 
@@ -843,6 +1042,70 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         outfile = open(html_dir + outfilename, "w")
         outfile.write(MakeHTMLHeader(meta_info, file_info.fileName[len(top_level_directory)+1:]))
         outfile.write("<H1>" + file_info.fileName[len(top_level_directory)+1:] + "</H1>\n")
+
+        # ===[ JAVADOC STARTS HERE ]===
+        # Do we have views in this file?
+        viewdetails = '\n\n'
+        if len(file_info.viewInfoList) > 0:
+            print 'We have views here'
+
+        # Do we have packages in this file?
+        packagedetails = '\n\n'
+        if len(file_info.packageInfoList) > 0:
+            outfile.write('<H2 CLASS="api">Package Overview</H2>\n')
+            outfile.write('<TABLE CLASS="apilist" ALIGN="center">\n')
+            for p in range(len(file_info.packageInfoList)):
+                outfile.write(' <TR><TH COLSPAN="2">' + file_info.packageInfoList[p].packageName + '</TH></TR>\n')
+                outfile.write(' <TR><TD COLSPAN="2">' + file_info.packageInfoList[p].javadoc.desc + '</TD></TR>\n')
+                # Check the packages for functions
+                if len(file_info.packageInfoList[p].functionInfoList) > 0:
+                    packagedetails += '<A NAME="#funcs"></A><H2>Functions</H2>\n';
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Functions</TH></TR>\n')
+                    for item in file_info.packageInfoList[p].functionInfoList:
+                        if item.javadoc.name != '':
+                            iname = '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
+                            idesc = JavaDocShortDesc(item.javadoc.desc)
+                        else:
+                            iname = item.functionName
+                            idesc = ''
+                        outfile.write(' <TR><TD>'+iname)
+                        outfile.write('<SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
+                        outfile.write(' (')
+                        if len(item.javadoc.params) > 0:
+                            ph = ''
+                            for par in item.javadoc.params:
+                                ph += ', '+par.sqltype+' '+par.name
+                            outfile.write(ph[2:])
+                        outfile.write(')</TD><TD>'+idesc+'</TD></TR>\n')
+                        packagedetails += JavaDocApiElem(item.javadoc,item.uniqueNumber)
+                # Check the packages for procedures
+                if len(file_info.packageInfoList[p].procedureInfoList) > 0:
+                    packagedetails += '<A NAME="#procs"></A><H2>Procedures</H2>\n';
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Procedures</TH></TR>\n')
+                    for item in file_info.packageInfoList[p].procedureInfoList:
+                        if item.javadoc.name != '':
+                            iname = '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
+                            idesc = JavaDocShortDesc(item.javadoc.desc)
+                        else:
+                            iname = item.procedureName
+                            idesc = ''
+                        outfile.write(' <TR><TD>'+iname)
+                        outfile.write('<SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
+                        outfile.write(' (')
+                        if len(item.javadoc.params) > 0:
+                            ph = ''
+                            for par in item.javadoc.params:
+                                ph += ', '+par.sqltype+' '+par.name
+                            outfile.write(ph[2:])
+                        outfile.write(')</TD><TD>'+idesc+'</TD></TR>\n')
+                        packagedetails += JavaDocApiElem(item.javadoc,item.uniqueNumber)
+            outfile.write('</TABLE>\n\n')
+
+        outfile.write(viewdetails)
+        outfile.write(packagedetails)
+        # ===[ JAVADOC END ]===
+
+        outfile.write('<H2>Source</H2>\n')
 
         # use non-linw-wrapping monospaced font, text is preformatted in terms of whitespace
         outfile.write('<code><pre><br>')
