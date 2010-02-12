@@ -15,6 +15,11 @@ body, table, td, th {
   font-family: Verdana, Arial, Helvetica, sans-serif
 }
 
+dt {
+  font-weight: bold;
+  font-style: italic;
+}
+
 /*
  * Code Formatting
  */

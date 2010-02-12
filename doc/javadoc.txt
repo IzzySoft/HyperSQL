@@ -77,3 +77,7 @@ Other tags:
  * @param [in|out|inout] <type> [<name> [<description>]
  * @return <type> [<name> [<description>]
  * @version <text>
+ * @author <text>
+ * @info <text>
+ * @example <text>
+ * @todo <text>

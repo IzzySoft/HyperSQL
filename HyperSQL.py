@@ -26,7 +26,8 @@
     Author contact information: randy-san@users.sourceforge.net
 """
 
-import os, sys, string, time, ConfigParser, fileinput, re
+import os, sys, string, time, ConfigParser, fileinput
+from cgi import escape
 
 class JavaDoc:
     """Object to hold details from javadoc style comments"""
@@ -39,6 +40,10 @@ class JavaDoc:
         self.retVals = []
         self.desc = ''
         self.version = ''
+        self.author = ''
+        self.info = ''
+        self.example = ''
+        self.todo = ''
 
 class JavaDocParam:
     """Parameters passed to a function/Procedure. Used by JavaDoc.params and JavaDoc.retVals"""
@@ -197,7 +202,7 @@ def ScanJavaDoc(text,lineno=0):
     res  = []
     opened = False
     otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
-    tags   = ['param', 'return', 'version'] # other supported tags
+    tags   = ['param', 'return', 'version', 'author', 'info', 'example', 'todo'] # other supported tags
     for lineNumber in range(lineno,len(text)):
       line = text[lineNumber].strip()
       if not opened and line[0:3] != '/**':
@@ -265,6 +270,14 @@ def ScanJavaDoc(text,lineno=0):
             item.retVals.append(p)
           elif tag == 'version':
             item.version = line[len(tag)+1:].strip()
+          elif tag == 'author':
+            item.author = line[len(tag)+1:].strip()
+          elif tag == 'info':
+            item.info = line[len(tag)+1:].strip()
+          elif tag == 'example':
+            item.example = line[len(tag)+1:].strip()
+          elif tag == 'todo':
+            item.todo = line[len(tag)+1:].strip()
         else:             # unsupported tag, ignore
           continue
         
@@ -295,35 +308,44 @@ def JavaDocApiElem(jdoc,unum):
     Param: instance of JavaDoc class, int unique number
     """
     html = '<A NAME="'+jdoc.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%" ALIGN="center"><TR><TH>' + jdoc.name + '</TH>\n'
-    html += '<TR><TD><DL>\n';
+    html += '<TR><TD>\n';
+    if jdoc.desc != '':
+      html += '  <DIV CLASS="jd_desc">' + jdoc.desc + '</DIV>\n'
+    html += '  <DL>'
     if jdoc.objectType in ['function', 'procedure']:
-      html += '  <DT>Syntax:</DT><DD>' + jdoc.name + ' ('
+      html += '  <DT>Syntax:</DT><DD><DIV STYLE="margin-left:15px;text-indent:-15px;">' + jdoc.name + ' ('
       for p in range(len(jdoc.params)):
         html += jdoc.params[p].name + ' ' + jdoc.params[p].inout + ' ' + jdoc.params[p].sqltype
-        if p<len(jdoc.params):
+        if p<len(jdoc.params)-1:
           html += ', '
-      html += ')</DD>\n'
+      html += ')</DIV></DD>\n'
       if len(jdoc.params) > 0:
-        html += ' <DT>Parameters:</DT><DD><UL STYLE="list-style-type: none">'
+        html += ' <DT>Parameters:</DT><DD>'
         for p in range(len(jdoc.params)):
-          html += '<LI>' + jdoc.params[p].inout + ' ' + jdoc.params[p].sqltype + ' <B>' + jdoc.params[p].name + '</B>'
+          html += '<DIV STYLE="margin-left:15px;text-indent:-15px;">' + jdoc.params[p].inout + ' ' + jdoc.params[p].sqltype + ' <B>' + jdoc.params[p].name + '</B>'
           if jdoc.params[p].desc != '':
             html += ': ' + jdoc.params[p].desc
-          html += '</LI>'
-        html += '</UL></DD>\n'
+          html += '</DIV>'
+        html += '</DD>\n'
       if jdoc.objectType == 'function':
-        html += ' <DT>Return values:</DT><DD><UL STYLE="list-style-type: none">'
+        html += ' <DT>Return values:</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
         for p in range(len(jdoc.retVals)):
           html += '<LI>' + jdoc.retVals[p].sqltype + ' <B>' + jdoc.retVals[p].name + '</B>'
           if jdoc.retVals[p].desc != '':
             html += ': ' + jdoc.retVals[p].desc
           html += '</LI>'
         html += '</UL></DD>\n'
-    if jdoc.desc != '':
-      html += ' <DT>Description:</DT><DD>' + jdoc.desc + '</DD>\n'
+    if jdoc.example != '':
+      html += '<DT>Example Usage:</DT><DD>' + jdoc.example + '</DD>'
+    if jdoc.author != '':
+      html += '<DT>Author:</DT><DD>' +jdoc.author + '</DD>'
     if jdoc.version != '':
-      html += '<DT>Version Info:</DT><DD>' + jdoc.version + '</DD>\n'
-    html += '</DL></TD></TR></TABLE>\n'
+      html += '<DT>Version Info:</DT><DD>' + jdoc.version + '</DD>'
+    if jdoc.info != '':
+      html += '<DT>Additional Info:</DT><DD>' +jdoc.info + '</DD>'
+    if jdoc.todo != '':
+      html += '<DT>TODO:</DT><DD>' +jdoc.todo + '</DD>'
+    html += '\n</DL></TD></TR></TABLE>\n'
     return html
 
 def ScanFilesForViewsAndPackages(meta_info):
@@ -609,7 +631,7 @@ def MakeHTMLHeader(meta_info, title_name):
     """Generates common HTML header with menu for all pages"""
 
     s =  '<html><head>\n'
-    s += '  <TITLE>' + metaInfo.title_prefix + ': ' + title_name + '</TITLE>'
+    s += '  <TITLE>' + metaInfo.title_prefix + ': ' + title_name + '</TITLE>\n'
     s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + metaInfo.css_file + '">\n'
     s += '</head><body>\n'
     s += MakeNavBar()
@@ -1055,11 +1077,26 @@ def CreateHyperlinkedSourceFilePages(meta_info):
             outfile.write('<H2 CLASS="api">Package Overview</H2>\n')
             outfile.write('<TABLE CLASS="apilist" ALIGN="center">\n')
             for p in range(len(file_info.packageInfoList)):
+                jdoc = file_info.packageInfoList[p].javadoc
                 outfile.write(' <TR><TH COLSPAN="2">' + file_info.packageInfoList[p].packageName + '</TH></TR>\n')
-                outfile.write(' <TR><TD COLSPAN="2">' + file_info.packageInfoList[p].javadoc.desc + '</TD></TR>\n')
+                outfile.write(' <TR><TD COLSPAN="2">')
+                if jdoc.desc != '':
+                  outfile.write('<DIV>' + jdoc.desc + '</DIV>')
+                if jdoc.version !='' or jdoc.author != '' or jdoc.info != '' or jdoc.todo != '':
+                  outfile.write('<DL>')
+                  if jdoc.author != '':
+                    outfile.write('<DT>Author:</DT><DD>' + jdoc.author + '</DD>')
+                  if jdoc.version != '':
+                    outfile.write('<DT>Version:</DT><DD>' + jdoc.version + '</DD>')
+                  if jdoc.info != '':
+                    outfile.write('<DT>Additional Information:</DT><DD>' + jdoc.info + '</DD>')
+                  if jdoc.todo != '':
+                    outfile.write('<DT>TODO:</DT><DD>' + jdoc.todo + '</DD>')
+                  outfile.write('</DL>')
+                outfile.write('</TD></TR>\n')
                 # Check the packages for functions
                 if len(file_info.packageInfoList[p].functionInfoList) > 0:
-                    packagedetails += '<A NAME="#funcs"></A><H2>Functions</H2>\n';
+                    packagedetails += '<A NAME="funcs"></A><H2>Functions</H2>\n';
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Functions</TH></TR>\n')
                     for item in file_info.packageInfoList[p].functionInfoList:
                         if item.javadoc.name != '':
@@ -1068,7 +1105,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                         else:
                             iname = item.functionName
                             idesc = ''
-                        outfile.write(' <TR><TD>'+iname)
+                        outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
                         outfile.write('<SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
                         outfile.write(' (')
                         if len(item.javadoc.params) > 0:
@@ -1076,11 +1113,11 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                             for par in item.javadoc.params:
                                 ph += ', '+par.sqltype+' '+par.name
                             outfile.write(ph[2:])
-                        outfile.write(')</TD><TD>'+idesc+'</TD></TR>\n')
+                        outfile.write(')</DIV></TD><TD>'+idesc+'</TD></TR>\n')
                         packagedetails += JavaDocApiElem(item.javadoc,item.uniqueNumber)
                 # Check the packages for procedures
                 if len(file_info.packageInfoList[p].procedureInfoList) > 0:
-                    packagedetails += '<A NAME="#procs"></A><H2>Procedures</H2>\n';
+                    packagedetails += '<A NAME="procs"></A><H2>Procedures</H2>\n';
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Procedures</TH></TR>\n')
                     for item in file_info.packageInfoList[p].procedureInfoList:
                         if item.javadoc.name != '':
@@ -1089,7 +1126,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                         else:
                             iname = item.procedureName
                             idesc = ''
-                        outfile.write(' <TR><TD>'+iname)
+                        outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
                         outfile.write('<SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
                         outfile.write(' (')
                         if len(item.javadoc.params) > 0:
@@ -1097,7 +1134,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                             for par in item.javadoc.params:
                                 ph += ', '+par.sqltype+' '+par.name
                             outfile.write(ph[2:])
-                        outfile.write(')</TD><TD>'+idesc+'</TD></TR>\n')
+                        outfile.write(')</DIV></TD><TD>'+idesc+'</TD></TR>\n')
                         packagedetails += JavaDocApiElem(item.javadoc,item.uniqueNumber)
             outfile.write('</TABLE>\n\n')
 
@@ -1105,12 +1142,13 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         outfile.write(packagedetails)
         # ===[ JAVADOC END ]===
 
-        outfile.write('<H2>Source</H2>\n')
+        outfile.write('\n<H2>Source</H2>\n')
 
         # use non-linw-wrapping monospaced font, text is preformatted in terms of whitespace
         outfile.write('<code><pre><br>')
 
         for line_number in range(len(infile_line_list)):
+            infile_line_list[line_number] = escape(infile_line_list[line_number])
             if infile_line_list[line_number].strip()[0:2]=='--':
               text = '<SPAN CLASS="sqlcomment">' + infile_line_list[line_number] + '</SPAN>'
             else:
@@ -1145,7 +1183,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                   else:
                     text += schar + selem + echar + ' '
                 else: # 1 for now
-                  text += schar + selem + echar
+                  text += ' ' + schar + selem + echar
               if commentmode==1:
                 text += '</SPAN>'
               text += "\n"

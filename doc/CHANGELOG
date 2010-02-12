@@ -5,6 +5,8 @@ v1.3 (10.02.2010)
 + adding more code comments for better code documentation
 + adding apidoc (doc/apidoc/*), including a tiny shell script to generate it
 + added very basic syntax highlighting to the (SQL) source code presentation
+! source code had been included into the page without escaping HTML chars,
+  which sometimes lead to strange behavior in the browser
 
 v1.2 (10.02.2010)
 -----------------
