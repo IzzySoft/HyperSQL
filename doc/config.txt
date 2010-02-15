@@ -1,0 +1,43 @@
+Configuration
+=============
+
+Configuration takes place using *.ini files. With HyperSQL.ini, the distribution
+ships an example - which is also used as the default configuration file if you
+do not specify a project. Its organization will probably be reworked for v2.0 -
+but stay as it is until v1.5. The configuration file has multiple sections:
+
+General
+-------
+
+As the name suggests, this section serves some general settings:
+
+ * top_level_directory: the top level directory of the source code to parse.
+   HyperSQL will investigate all directories below this recursively.
+ * sql_file_exts: specify extensions of files to be treated as SQL files. Separate
+   multiple extensions using spaces.
+ * cpp_file_exts: the similar for C++ files
+ * css_file: the stylesheet file to include in the generated HTML pages
+ * title_prefix: prefix for the HTML title on generated pages
+ * project_info: a short text describing your project. This will be included
+   with the main index page.
+ * project_logo: [path and] filename of a graphics file to be used as logo on the
+   main index page
+ * purge_on_start: whether to purge the target HTML directory from files of
+   previous runs (if any) before generating new ones 
+
+FileNames
+---------
+
+All about file names - concerning the target HTML files:
+
+ * rcsnames: directory names to exclude from parsing (below the
+   top_level_directory)
+ * fileWithPathnamesIndex: the HTML file for the File Index With Pathnames
+ * fileNoPathnamesIndex: similar for File Index Without Pathnames
+ * viewIndex: similar for the views listing
+ * packageIndex: and for the package index
+ * functionIndex: guessed right, HTML file for the function index
+ * procedureIndex: procedure index HTML file
+ * packageFuncProdIndex: Index of packages including all their functions and
+   procedures
+ * htmldir: where the HTML output should go to

@@ -34,14 +34,16 @@ Features
 * generates "where used" lists, to show where your objects have been used
   by other objects (if they have) - helps you to find unused code if not,
   or example usages if found
+* generates Javadoc like documentation if you used Javadoc style documentation
+  with your code (see javadoc.txt)
 
 Usage
 -----
 
 There's not much to say about:
 
-* Check the HyperSQL.ini file for configuration. Optionally make a copy, and
-  adjust it to your needs
+* Check the HyperSQL.ini file for configuration (see config.txt). Optionally
+  make a copy, and adjust it to your needs
 * Run HyperSQL.py without any parameter (uses HyperSQL.ini located in the
   directory you are in) to parse the code from below the directory you
   specified in HyperSQL.ini, and generates HTML in the specified output directory

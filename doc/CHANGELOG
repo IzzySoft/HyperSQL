@@ -1,5 +1,13 @@
 # History of Changes for HyperSQL
 
+v1.4
+-----------------
++ added Javadoc parsing and creating of Javadoc documentation
++ added some more configuration options
++ added more documentation (especially for Javadoc and configuration)
+! some formatting issues fixed
+* reworked main index (startpage)
+
 v1.3 (10.02.2010)
 -----------------
 + adding more code comments for better code documentation
