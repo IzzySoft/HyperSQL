@@ -81,3 +81,9 @@ Other tags:
  * @info <text>
  * @example <text>
  * @todo <text>
+ * @bug <text>
+ * @copyright <text>
+ * @deprecated <text>
+ * @private
+ * @see <txt>
+ * @webpage <text>
