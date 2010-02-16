@@ -833,7 +833,7 @@ def MakePackageIndex(meta_info):
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
         HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
         HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
-        if package_tuple[1].javadoc.name == '':
+        if package_tuple[1].javadoc.isDefault():
             HTMLjref = ''
         else:
             HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + '_' + `package_tuple[1].uniqueNumber`
@@ -883,12 +883,12 @@ def MakeFunctionIndex(meta_info):
         # HTML[j]ref links to function Code / [ApiDoc]
         HTMLref = os.path.split(function_tuple[2].fileName)[1].replace(".", "_")
         HTMLref += "_" + `function_tuple[2].uniqueNumber` + ".html"
-        if function_tuple[1].javadoc.name == '':
+        if function_tuple[1].javadoc.isDefault():
             HTMLjref = ''
         else:
             HTMLjref = HTMLref + '#' + function_tuple[1].javadoc.name + '_' + `function_tuple[1].uniqueNumber`
         # HTMLp[j]ref links to package Code [ApiDoc]
-        if function_tuple[3].javadoc.name == '':
+        if function_tuple[3].javadoc.isDefault():
             HTMLpjref = ''
         else:
             HTMLpjref = HTMLref + '#' + function_tuple[3].packageName.lower() + '_' + `function_tuple[3].uniqueNumber`
@@ -947,12 +947,12 @@ def MakeProcedureIndex(meta_info):
         # HTML[j]ref links to procedure Code [ApiDoc]
         HTMLref = os.path.split(procedure_tuple[2].fileName)[1].replace(".", "_")
         HTMLref += "_" + `procedure_tuple[2].uniqueNumber` + ".html"
-        if procedure_tuple[1].javadoc.name == '':
+        if procedure_tuple[1].javadoc.isDefault():
             HTMLjref = ''
         else:
             HTMLjref = HTMLref + '#' + procedure_tuple[1].javadoc.name + '_' + `procedure_tuple[1].uniqueNumber`
         # HTMLp[j]ref links to package Code [ApiDoc]
-        if procedure_tuple[3].javadoc.name == '':
+        if procedure_tuple[3].javadoc.isDefault():
             HTMLpjref = ''
         else:
             HTMLpjref = HTMLref + '#' + procedure_tuple[3].packageName.lower() + '_' + `procedure_tuple[3].uniqueNumber`
@@ -1006,7 +1006,7 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
         # file name and line number as an HTML reference
         HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
         HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
-        if package_tuple[1].javadoc.name == '':
+        if package_tuple[1].javadoc.isDefault():
             HTMLjref = ''
         else:
             HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + `package_tuple[1].uniqueNumber`
@@ -1139,7 +1139,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         # Do we have views in this file?
         viewdetails = '\n\n'
         if len(file_info.viewInfoList) > 0:
-            print 'We have views here'
+            #print 'We have views here'
 
         # Do we have packages in this file?
         packagedetails = '\n\n'
@@ -1562,7 +1562,7 @@ if __name__ == "__main__":
 
     metaInfo.topLevelDirectory = top_level_directory
     metaInfo.scriptName = sys.argv[0]
-    metaInfo.versionString = "1.4" 
+    metaInfo.versionString = "1.5" 
     metaInfo.toDoList = """
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #   TO-DO LIST
