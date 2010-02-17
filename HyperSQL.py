@@ -51,6 +51,7 @@ class JavaDoc:
         self.private = False
         self.see = ''
         self.webpage = ''
+        self.license = ''
     def isDefault(self):
         """Check if this is just an empty dummy (True), or if any real data have been assigned (False)"""
         if self.lineNumber != -1: return False
@@ -215,7 +216,7 @@ def ScanJavaDoc(text,lineno=0):
     otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
-              'see', 'webpage'] # other supported tags
+              'see', 'webpage', 'license'] # other supported tags
     for lineNumber in range(lineno,len(text)):
       line = text[lineNumber].strip()
       if not opened and line[0:3] != '/**':
@@ -303,6 +304,8 @@ def ScanJavaDoc(text,lineno=0):
             item.see = line[len(tag)+1:].strip()
           elif tag == 'webpage':
             item.webpage = line[len(tag)+1:].strip()
+          elif tag == 'license':
+            item.license = line[len(tag)+1:].strip()
         else:             # unsupported tag, ignore
           continue
         
@@ -368,6 +371,8 @@ def JavaDocApiElem(jdoc,unum):
       html += '<DT>Author:</DT><DD>' + jdoc.author + '</DD>'
     if jdoc.copyright != '':
       html += '<DT>Copyright:</DT><DD>' + jdoc.copyright + '</DD>'
+    if jdoc.license != '':
+      html += '<DT>License:</DT><DD>' + jdoc.license + '</DD>'
     if jdoc.webpage != '':
       html += '<DT>Webpage:</DT><DD><A HREF="' + jdoc.webpage + '">' + jdoc.webpage + '</A></DD>'
     if jdoc.bug != '':
@@ -516,128 +521,130 @@ def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
 
     outerfileInfoList = []
     for file_info in fileInfoList:
-    	outerfileInfoList.append(file_info)
+        outerfileInfoList.append(file_info)
 
     dot_count = 1
     for outer_file_info in outerfileInfoList:
-	# print a . every file
-	sys.stdout.write(".")
-	sys.stdout.flush()
-	if (dot_count % 60) == 0: # carriage return every 60 dots
-	    print
-	    sys.stdout.flush()
-	dot_count += 1
-	
-	infile = open(outer_file_info.fileName, "r")
-	fileLines = infile.readlines()
-	infile.close()
+        # print a . every file
+        sys.stdout.write(".")
+        sys.stdout.flush()
+        if (dot_count % 60) == 0: # carriage return every 60 dots
+            print
+            sys.stdout.flush()
+        dot_count += 1
 
-	# if we find a package definition, this flag tells us to also look for
-	# functions and procedures.  If we don't find a package definition, there
-	# is no reason to look for them
-	package_count = -1
+        infile = open(outer_file_info.fileName, "r")
+        fileLines = infile.readlines()
+        infile.close()
 
-	for lineNumber in range(len(fileLines)):
+        # if we find a package definition, this flag tells us to also look for
+        # functions and procedures.  If we don't find a package definition, there
+        # is no reason to look for them
+        package_count = -1
 
-	    token_list = fileLines[lineNumber].split()
+        for lineNumber in range(len(fileLines)):
 
-	    # ignore very short lines
-	    if len(token_list) < 2:
-		continue
+            token_list = fileLines[lineNumber].split()
 
-	    # ignore lines that begin with comments
-	    if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
-		continue
+            # ignore very short lines - commented out, since otherwise some where_useds are not found
+            #if len(token_list) < 2:
+            #    print 'SKIPPED: ' + fileLines[lineNumber]
+            #    continue
 
-	    # usage only, no creates, replace, force views packages functions or procedures
-	    usage_flag = 1
-	    for token_index in range(len(token_list)):
+            # ignore lines that begin with comments
+            if len(token_list) > 0:
+                if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
+                    continue
 
-		# look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
-		if len(token_list) > token_index+1 \
-		and token_list[token_index+1].upper() == "VIEW" \
-		and (token_list[token_index].upper() == "CREATE" \
-		    or token_list[token_index].upper() == "REPLACE" \
-		    or token_list[token_index].upper() == "FORCE"):
-		    # we are creating, forcing, or replacing - not using.  Set flag to 0
-		    usage_flag = 0
+            # usage only, no creates, replace, force views packages functions or procedures
+            usage_flag = 1
+            for token_index in range(len(token_list)):
 
-		# look for PACKAGE BODY x IS, making sure enough tokens exist
-		if token_list[token_index].upper() == "PACKAGE" \
-		and len(token_list) > token_index+2 \
-		and token_list[token_index+1].upper() == "BODY":
-		    package_count += 1 # set flag
-		    usage_flag = 0
+                # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
+                if len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "VIEW" \
+                and (token_list[token_index].upper() == "CREATE" \
+                    or token_list[token_index].upper() == "REPLACE" \
+                    or token_list[token_index].upper() == "FORCE"):
+                    # we are creating, forcing, or replacing - not using.  Set flag to 0
+                    usage_flag = 0
 
-		# if a package definition was found, look for functions and procedures
-		if package_count != -1:
-		    # first find functions
-		    if token_list[0] == "FUNCTION" and len(token_list) > 1:
-			usage_flag = 0
-		    # now find procedures
-		    if token_list[0] == "PROCEDURE" and len(token_list) > 1:
-			usage_flag = 0
+                # look for PACKAGE BODY x IS, making sure enough tokens exist
+                if token_list[token_index].upper() == "PACKAGE" \
+                and len(token_list) > token_index+2 \
+                and token_list[token_index+1].upper() == "BODY":
+                    package_count += 1 # set flag
+                    usage_flag = 0
 
-	    if usage_flag == 0:
-		continue
+                # if a package definition was found, look for functions and procedures
+                if package_count != -1:
+                    # first find functions
+                    if token_list[0] == "FUNCTION" and len(token_list) > 1:
+                        usage_flag = 0
+                    # now find procedures
+                    if token_list[0] == "PROCEDURE" and len(token_list) > 1:
+                        usage_flag = 0
 
-	    # Loop through all previously found views and packages to see if they are used in this line of text
-	    for inner_file_info in fileInfoList:
+            if usage_flag == 0:
+                continue
 
-		# if this FileInfo instance has views
-		if len(inner_file_info.viewInfoList) != 0:
-		    for view_info in inner_file_info.viewInfoList:
-			# perform case insensitive find
-			if fileLines[lineNumber].upper().find(view_info.viewName.upper()) != -1:
-			    if outer_file_info.fileName not in view_info.whereUsed.keys():
-				view_info.whereUsed[outer_file_info.fileName] = []
-				view_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-			    else:
-				view_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-			    # generate a unique number for use in making where used file if needed
-			    if view_info.uniqueNumber == 0:
+            # Loop through all previously found views and packages to see if they are used in this line of text
+            for inner_file_info in fileInfoList:
+
+                # if this FileInfo instance has views
+                if len(inner_file_info.viewInfoList) != 0:
+                    for view_info in inner_file_info.viewInfoList:
+                        # perform case insensitive find
+                        if fileLines[lineNumber].upper().find(view_info.viewName.upper()) != -1:
+                            if outer_file_info.fileName not in view_info.whereUsed.keys():
+                                view_info.whereUsed[outer_file_info.fileName] = []
+                                view_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            else:
+                                view_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            # generate a unique number for use in making where used file if needed
+                            if view_info.uniqueNumber == 0:
                                 view_info.uniqueNumber = meta_info.NextIndex()
 
 
-		# if this FileInfo instance has packages
-		if len(inner_file_info.packageInfoList) != 0:
-		    for package_info in inner_file_info.packageInfoList:
+                # if this FileInfo instance has packages
+                if len(inner_file_info.packageInfoList) != 0:
+                    for package_info in inner_file_info.packageInfoList:
 
-			# perform case insensitive find, this is "package name"."function or procedure name"
-			if fileLines[lineNumber].upper().find(package_info.packageName.upper() + ".") != -1:
+                        # perform case insensitive find, this is "package name"."function or procedure name"
+                        if fileLines[lineNumber].upper().find(package_info.packageName.upper() + ".") != -1:
 
-			    if outer_file_info.fileName not in package_info.whereUsed.keys():
-				package_info.whereUsed[outer_file_info.fileName] = []
-				package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-			    else:
-				package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-			    # generate a unique number for use in making where used file if needed
-			    if package_info.uniqueNumber == 0:
+                            if outer_file_info.fileName not in package_info.whereUsed.keys():
+                                package_info.whereUsed[outer_file_info.fileName] = []
+                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            else:
+                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            # generate a unique number for use in making where used file if needed
+                            if package_info.uniqueNumber == 0:
                                 package_info.uniqueNumber = meta_info.NextIndex()
 
-			    #look for any of this packages' functions
-			    for function_info in package_info.functionInfoList:
-				# perform case insensitive find
-				if fileLines[lineNumber].upper().find(package_info.packageName.upper() + "." \
-								      + function_info.functionName.upper()) != -1:
-				    if outer_file_info.fileName not in function_info.whereUsed.keys():
-					function_info.whereUsed[outer_file_info.fileName] = []
-					function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-				    else:
-					function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            #look for any of this packages' functions
+                            for function_info in package_info.functionInfoList:
+                                # perform case insensitive find
+                                if fileLines[lineNumber].upper().find(package_info.packageName.upper() + "." \
+                                  + function_info.functionName.upper()) != -1:
+                                    if outer_file_info.fileName not in function_info.whereUsed.keys():
+                                        function_info.whereUsed[outer_file_info.fileName] = []
+                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                                    else:
+                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                                     # generate a unique number for use in making where used file if needed
                                     if function_info.uniqueNumber == 0:
                                         function_info.uniqueNumber = meta_info.NextIndex()
-			    #look for any of this packages procedures
-			    for procedure_info in package_info.procedureInfoList:
-				# perform case insensitive find
-				if fileLines[lineNumber].upper().find(package_info.packageName.upper() + "." \
-								      + procedure_info.procedureName.upper()) != -1:
-				    if outer_file_info.fileName not in procedure_info.whereUsed.keys():
-					procedure_info.whereUsed[outer_file_info.fileName] = []
-					procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-				    else:
-					procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            #look for any of this packages procedures
+                            for procedure_info in package_info.procedureInfoList:
+                                # perform case insensitive find
+                                if fileLines[lineNumber].upper().find(package_info.packageName.upper() + "." \
+                                  + procedure_info.procedureName.upper()) != -1:
+                                    if outer_file_info.fileName not in procedure_info.whereUsed.keys():
+                                        procedure_info.whereUsed[outer_file_info.fileName] = []
+                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                                    else:
+                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                                     # generate a unique number for use in making where used file if needed
                                     if procedure_info.uniqueNumber == 0:
                                         procedure_info.uniqueNumber = meta_info.NextIndex()
@@ -1139,7 +1146,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         # Do we have views in this file?
         viewdetails = '\n\n'
         if len(file_info.viewInfoList) > 0:
-            #print 'We have views here'
+            print 'We have views here'
 
         # Do we have packages in this file?
         packagedetails = '\n\n'
@@ -1158,10 +1165,22 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                     outfile.write('<DT>Author:</DT><DD>' + jdoc.author + '</DD>')
                   if jdoc.version != '':
                     outfile.write('<DT>Version:</DT><DD>' + jdoc.version + '</DD>')
+                  if jdoc.copyright != '':
+                    outfile.write('<DT>Copyright:</DT><DD>' + jdoc.copyright + '</DD>')
+                  if jdoc.license != '':
+                    outfile.write('<DT>License:</DT><DD>' + jdoc.license + '</DD>')
+                  if jdoc.webpage != '':
+                    outfile.write('<DT>Webpage:</DT><DD><A HREF="' + jdoc.webpage + '">' + jdoc.webpage + '</A></DD>')
+                  if jdoc.see != '':
+                    outfile.write('<DT>See also:</DT><DD>' + jdoc.see + '</DD>')
                   if jdoc.info != '':
                     outfile.write('<DT>Additional Information:</DT><DD>' + jdoc.info + '</DD>')
                   if jdoc.todo != '':
                     outfile.write('<DT>TODO:</DT><DD>' + jdoc.todo + '</DD>')
+                  if jdoc.bug != '':
+                    outfile.write('<DT>BUG:</DT><DD>' + jdoc.bug + '</DD>')
+                  if jdoc.deprecated != '':
+                    outfile.write('<DT>DEPRECATED:</DT><DD>' + jdoc.deprecated + '</DD>')
                   outfile.write('</DL>')
                 outfile.write('</TD></TR>\n')
                 # Check the packages for functions
@@ -1562,7 +1581,7 @@ if __name__ == "__main__":
 
     metaInfo.topLevelDirectory = top_level_directory
     metaInfo.scriptName = sys.argv[0]
-    metaInfo.versionString = "1.5" 
+    metaInfo.versionString = "1.6" 
     metaInfo.toDoList = """
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #   TO-DO LIST
