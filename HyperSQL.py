@@ -1548,6 +1548,53 @@ def confGetBool(sect,opt,default=False):
     else:
       return default
 
+def configRead():
+    # Section GENERAL
+    metaInfo.title_prefix  = confGet('General','title_prefix','HyperSQL')
+    metaInfo.projectInfo   = confGet('General','project_info','')
+    infofile               = confGet('General','project_logo_url','')
+    if infofile == '':
+      metaInfo.projectLogo = confGet('General','project_logo','')
+    else:
+      metaInfo.projectLogo = infofile
+    infofile               = confGet('General','project_info_file','')
+    if infofile != '' and os.path.exists(infofile):
+        infile = open(file_info.fileName, "r")
+        fileLines = infile.readlines()
+        infile.close()
+        for i in range(len(fileLines)):
+            metaInfo.projectInfo += fileLines[i]
+    # Section FILENAMES
+    metaInfo.topLevelDirectory  = confGet('FileNames','top_level_directory','.') # directory under which all files will be scanned
+    metaInfo.rcsnames           = confGetList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
+    metaInfo.sql_file_exts      = confGetList('FileNames','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
+    metaInfo.cpp_file_exts      = confGetList('FileNames','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
+    metaInfo.htmlDir            = confGet('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
+    metaInfo.css_file           = confGet('FileNames','css_file','hypersql.css')
+    metaInfo.css_url            = confGet('FileNames','css_url','')
+    metaInfo.fileWithPathnamesIndex_FileName = confGet('FileNames','FileWithPathnamesIndex','FileNameIndexWithPathnames.html')
+    metaInfo.fileNoPathnamesIndex_FileName   = confGet('FileNames','FileNoPathnamesIndex','FileNameIndexNoPathnames.html')
+    metaInfo.viewIndex_FileName              = confGet('FileNames','viewIndex','ViewIndex.html')
+    metaInfo.packageIndex_FileName           = confGet('FileNames','packageIndex','PackageIndex.html')
+    metaInfo.functionIndex_FileName          = confGet('FileNames','functionIndex','FunctionIndex.html')
+    metaInfo.procedureIndex_FileName         = confGet('FileNames','procedureIndex','ProcedureIndex.html')
+    metaInfo.packageFuncProdIndex_FileName   = confGet('FileNames','packageFuncProdIndex','PackagesWithFuncsAndProcsIndex.html')
+    metaInfo.bugIndex                        = confGet('FileNames','bugIndex','BugIndex.html')
+    metaInfo.todoIndex                       = confGet('FileNames','todoIndex','TodoIndex.html')
+    # Section PAGES
+    metaInfo.doFileWithPathnamesIndex   = confGetBool('Pages','filepath',True)
+    metaInfo.doFileNoPathnamesIndex     = confGetBool('Pages','file',True)
+    metaInfo.doViewIndex                = confGetBool('Pages','view',False)
+    metaInfo.doPackageIndex             = confGetBool('Pages','package',True)
+    metaInfo.doPackageFuncProdIndex     = confGetBool('Pages','package_full',True)
+    metaInfo.doFunctionIndex            = confGetBool('Pages','function',True)
+    metaInfo.doProcedureIndex           = confGetBool('Pages','procedure',True)
+    metaInfo.doBugIndex                 = confGetBool('Pages','bug',True)
+    metaInfo.doTodoIndex                = confGetBool('Pages','todo',True)
+    # Section PROCESS
+    purgeOnStart = confGetBool('Process','purge_on_start',False)
+
+
 if __name__ == "__main__":
 
     # Read the config file
@@ -1560,26 +1607,11 @@ if __name__ == "__main__":
       print 'Reading config file ' + configFile
       config.read(configFile)
 
-    top_level_directory = confGet('General','top_level_directory','.') # directory under which all files will be scanned
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.title_prefix  = confGet('General','title_prefix','HyperSQL')
-    metaInfo.sql_file_exts = confGetList('General','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
-    metaInfo.cpp_file_exts = confGetList('General','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
-    metaInfo.css_file      = confGet('General','css_file','hypersql.css')
-    metaInfo.rcsnames      = confGetList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
-    metaInfo.fileWithPathnamesIndex_FileName = confGet('FileNames','FileWithPathnamesIndex','FileNameIndexWithPathnames.html')
-    metaInfo.fileNoPathnamesIndex_FileName   = confGet('FileNames','FileNoPathnamesIndex','FileNameIndexNoPathnames.html')
-    metaInfo.viewIndex_FileName              = confGet('FileNames','viewIndex','ViewIndex.html')
-    metaInfo.packageIndex_FileName           = confGet('FileNames','packageIndex','PackageIndex.html')
-    metaInfo.functionIndex_FileName          = confGet('FileNames','functionIndex','FunctionIndex.html')
-    metaInfo.procedureIndex_FileName         = confGet('FileNames','procedureIndex','ProcedureIndex.html')
-    metaInfo.packageFuncProdIndex_FileName   = confGet('FileNames','packageFuncProdIndex','PackagesWithFuncsAndProcsIndex.html')
-    metaInfo.htmlDir = confGet('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
-    metaInfo.projectLogo = confGet('General','project_logo','')
-    metaInfo.projectInfo = confGet('General','project_info','This is my HyperSQL project.')
+    configRead()
+    top_level_directory = metaInfo.topLevelDirectory
     purgeOnStart = confGetBool('General','purge_on_start',False)
 
-    metaInfo.topLevelDirectory = top_level_directory
     metaInfo.scriptName = sys.argv[0]
     metaInfo.versionString = "1.6" 
     metaInfo.toDoList = """

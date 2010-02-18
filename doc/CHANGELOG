@@ -7,6 +7,9 @@ v1.6
 ! some where_used were not found since their lines were considered "having not
   enough touples" (<2). Disabled that check for now - considering to make it
   an option in the future
+* reorganized configuration and prepared it for some new features planned
++ new keyword project_info_file in the configurations General section (additional
+  content for the start page)
 
 v1.5 (16.02.2010)
 -----------------
