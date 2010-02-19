@@ -10,6 +10,8 @@ v1.6
 * reorganized configuration and prepared it for some new features planned
 + new keyword project_info_file in the configurations General section (additional
   content for the start page)
++ added possibility to deactivate unwanted pages
++ Index Page names (as appearing in the links)  now are configurable
 
 v1.5 (16.02.2010)
 -----------------
