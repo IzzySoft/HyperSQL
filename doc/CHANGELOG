@@ -1,7 +1,7 @@
 # History of Changes for HyperSQL
 
-v1.6
------------------
+v1.6.0 (20.02.2010)
+-------------------
 + added javadoc tag @license
 + missing details added to package info
 ! some where_used were not found since their lines were considered "having not
@@ -13,16 +13,16 @@ v1.6
 + added possibility to deactivate unwanted pages
 + Index Page names (as appearing in the links)  now are configurable
 
-v1.5 (16.02.2010)
------------------
+v1.5.0 (16.02.2010)
+-------------------
 + added Javadoc parsing and creating of Javadoc documentation
 + added some more configuration options
 + added more documentation (especially for Javadoc and configuration)
 ! some formatting issues fixed
 * reworked main index (startpage)
 
-v1.3 (10.02.2010)
------------------
+v1.3.0 (10.02.2010)
+-------------------
 + adding more code comments for better code documentation
 + adding apidoc (doc/apidoc/*), including a tiny shell script to generate it
 + added very basic syntax highlighting to the (SQL) source code presentation
