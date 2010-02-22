@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v1.7.0
+-------------------
++ option blind_offset added (to control parsing for "anonymous JavaDoc segments")
+* code reorganization: outsourced some code to modules (hyperjdoc, hypercore)
++ "describing" JavaDoc elements (with just one "text" option) can now span multiple lines
+
 v1.6.0 (20.02.2010)
 -------------------
 + added javadoc tag @license
