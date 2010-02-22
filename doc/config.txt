@@ -11,33 +11,73 @@ General
 
 As the name suggests, this section serves some general settings:
 
- * top_level_directory: the top level directory of the source code to parse.
-   HyperSQL will investigate all directories below this recursively.
- * sql_file_exts: specify extensions of files to be treated as SQL files. Separate
-   multiple extensions using spaces.
- * cpp_file_exts: the similar for C++ files
- * css_file: the stylesheet file to include in the generated HTML pages
  * title_prefix: prefix for the HTML title on generated pages
  * project_info: a short text describing your project. This will be included
    with the main index page.
+ * project_info_file: full path to a (text) file with additional information
+   to be displayed at the main index page. You can use HTML tags in this file. 
  * project_logo: [path and] filename of a graphics file to be used as logo on the
    main index page
- * purge_on_start: whether to purge the target HTML directory from files of
-   previous runs (if any) before generating new ones 
+ * project_logo_url: if this is specified, it takes precedence over the previous
+   setting: No file will be copied, this URL will be used directly instead. 
 
 FileNames
 ---------
 
 All about file names - concerning the target HTML files:
 
+ * top_level_directory: the top level directory of the source code to parse.
+   HyperSQL will investigate all directories below this recursively.
  * rcsnames: directory names to exclude from parsing (below the
    top_level_directory)
- * fileWithPathnamesIndex: the HTML file for the File Index With Pathnames
- * fileNoPathnamesIndex: similar for File Index Without Pathnames
- * viewIndex: similar for the views listing
- * packageIndex: and for the package index
- * functionIndex: guessed right, HTML file for the function index
- * procedureIndex: procedure index HTML file
- * packageFuncProdIndex: Index of packages including all their functions and
-   procedures
+ * sql_file_exts: specify extensions of files to be treated as SQL files. Separate
+   multiple extensions using spaces.
+ * cpp_file_exts: the similar for C++ files
  * htmldir: where the HTML output should go to
+ * css_file: the stylesheet file to include in the generated HTML pages
+ * css_url is used as (additional) CSS link - so you can use both entries
+ * filepath: the HTML file for the File Index With Pathnames
+ * file: similar for File Index Without Pathnames
+ * view: similar for the views listing
+ * package: and for the package index
+ * function: guessed right, HTML file for the function index
+ * procedure: procedure index HTML file
+ * package_full: Index of packages including all their functions and procedures
+
+PageNames
+---------
+
+Here you do not call the pages names - but you can specify their description for
+the URLs, i.e. what is displayed in the Index pages navigation. The options are
+named similar to their corresponding file names options, so: 
+
+ * filepath: the HTML file for the File Index With Pathnames
+ * file: similar for File Index Without Pathnames
+ * view: similar for the views listing
+ * package: and for the package index
+ * function: guessed right, HTML file for the function index
+ * procedure: procedure index HTML file
+ * package_full: Index of packages including all their functions and procedures
+
+Pages
+-----
+
+At this place you can define which pages shall be created. Again the same naming
+as above (so please look there). The value is interpreted as Boolean - so best
+is to use 0 to turn a page off, and 1 to turn it on. By default, all except the
+views are enabled. 
+
+Process
+-------
+
+Here come processing options:
+
+ * purge_on_start: whether to purge the target HTML directory from files of
+   previous runs (if any) before generating new ones 
+ * blind_offset: How many lines before/after the CREATE statement shall we check
+   for "anonymous javadoc blocks", i.e. those missing to name the object they
+   describe. This is just for compatibility for a quick start - usually, you
+   should leave it to the default of 0. You may however use any positive integer
+   here - but keep in mind: the larger it is, the more it finds - which may not
+   always fit...
+
