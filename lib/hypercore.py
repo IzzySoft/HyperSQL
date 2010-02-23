@@ -1,4 +1,5 @@
 """
+$Id$
 HyperSQL Core elements
 Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 Copyright 2010 Itzchak Rehberg & IzzySoft

@@ -3,6 +3,7 @@
 # see main function at bottom of file
 
 """
+    $Id$
     Version 1.0 written by Randy Phillips September 2001
     Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 
@@ -23,17 +24,20 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    Author contact information: randy-san@users.sourceforge.net
+    Author contact information:
+       randy-san@users.sourceforge.net
+       izzysoft AT qumran DOT org
 """
 
 # first import standard modules we use
 import os, sys, string, time, ConfigParser, fileinput
-from cgi import escape
 from shutil import copy2
+
 # now import our own modules
 sys.path.insert(0,os.path.split(sys.argv[0])[0] + os.sep + 'lib')
 from hypercore import *
 from hyperjdoc import *
+from hypercode import *
 
 
 def FindFilesAndBuildFileList(dir, fileInfoList, meta_info):
@@ -358,7 +362,7 @@ def MakeNavBar(current_page):
         else:
             s += '    <A href="' + metaInfo.indexPage[item] + '">' + metaInfo.indexPageName[item] + '</A> &nbsp;&nbsp; \n'
         itemCount += 1
-        if lineNumber < 2 and metaInfo.indexPageCount / itemCount <= 2:
+        if lineNumber < 2 and float(metaInfo.indexPageCount) / itemCount <= 2:
             s += '    <BR>\n'
             lineNumber += 1
     if current_page == 'Index':
@@ -522,10 +526,13 @@ def MakeViewIndex(meta_info):
 
     for view_tuple in viewtuplelist: # list of tuples describing every view
         # file name and line number as an HTML reference
-        HTMLref = os.path.split(view_tuple[2].fileName)[1].replace(".", "_")
-        HTMLref += "_" + `view_tuple[2].uniqueNumber` + ".html"
-        HTMLref += "#" + `view_tuple[1].lineNumber`
-        outfile.write("  <TR><TD><A href=\"" + HTMLref + "\">" + view_tuple[1].viewName.lower() + "</A></TD>")
+        if metaInfo.includeSource:
+            HTMLref = os.path.split(view_tuple[2].fileName)[1].replace(".", "_")
+            HTMLref += "_" + `view_tuple[2].uniqueNumber` + ".html"
+            HTMLref += "#" + `view_tuple[1].lineNumber`
+            outfile.write("  <TR><TD><A href=\"" + HTMLref + "\">" + view_tuple[1].viewName.lower() + "</A></TD>")
+        else:
+            outfile.write("  <TR><TD>" + view_tuple[1].viewName.lower() + "</TD>")
         outfile.write("<TD>" + view_tuple[1].javadoc.getShortDesc() + "</TD>")
 
         if len(view_tuple[1].whereUsed.keys()) > 0:
@@ -578,9 +585,15 @@ def MakePackageIndex(meta_info):
             HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + '_' + `package_tuple[1].uniqueNumber`
         HTMLref += "#" + `package_tuple[1].lineNumber`
         if HTMLjref == '':
-            outfile.write("  <TR><TD>" + package_tuple[1].packageName.lower() + " <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+            outfile.write("  <TR><TD>" + package_tuple[1].packageName.lower())
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+            outfile.write("</TD>")
         else:
-            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A> <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A>")
+            if metaInfo.includeSource:
+                outfile.write("<SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+            outfile.write("</TD>")
         outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
@@ -639,14 +652,24 @@ def MakeFunctionIndex(meta_info):
         HTMLpref = HTMLref + "#" + `function_tuple[3].lineNumber`
         HTMLref += "#" + `function_tuple[1].lineNumber`
         if HTMLjref == '':
-            outfile.write("  <TR><TD>" + function_tuple[1].functionName.lower() + " <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+            outfile.write("  <TR><TD>" + function_tuple[1].functionName.lower())
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+            outfile.write("</TD>")
         else:
-            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + function_tuple[1].functionName.lower() + "</A> <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + function_tuple[1].functionName.lower() + "</A>")
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+            outfile.write("</TD>")
         outfile.write("<TD>")
         if HTMLpjref == '':
-            outfile.write(function_tuple[3].packageName.lower() + " <SUP><A HREF='" + HTMLpref + "'>#</A>")
+            outfile.write(function_tuple[3].packageName.lower())
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
         else:
-            outfile.write("<A HREF='" + HTMLpjref + "'>" + function_tuple[3].packageName.lower() + "</A> <SUP><A HREF='" + HTMLpref + "'>#</A>")
+            outfile.write("<A HREF='" + HTMLpjref + "'>" + function_tuple[3].packageName.lower() + "</A>")
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
         outfile.write("</TD>")
         outfile.write("<TD>" + function_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(function_tuple[1].whereUsed.keys()) > 0:
@@ -708,14 +731,23 @@ def MakeProcedureIndex(meta_info):
         HTMLpref = HTMLref + "#" + `procedure_tuple[3].lineNumber`
         HTMLref += "#" + `procedure_tuple[1].lineNumber`
         if HTMLjref == '':
-            outfile.write("  <TR><TD>" + procedure_tuple[1].procedureName.lower() + " <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+            outfile.write("  <TR><TD>" + procedure_tuple[1].procedureName.lower())
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
         else:
-            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + procedure_tuple[1].procedureName.lower() + "</A> <SUP><A href=\"" + HTMLref + "\">#</SUP></A></TD>")
+            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + procedure_tuple[1].procedureName.lower() + "</A>")
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+            outfile.write("</TD>")
         outfile.write("<TD>")
         if HTMLpjref == '':
-            outfile.write(procedure_tuple[3].packageName.lower() + " <SUP><A HREF='" + HTMLpref + "'>#</A>")
+            outfile.write(procedure_tuple[3].packageName.lower())
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
         else:
-            outfile.write("<A HREF='" + HTMLpjref + "'>" + procedure_tuple[3].packageName.lower() + "</A> <SUP><A HREF='" + HTMLpref + "'>#</A>")
+            outfile.write("<A HREF='" + HTMLpjref + "'>" + procedure_tuple[3].packageName.lower() + "</A>")
+            if metaInfo.includeSource:
+                outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
         outfile.write("</TD>")
         outfile.write("<TD>" + procedure_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(procedure_tuple[1].whereUsed.keys()) > 0:
@@ -766,7 +798,12 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
             HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + `package_tuple[1].uniqueNumber`
         HTMLref += "#" + `package_tuple[1].lineNumber`
         outfile.write("<TABLE CLASS='apilist' ALIGN='center' WIDTH='98%'>\n  <TR><TH COLSPAN='3'>" + package_tuple[1].packageName.lower() + "</TH></TR>\n")
-        outfile.write("  <TR><TD ALIGN='center' WIDTH='33.33%'><A href=\"" + HTMLref + "\">Code</A></TD><TD ALIGN='center' WIDTH='33.34%'>")
+        outfile.write("  <TR><TD ALIGN='center' WIDTH='33.33%'>")
+        if metaInfo.includeSource:
+            outfile.write("<A href=\"" + HTMLref + "\">Code</A>")
+        else:
+            outfile.write("&nbsp;")
+        outfile.write("</TD><TD ALIGN='center' WIDTH='33.34%'>")
         if HTMLjref == '':
             outfile.write("&nbsp;")
         else:
@@ -882,9 +919,6 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         outfilename = os.path.split(file_info.fileName)[1].replace(".", "_")
         outfilename += "_" + `file_info.uniqueNumber` + ".html"
 
-        # we need leading zeroes for the line numbers
-        line_number_width = len(`len(infile_line_list)`) # number of chars in "number of lines of text"
-
         outfile = open(html_dir + outfilename, "w")
         outfile.write(MakeHTMLHeader(meta_info, file_info.fileName[len(top_level_directory)+1:]))
         outfile.write("<H1>" + file_info.fileName[len(top_level_directory)+1:] + "</H1>\n")
@@ -905,31 +939,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                 jdoc = file_info.packageInfoList[p].javadoc
                 outfile.write(' <TR><TH COLSPAN="2">' + file_info.packageInfoList[p].packageName + '</TH></TR>\n')
                 outfile.write(' <TR><TD COLSPAN="2">')
-                if jdoc.desc != '':
-                  outfile.write('<DIV>' + jdoc.desc + '</DIV>')
-                if jdoc.version !='' or jdoc.author != '' or jdoc.info != '' or jdoc.todo != '':
-                  outfile.write('<DL>')
-                  if jdoc.author != '':
-                    outfile.write('<DT>Author:</DT><DD>' + jdoc.author + '</DD>')
-                  if jdoc.version != '':
-                    outfile.write('<DT>Version:</DT><DD>' + jdoc.version + '</DD>')
-                  if jdoc.copyright != '':
-                    outfile.write('<DT>Copyright:</DT><DD>' + jdoc.copyright + '</DD>')
-                  if jdoc.license != '':
-                    outfile.write('<DT>License:</DT><DD>' + jdoc.license + '</DD>')
-                  if jdoc.webpage != '':
-                    outfile.write('<DT>Webpage:</DT><DD><A HREF="' + jdoc.webpage + '">' + jdoc.webpage + '</A></DD>')
-                  if jdoc.see != '':
-                    outfile.write('<DT>See also:</DT><DD>' + jdoc.see + '</DD>')
-                  if jdoc.info != '':
-                    outfile.write('<DT>Additional Information:</DT><DD>' + jdoc.info + '</DD>')
-                  if jdoc.todo != '':
-                    outfile.write('<DT>TODO:</DT><DD>' + jdoc.todo + '</DD>')
-                  if jdoc.bug != '':
-                    outfile.write('<DT>BUG:</DT><DD>' + jdoc.bug + '</DD>')
-                  if jdoc.deprecated != '':
-                    outfile.write('<DT>DEPRECATED:</DT><DD>' + jdoc.deprecated + '</DD>')
-                  outfile.write('</DL>')
+                outfile.write( jdoc.getHtml(0) )
                 outfile.write('</TD></TR>\n')
                 # Check the packages for functions
                 if len(file_info.packageInfoList[p].functionInfoList) > 0:
@@ -943,7 +953,8 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                             iname = item.functionName
                             idesc = ''
                         outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
-                        outfile.write('<SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
+                        if metaInfo.includeSource:
+                            outfile.write(' <SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
                         outfile.write(' (')
                         if len(item.javadoc.params) > 0:
                             ph = ''
@@ -964,7 +975,8 @@ def CreateHyperlinkedSourceFilePages(meta_info):
                             iname = item.procedureName
                             idesc = ''
                         outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
-                        outfile.write('<SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
+                        if metaInfo.includeSource:
+                            outfile.write(' <SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
                         outfile.write(' (')
                         if len(item.javadoc.params) > 0:
                             ph = ''
@@ -979,57 +991,14 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         outfile.write(packagedetails)
         # ===[ JAVADOC END ]===
 
-        outfile.write('\n<H2>Source</H2>\n')
+        # include the source itself
+        if metaInfo.includeSource:
+            outfile.write('\n<H2>Source</H2>\n')
+            outfile.write('<code><pre>')
+            outfile.write( hypercode(infile_line_list, sqlkeywords, sqltypes) )
+            outfile.write("</pre></code>")
+            outfile.write(MakeHTMLFooter(file_info.fileName[len(top_level_directory)+1:]))
 
-        # use non-linw-wrapping monospaced font, text is preformatted in terms of whitespace
-        outfile.write('<code><pre><br>')
-
-        for line_number in range(len(infile_line_list)):
-            infile_line_list[line_number] = escape(infile_line_list[line_number])
-            if infile_line_list[line_number].strip()[0:2]=='--':
-              text = '<SPAN CLASS="sqlcomment">' + infile_line_list[line_number] + '</SPAN>'
-            else:
-              text = infile_line_list[line_number]
-              prel = len(text) - len(text.lstrip())
-              text = text[0:prel]
-              commentmode = 0 # 0 no comment, 1 '--', 2 '/*'
-              for elem in infile_line_list[line_number].split():
-                if elem[len(elem)-1] in [',', ';', ')', '}', ']'] and len(elem)>1:
-                  selem = elem[0:len(elem)-1]
-                  echar  = elem[len(elem)-1]
-                  if echar in [')', '}', ']']:
-                    echar = '<SPAN CLASS="sqlbrace">' + echar + '</SPAN>'
-                else:
-                  selem = elem
-                  echar  = ''
-                if selem[0:1] in ['(', '{', '['] and len(selem)>1:
-                  schar = '<SPAN CLASS="sqlbrace">' + selem[0:1] + '</SPAN>'
-                  selem = selem[1:]
-                else:
-                  schar = ''
-                if commentmode==0:
-                  if selem[0:2]=='--':
-                    text += schar + '<SPAN CLASS="sqlcomment">' + echar + selem
-                    commentmode = 1
-                  elif selem in sqlkeywords:
-                    text += schar + '<SPAN CLASS="sqlkeyword">' + selem + '</SPAN> ' + echar
-                  elif selem in sqltypes:
-                    text += schar + '<SPAN CLASS="sqltype">' + selem + '</SPAN> ' + echar
-                  elif selem in ['(', ')', '[', ']', '{', '}']:
-                    text += '<SPAN CLASS="sqlbrace">' + selem + echar + '</SPAN>'
-                  else:
-                    text += schar + selem + echar + ' '
-                else: # 1 for now
-                  text += ' ' + schar + selem + echar
-              if commentmode==1:
-                text += '</SPAN>'
-              text += "\n"
-            zeroes = (1 + line_number_width - len(`line_number`)) * "0" # leading zeroes for line numbers
-            outfile.write("<A NAME=\"" + `line_number` + "\"></A>") # hyperlink target
-            outfile.write(zeroes + `line_number` + ": " + text) #text
-
-        outfile.write("</pre></code><br>")
-        outfile.write(MakeHTMLFooter(file_info.fileName[len(top_level_directory)+1:]))
         outfile.close()
 
     # print carriage return after last dot
@@ -1113,7 +1082,7 @@ def CreateWhereUsedPages(meta_info):
                     outfile.write("  <TR><TD>")
 
                     # only make hypertext references for SQL files for now
-                    if whereusedtuple[0].fileType == "sql":
+                    if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
                         outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
                         outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
                         outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
@@ -1152,7 +1121,7 @@ def CreateWhereUsedPages(meta_info):
                     outfile.write("  <TR><TD>")
 
                     # only make hypertext references for SQL files for now
-                    if whereusedtuple[0].fileType == "sql":
+                    if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
                         outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
                         outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
                         outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
@@ -1192,7 +1161,7 @@ def CreateWhereUsedPages(meta_info):
 
                     # only make hypertext references for SQL files for now
                     outfile.write("  <TR><TD>")
-                    if whereusedtuple[0].fileType == "sql":
+                    if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
                         outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
                         outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
                         outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
@@ -1232,7 +1201,7 @@ def CreateWhereUsedPages(meta_info):
                         outfile.write("  <TR><TD>")
 
                         # only make hypertext references for SQL files for now
-                        if whereusedtuple[0].fileType == "sql":
+                        if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
                             outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
                             outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
                             outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
@@ -1353,6 +1322,7 @@ def configRead():
     # Section PROCESS
     purgeOnStart = confGetBool('Process','purge_on_start',False)
     metaInfo.blindOffset = abs(confGetInt('Process','blind_offset',0)) # we need a positive integer
+    metaInfo.includeSource = confGetBool('Process','include_source',True)
 
 
 if __name__ == "__main__":
@@ -1368,9 +1338,16 @@ if __name__ == "__main__":
       config.read(configFile)
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
+    purgeOnStart = False
     configRead()
     top_level_directory = metaInfo.topLevelDirectory
-    purgeOnStart = confGetBool('General','purge_on_start',False)
+    if not os.path.exists(top_level_directory):
+        print "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" \
+            + "The source path you configured for top_level_directory\n(" \
+            + top_level_directory \
+            + ")\ndoes not exist - terminating.\n" \
+            + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+        sys.exit(os.EX_OSFILE)
 
     metaInfo.scriptName = sys.argv[0]
     metaInfo.versionString = "1.7"

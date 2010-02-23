@@ -3,8 +3,13 @@
 v1.7.0
 -------------------
 + option blind_offset added (to control parsing for "anonymous JavaDoc segments")
-* code reorganization: outsourced some code to modules (hyperjdoc, hypercore)
+* code reorganization: outsourced some code to modules (hyperjdoc, hypercore, hypercode)
 + "describing" JavaDoc elements (with just one "text" option) can now span multiple lines
+! converting crash when configured top_level_directory did not exist into a
+  standard exit with proper error message
+! fixed the additional empty lines in code listings
++ new keyword include_source (section Process) to make the inclusion of source
+  code optional
 
 v1.6.0 (20.02.2010)
 -------------------

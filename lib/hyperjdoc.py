@@ -1,4 +1,5 @@
 """
+$Id$
 HyperSQL Javadoc support
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
@@ -37,8 +38,10 @@ class JavaDoc:
         """
         if self.isDefault():
             return ''
-        html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%" ALIGN="center"><TR><TH>' + self.name + '</TH>\n'
-        html += '<TR><TD>\n';
+        html = ''
+        if self.objectType != 'pkg':
+          html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%" ALIGN="center"><TR><TH>' + self.name + '</TH>\n'
+          html += '<TR><TD>\n';
         if self.desc != '':
           html += '  <DIV CLASS="jd_desc">' + self.desc + '</DIV>\n'
         html += '  <DL>'
@@ -51,7 +54,7 @@ class JavaDoc:
             if p<len(self.params)-1:
               html += ', '
           html += ')</DIV></DD>\n'
-          if len(self.params) > 0:
+          if len(self.params) > 0 and self.objectType != 'pkg':
             html += ' <DT>Parameters:</DT><DD>'
             for p in range(len(self.params)):
               html += '<DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.params[p].inout + ' ' + self.params[p].sqltype + ' <B>' + self.params[p].name + '</B>'
@@ -67,8 +70,8 @@ class JavaDoc:
                 html += ': ' + self.retVals[p].desc
               html += '</LI>'
             html += '</UL></DD>\n'
-        if self.example != '':
-          html += '<DT>Example Usage:</DT><DD>' + self.example + '</DD>'
+          if self.example != '':
+            html += '<DT>Example Usage:</DT><DD>' + self.example + '</DD>'
         if self.author != '':
           html += '<DT>Author:</DT><DD>' + self.author + '</DD>'
         if self.copyright != '':
@@ -89,7 +92,9 @@ class JavaDoc:
           html += '<DT>See also:</DT><DD>' + self.see + '</DD>'
         if self.todo != '':
           html += '<DT>TODO:</DT><DD>' + self.todo + '</DD>'
-        html += '\n</DL></TD></TR></TABLE>\n'
+        html += '\n</DL>'
+        if self.objectType != 'pkg':
+          html += '</TD></TR></TABLE>\n'
         return html
     def getShortDesc(self):
         """
