@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v1.7.0
+v1.7.0 (23.02.2010)
 -------------------
 + option blind_offset added (to control parsing for "anonymous JavaDoc segments")
 * code reorganization: outsourced some code to modules (hyperjdoc, hypercore, hypercode)
