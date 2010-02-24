@@ -170,6 +170,10 @@ def ScanFilesForViewsAndPackages(meta_info):
                       ln = jdoc[j].lineNumber - lineNumber
                       if (CaseInsensitiveComparison(package_info.packageName,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                         package_info.javadoc = jdoc[j]
+                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
+                            package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug)
+                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
+                            package_info.todo.addItem(jdoc[j].name,jdoc[j].todo)
                     file_info.packageInfoList.append(package_info) # permanent storage
                     package_count += 1 # use this flag below
 		    
@@ -186,6 +190,10 @@ def ScanFilesForViewsAndPackages(meta_info):
                       ln = jdoc[j].lineNumber - lineNumber
                       if (CaseInsensitiveComparison(function_name,jdoc[j].name)==0 and jdoc[j].objectType=='function') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                         function_info.javadoc = jdoc[j]
+                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
+                            file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug)
+                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
+                            file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo)
                     file_info.packageInfoList[package_count].functionInfoList.append(function_info)
 		    
                 # now find procedures
@@ -199,6 +207,10 @@ def ScanFilesForViewsAndPackages(meta_info):
                       ln = jdoc[j].lineNumber - lineNumber
                       if (CaseInsensitiveComparison(procedure_name,jdoc[j].name)==0 and jdoc[j].objectType=='procedure') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                         procedure_info.javadoc = jdoc[j]
+                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
+                            file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug)
+                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
+                            file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo)
                     file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
     # print carriage return after last dot
@@ -353,8 +365,8 @@ def MakeNavBar(current_page):
     lineNumber = 1
     s = "<TABLE ID='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD ID='navbar' WIDTH='600px'>\n"
-    #for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo']:
-    for item in ['package','function','procedure','package_full','view','file','filepath']:
+    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo']:
+    #for item in ['package','function','procedure','package_full','view','file','filepath']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -362,7 +374,8 @@ def MakeNavBar(current_page):
         else:
             s += '    <A href="' + metaInfo.indexPage[item] + '">' + metaInfo.indexPageName[item] + '</A> &nbsp;&nbsp; \n'
         itemCount += 1
-        if lineNumber < 2 and float(metaInfo.indexPageCount) / itemCount <= 2:
+        #if lineNumber < 2 and float(metaInfo.indexPageCount) / itemCount <= 2:
+        if itemCount %4 == 0:
             s += '    <BR>\n'
             lineNumber += 1
     if current_page == 'Index':
@@ -375,7 +388,7 @@ def MakeNavBar(current_page):
     s += '</TR></TABLE>\n'
     return s
 
-def MakeHTMLHeader(meta_info, title_name):
+def MakeHTMLHeader(title_name):
     """Generates common HTML header with menu for all pages"""
 
     #if title_name in ['file', 'filepath', 'view', 'package', ]
@@ -442,7 +455,7 @@ def MakeFileIndexWithPathNames(meta_info):
     filenametuplelist.sort(TupleCompareFirstElements)
 
     outfile = open(html_dir + outfilename, "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'filepath'))
+    outfile.write(MakeHTMLHeader('filepath'))
     outfile.write("<H1>Index Of All Files By Path Name</H1>\n")
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'><TR><TD>\n")
 
@@ -479,7 +492,7 @@ def MakeFileIndexNoPathNames(meta_info):
     filenametuplelist.sort(TupleCompareFirstElements)
 
     outfile = open(html_dir + outfilename, "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'file'))
+    outfile.write(MakeHTMLHeader('file'))
     outfile.write("<H1>Index Of All Files By File Name</H1>\n")
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'><TR><TD>\n")
 
@@ -519,7 +532,7 @@ def MakeViewIndex(meta_info):
     viewtuplelist.sort(TupleCompareFirstElements)
 
     outfile = open(html_dir + outfilename, "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'view'))
+    outfile.write(MakeHTMLHeader('view'))
     outfile.write("<H1>Index Of All Views</H1>\n")
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
     outfile.write("  <TR><TH>View</TH><TH>Details</TH><TH>Used</TH></TR>\n")
@@ -547,6 +560,76 @@ def MakeViewIndex(meta_info):
     outfile.close()
 
 
+def MakeTaskList(taskType):
+    """
+    Generate HTML page for all tasks of the specified type found in JavaDoc comments
+    @param string taskType Type of the task - one of 'bug', 'todo'
+    """
+
+    if taskType not in ['bug','todo']:
+        return
+
+    if metaInfo.indexPage[taskType] == '':
+        return
+
+    print "Creating "+taskType+" list"
+
+    fileInfoList = metaInfo.fileInfoList
+    html_dir = metaInfo.htmlDir
+    outfilename = metaInfo.indexPage[taskType]
+
+    packagetuplelist = []
+    for file_info in fileInfoList:
+        # skip all non-sql files
+        if file_info.fileType != "sql":
+            continue        
+        for package_info in file_info.packageInfoList:
+            packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
+
+    packagetuplelist.sort(TupleCompareFirstElements)
+
+    outfile = open(html_dir + outfilename, "w")
+    outfile.write(MakeHTMLHeader(taskType))
+    if taskType == 'bug':
+        outfile.write("<H1>List of open Bugs</H1>\n")
+    else:
+        outfile.write("<H1>List of things ToDo</H1>\n")
+    outfile.write("<TABLE CLASS='apilist'>\n")
+
+    # Walk the packages
+    for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
+        if taskType == 'bug':
+            task = package_tuple[1].bugs
+        else:
+            task = package_tuple[1].todo
+        if task.allItemCount() < 1:
+            continue
+        HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
+        HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
+        if package_tuple[1].javadoc.isDefault():
+            HTMLjref = ''
+        else:
+            HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + '_' + `package_tuple[1].uniqueNumber`
+        HTMLref += "#" + `package_tuple[1].lineNumber`
+        outfile.write("  <TR><TH COLSPAN='2'><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A>")
+        if metaInfo.includeSource:
+            outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+        outfile.write("</TH></TR>\n");
+        if task.taskCount() > 0:
+            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Package General</I></B></TD></TR>\n")
+            outfile.write("  <TR><TD COLSPAN='2'>" + task.getHtml() + "</TD></TR>\n")
+        if task.funcCount() > 0:
+            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Functions</I></B></TD></TR>\n")
+            outfile.write( task.getFuncHtml() )
+        if task.procCount() > 0:
+            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Procedures</I></B></TD></TR>\n")
+            outfile.write( task.getProcHtml() )
+
+    outfile.write("</TABLE>\n")
+    outfile.write(MakeHTMLFooter(taskType))
+    outfile.close()
+
+
 def MakePackageIndex(meta_info):
     """Generate HTML index page for all packages"""
 
@@ -571,7 +654,7 @@ def MakePackageIndex(meta_info):
     packagetuplelist.sort(TupleCompareFirstElements)
 
     outfile = open(html_dir + outfilename, "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'package'))
+    outfile.write(MakeHTMLHeader('package'))
     outfile.write("<H1>Index Of All Packages</H1>\n")
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
     outfile.write("  <TR><TH>Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
@@ -592,7 +675,7 @@ def MakePackageIndex(meta_info):
         else:
             outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A>")
             if metaInfo.includeSource:
-                outfile.write("<SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
             outfile.write("</TD>")
         outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
@@ -631,7 +714,7 @@ def MakeFunctionIndex(meta_info):
     functiontuplelist.sort(TupleCompareFirstElements)
 
     outfile = open(html_dir + outfilename, "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'function'))
+    outfile.write(MakeHTMLHeader('function'))
     outfile.write("<H1>Index Of All Functions</H1>\n")
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
     outfile.write("  <TR><TH>Function</TH><TH>from Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
@@ -709,7 +792,7 @@ def MakeProcedureIndex(meta_info):
     proceduretuplelist.sort(TupleCompareFirstElements)
 
     outfile = open(html_dir + outfilename, "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'procedure'))
+    outfile.write(MakeHTMLHeader('procedure'))
     outfile.write("<H1>Index Of All Procedures</H1>\n")
     outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
     outfile.write("  <TR><TH>Procedure</TH><TH>from Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
@@ -785,7 +868,7 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
     packagetuplelist.sort(TupleCompareFirstElements)
 
     outfile = open(html_dir + outfilename, "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'package_full'))
+    outfile.write(MakeHTMLHeader('package_full'))
     outfile.write("<H1>Index Of All Packages, Their Functions And Procedures</H1>\n")
 
     for package_tuple in packagetuplelist:
@@ -920,7 +1003,7 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         outfilename += "_" + `file_info.uniqueNumber` + ".html"
 
         outfile = open(html_dir + outfilename, "w")
-        outfile.write(MakeHTMLHeader(meta_info, file_info.fileName[len(top_level_directory)+1:]))
+        outfile.write(MakeHTMLHeader(file_info.fileName[len(top_level_directory)+1:]))
         outfile.write("<H1>" + file_info.fileName[len(top_level_directory)+1:] + "</H1>\n")
 
         # ===[ JAVADOC STARTS HERE ]===
@@ -1012,7 +1095,7 @@ def CreateIndexPage(meta_info):
     script_name = meta_info.scriptName
 
     outfile = open(html_dir + 'index.html', "w")
-    outfile.write(MakeHTMLHeader(meta_info, 'Index'))
+    outfile.write(MakeHTMLHeader('Index'))
 
     # Copy the StyleSheet
     if os.path.exists(meta_info.css_file):
@@ -1067,7 +1150,7 @@ def CreateWhereUsedPages(meta_info):
             outfile = open(html_dir + whereusedfilename, "w")
             
             # write our header
-            outfile.write(MakeHTMLHeader(meta_info, 'Index'))
+            outfile.write(MakeHTMLHeader('Index'))
             outfile.write("<H1>" + view_info.viewName + " Where Used List</H1>\n")
             outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
             outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
@@ -1106,7 +1189,7 @@ def CreateWhereUsedPages(meta_info):
             outfile = open(html_dir + whereusedfilename, "w")
             
             # write our header
-            outfile.write(MakeHTMLHeader(meta_info, package_info.packageName + " Where Used List"))
+            outfile.write(MakeHTMLHeader(package_info.packageName + " Where Used List"))
             outfile.write("<H1>" + package_info.packageName + " Where Used List</H1>\n")
             outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
             outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
@@ -1145,7 +1228,7 @@ def CreateWhereUsedPages(meta_info):
                 outfile = open(html_dir + whereusedfilename, "w")
                 
                 # write our header
-                outfile.write(MakeHTMLHeader(meta_info, function_info.functionName.lower() + ' from ' + package_info.packageName))
+                outfile.write(MakeHTMLHeader(function_info.functionName.lower() + ' from ' + package_info.packageName))
                 outfile.write("<H1>" + function_info.functionName.lower() + " <I>from " + package_info.packageName)
                 outfile.write(" </I>Where Used List</H1>\n")
                 outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
@@ -1185,7 +1268,7 @@ def CreateWhereUsedPages(meta_info):
                 outfile = open(html_dir + whereusedfilename, "w")
                 
                 # write our header
-                outfile.write(MakeHTMLHeader(meta_info, procedure_info.procedureName.lower() + ' from ' + package_info.packageName.lower()))
+                outfile.write(MakeHTMLHeader(procedure_info.procedureName.lower() + ' from ' + package_info.packageName.lower()))
                 outfile.write("<H1>" + procedure_info.procedureName.lower() + " <I>from " + package_info.packageName.lower())
                 outfile.write(" </I>Where Used List</H1>\n")
                 outfile.write("<TABLE CLASS='apilist' ALIGN='center'>\n")
@@ -1316,8 +1399,8 @@ def configRead():
     confPage('package_full','PackagesWithFuncsAndProcsIndex.html','Full Package Listing',True)
     confPage('function','FunctionIndex.html','Function Index',True)
     confPage('procedure','ProcedureIndex.html','Procedure Index',True)
-    #confPage('bug','BugIndex.html','Bug List',True)
-    #confPage('todo','TodoIndex.html','Todo List',True)
+    confPage('bug','BugIndex.html','Bug List',True)
+    confPage('todo','TodoIndex.html','Todo List',True)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
     # Section PROCESS
     purgeOnStart = confGetBool('Process','purge_on_start',False)
@@ -1350,7 +1433,7 @@ if __name__ == "__main__":
         sys.exit(os.EX_OSFILE)
 
     metaInfo.scriptName = sys.argv[0]
-    metaInfo.versionString = "1.7"
+    metaInfo.versionString = "1.8"
     metaInfo.toDoList = """
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #   TO-DO LIST
@@ -1402,6 +1485,10 @@ if __name__ == "__main__":
 
     print "Creating site index page"
     CreateIndexPage(metaInfo)
+
+    # Bug and Todo lists
+    MakeTaskList('bug')
+    MakeTaskList('todo')
 
     print metaInfo.toDoList
 

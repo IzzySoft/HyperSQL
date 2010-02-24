@@ -120,7 +120,6 @@ class JavaDoc:
           return self.desc
 
 
-
 class JavaDocParam:
     """Parameters passed to a function/Procedure. Used by JavaDoc.params and JavaDoc.retVals"""
     def __init__(self):
@@ -129,6 +128,148 @@ class JavaDocParam:
         self.default = ''
         self.desc = ''
         self.name = ''
+
+
+class TaskItem:
+    """Task for Todo / Bug lists"""
+    def __init__(self,name='',line=''):
+        self.name = name
+        self.desc = line
+
+def taskSortDesc(a,b):
+    """ Helper for sorting a TaskList by descriptions """
+    if a.desc < b.desc:
+        return -1
+    elif a.desc > b.desc:
+        return 1
+    else:
+        if a.name < b.name:
+            return -1
+        if a.name > b.name:
+            return 1
+        else:
+            return 0
+
+def taskSortName(a,b):
+    """ Helper for sorting a TaskList by names """
+    if a.name < b.name:
+        return -1
+    elif a.name > b.name:
+        return 1
+    else:
+        if a.desc < b.desc:
+            return -1
+        if a.desc > b.desc:
+            return 1
+        else:
+            return 0
+
+class TaskList:
+    """
+    List of TaskItems for Bugs / Todos
+    Has a name and maintains a list of items
+    Properties: String name, List items (list of TaskItem)
+    """
+    def __init__(self,name=''):
+        self.name  = name
+        self.items = []
+    def addItem(self,name,desc):
+        self.items.append(TaskItem(name,desc))
+    def taskCount(self):
+        return len(self.items)
+    def itemSort(self,orderBy='name'):
+        if orderBy=='desc':
+            self.items.sort(taskSortDesc)
+        else:
+            self.items.sort(taskSortName)
+    def getHtml(self):
+        if self.taskCount < 1:
+            return ''
+        html = '<UL>\n'
+        for item in self.items:
+            html += '  <LI>'+item.desc+'</LI>\n'
+        html += '</UL>\n'
+        return html
+
+class PackageTaskList(TaskList):
+    """
+    TaskList for packages
+    This is an extension to the TaskList class, considering the speciality a
+    package holds multiple other objects.
+    As its parent, it has a name and maintains a list of items (package-specific
+    tasks). Additionally, it maintains similar lists for function- and procedure-
+    specific tasks.
+    """
+    def __init__(self,name=''):
+        TaskList.__init__(self,name)
+        self.funcs = []
+        self.procs = []
+    def addFunc(self,name,desc):
+        item = TaskItem(name,desc);
+        item.parent = self
+        self.funcs.append(item)
+    def addProc(self,name,desc):
+        item = TaskItem(name,desc);
+        item.parent = self
+        self.procs.append(item)
+    def funcCount(self):
+        return len(self.funcs)
+    def procCount(self):
+        return len(self.procs)
+    def allItemCount(self):
+        return self.taskCount() + self.funcCount() + self.procCount()
+    def sortAll(self,orderBy='name'):
+        self.itemSort(orderBy)
+        self.sortFuncs(orderBy)
+        self.sortProcs(orderBy)
+    def sortFuncs(self,orderBy='name'):
+        if orderBy == 'desc':
+            self.funcs.sort(taskSortDesc)
+        else:
+            self.funcs.sort(taskSortName)
+    def sortProcs(self,orderBy='name'):
+        if orderBy == 'desc':
+            self.procs.sort(taskSortDesc)
+        else:
+            self.procs.sort(taskSortName)
+    def getSubHtml(self,objectType):
+        """
+        Generate the Table BODY for tasks of the specified objectType
+        This does not include the table opening and closing tags, but includes
+        the special TH line. Table has 2 columns.
+        """
+        if objectType == 'funcs':
+            if len(self.funcs) < 1:
+                return ''
+            self.sortFuncs('name')
+            items = self.funcs
+            html = '  <TR><TH CLASS="sub">Function</TH><TH CLASS="sub">Task</TH>\n'
+        else:
+            if len(self.procs) < 1:
+                return ''
+            self.sortProcs('name')
+            items = self.procs
+            html = '  <TR><TH CLASS="sub">Procedure</TH><TH CLASS="sub">Task</TH>\n'
+        name = ''
+        inner = ''
+        for item in items:
+            if item.name == name:
+                inner += '<LI>'+item.desc+'</LI>'
+            elif inner != '':
+                html += '  <TR><TD VALIGN="top">'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+                inner = '<LI>'+item.desc+'</LI>'
+                name  = item.name
+            else:
+                inner += '<LI>'+item.desc+'</LI>'
+                name = item.name
+        if inner !='':
+            html += '  <TR><TD>'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+        return html
+    def getFuncHtml(self):
+        return self.getSubHtml('funcs')
+    def getProcHtml(self):
+        return self.getSubHtml('procs')
+
 
 def ScanJavaDoc(text,lineno=0):
     """

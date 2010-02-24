@@ -5,7 +5,7 @@ Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
-from hyperjdoc import JavaDoc
+from hyperjdoc import JavaDoc, PackageTaskList
 
 class ViewInfo:
     """ Object to hold information about a view """
@@ -48,6 +48,8 @@ class PackageInfo:
         self.uniqueNumber = 0 # used to create unique file name for where used list
         self.parent = None
         self.javadoc = JavaDoc()
+        self.bugs = PackageTaskList()
+        self.todo = PackageTaskList()
 
 class FileInfo:
     """ Object to hold information about a file """
