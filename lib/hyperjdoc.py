@@ -40,7 +40,7 @@ class JavaDoc:
             return ''
         html = ''
         if self.objectType != 'pkg':
-          html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%" ALIGN="center"><TR><TH>' + self.name + '</TH>\n'
+          html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if self.desc != '':
           html += '  <DIV CLASS="jd_desc">' + self.desc + '</DIV>\n'

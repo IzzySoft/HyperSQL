@@ -7,30 +7,10 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 
 from hyperjdoc import JavaDoc, PackageTaskList
 
-class ViewInfo:
-    """ Object to hold information about a view """
+class ElemInfo:
+    """ Object to hold information about a view, function, or procedure """
     def __init__(self):
-        self.viewName = ""
-        self.lineNumber = -1
-        self.whereUsed = {} # file name key, fileInfo and line number list
-        self.uniqueNumber = 0 # used to create unique file name for where used list
-        self.parent = None
-        self.javadoc = JavaDoc()
-
-class FunctionInfo:
-    """ Object to hold information about a function """
-    def __init__(self):
-        self.functionName = ""
-        self.lineNumber = -1
-        self.whereUsed = {} # file name key, fileInfo and line number list
-        self.uniqueNumber = 0 # used to create unique file name for where used list
-        self.parent = None
-        self.javadoc = JavaDoc()
-
-class ProcedureInfo:
-    """ Object to hold information about a procedure """
-    def __init__(self):
-        self.procedureName = ""
+        self.name = ""
         self.lineNumber = -1
         self.whereUsed = {} # file name key, fileInfo and line number list
         self.uniqueNumber = 0 # used to create unique file name for where used list
