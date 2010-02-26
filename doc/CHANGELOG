@@ -6,6 +6,9 @@ v1.8.0
   comments) - now you can get an overview over all open tasks!
 * cleaning up some clones (centralizing similar code, e.g. creation of index
   pages for functions/procedures, files with/without path)
+- removed the ToDoList from output
++ generated HTML should no be w3c conform - provided you configured the character
+  set of your input files correctly (config file, section General, encoding)
 
 v1.7.0 (23.02.2010)
 -------------------

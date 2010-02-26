@@ -20,6 +20,13 @@ As the name suggests, this section serves some general settings:
    main index page
  * project_logo_url: if this is specified, it takes precedence over the previous
    setting: No file will be copied, this URL will be used directly instead. 
+ * encoding: character set encoding of your source files. As this is not trivial
+   to determine automatically, but usually all files of the same project use the
+   same encoding, please set it in your config. Default is utf-8 - for a list
+   of valid encodings, please see
+   http://en.wikipedia.org/wiki/Character_encoding#Popular_character_encodings
+   http://www.iana.org/assignments/character-sets
+
 
 FileNames
 ---------

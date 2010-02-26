@@ -55,7 +55,6 @@ class MetaInfo:
         self.scriptName = ""
         self.htmlDir = ""
         self.versionString = ""
-        self.toDoList = ""
         self.indexForWhereUsedFiles = 0
         
     def NextIndex(self):

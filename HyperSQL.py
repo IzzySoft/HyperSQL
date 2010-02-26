@@ -363,8 +363,8 @@ def MakeNavBar(current_page):
     """Generates HTML code for the general navigation links to all the index pages"""
     itemCount = 0
     lineNumber = 1
-    s = "<TABLE ID='topbar' WIDTH='98%'><TR>\n"
-    s += "  <TD ID='navbar' WIDTH='600px'>\n"
+    s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
+    s += "  <TD CLASS='navbar' WIDTH='600px'>\n"
     for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo']:
     #for item in ['package','function','procedure','package_full','view','file','filepath']:
         if metaInfo.indexPage[item] == '':
@@ -397,9 +397,11 @@ def MakeHTMLHeader(title_name):
     else:
         title_text = title_name
 
-    s =  '<html><head>\n'
+    s  = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'
+    s += '<html><head>\n'
     s += '  <TITLE>' + metaInfo.title_prefix + ': ' + title_text + '</TITLE>\n'
     s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + metaInfo.css_file + '">\n'
+    s += '  <META HTTP-EQUIV="Content-Type" CONTENT="text/html;charset='+metaInfo.encoding+'">\n'
     s += '</head><body>\n'
     s += MakeNavBar(title_name)
     s += '<HR CLASS="topend">\n'
@@ -548,12 +550,12 @@ def MakeElemIndex(objectType):
         if HTMLjref == '':
             outfile.write("  <TR><TD>" + object_tuple[1].name.lower())
             if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         else:
             outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + object_tuple[1].name.lower() + "</A>")
             if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         # Write column 2: Package name w/ links
         outfile.write("<TD>")
@@ -686,7 +688,7 @@ def MakeTaskList(taskType):
         HTMLref += "#" + `package_tuple[1].lineNumber`
         outfile.write("  <TR><TH COLSPAN='2'><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A>")
         if metaInfo.includeSource:
-            outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+            outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
         outfile.write("</TH></TR>\n");
         if task.taskCount() > 0:
             outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Package General</I></B></TD></TR>\n")
@@ -743,12 +745,12 @@ def MakePackageIndex(meta_info):
         if HTMLjref == '':
             outfile.write("  <TR><TD>" + package_tuple[1].packageName.lower())
             if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         else:
             outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A>")
             if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</SUP></A>")
+                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
@@ -1299,6 +1301,7 @@ def configRead():
         infile.close()
         for i in range(len(fileLines)):
             metaInfo.projectInfo += fileLines[i]
+    metaInfo.encoding     = confGet('General','encoding','utf8')
     # Section FILENAMES
     metaInfo.topLevelDirectory  = confGet('FileNames','top_level_directory','.') # directory under which all files will be scanned
     metaInfo.rcsnames           = confGetList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
@@ -1343,7 +1346,7 @@ if __name__ == "__main__":
     configRead()
     top_level_directory = metaInfo.topLevelDirectory
     if not os.path.exists(top_level_directory):
-        print "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" \
+        print >>sys.stderr, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" \
             + "The source path you configured for top_level_directory\n(" \
             + top_level_directory \
             + ")\ndoes not exist - terminating.\n" \
@@ -1352,21 +1355,10 @@ if __name__ == "__main__":
 
     metaInfo.scriptName = sys.argv[0]
     metaInfo.versionString = "1.8"
-    metaInfo.toDoList = """
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    #   TO-DO LIST
-    #
-    # A) where used does not work for local functions or procedures
-    # B) block comments are not ignored (/* comment block */)
-    # C) C++ files need doxygen hyperlinks for where used pages
-    # D) Scan Java files for where used
-    #
-    # If you have an idea for improving hyperSQL, let me know - Randy
-    #
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    """
 
-
+    #
+    # Start processing
+    #
 
     print "Creating file list" 
     FindFilesAndBuildFileList(metaInfo.topLevelDirectory, metaInfo.fileInfoList, metaInfo)
@@ -1407,7 +1399,5 @@ if __name__ == "__main__":
     # Bug and Todo lists
     MakeTaskList('bug')
     MakeTaskList('todo')
-
-    print metaInfo.toDoList
 
     print "done"
