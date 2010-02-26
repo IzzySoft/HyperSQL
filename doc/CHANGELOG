@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v1.8.0
+v1.8.0 (26.02.2010)
 -------------------
 + added project wide Todo and Bug list (compiled of the JavaDoc @todo and @bug
   comments) - now you can get an overview over all open tasks!
