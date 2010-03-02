@@ -4,6 +4,11 @@ HyperSQL Javadoc support
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
+import logging
+logger = logging.getLogger('main.jdoc')
+
+otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
+
 class JavaDoc:
     """Object to hold details from javadoc style comments"""
     def __init__(self):
@@ -26,6 +31,7 @@ class JavaDoc:
         self.see = ''
         self.webpage = ''
         self.license = ''
+        self.file = ''
     def isDefault(self):
         """Check if this is just an empty dummy (True), or if any real data have been assigned (False)"""
         if self.lineNumber != -1: return False
@@ -38,6 +44,11 @@ class JavaDoc:
         """
         if self.isDefault():
             return ''
+        if self.objectType not in otypes:
+            if self.name == '':
+                logger.warn('Unnamed object with ID %s (%s line %s has no object type set!', unum, self.file, self.lineNumber)
+            else:
+                logger.warn('No object type specified for object id %s, ID %s in %s line %s', self.name, unum, self.file, self.lineNumber)
         html = ''
         if self.objectType != 'pkg':
           html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
@@ -271,10 +282,11 @@ class PackageTaskList(TaskList):
         return self.getSubHtml('procs')
 
 
-def ScanJavaDoc(text,lineno=0):
+def ScanJavaDoc(text,fileName,lineNo=0):
     """
     Scans the text array (param 1) for the javadoc style comments starting at
-    line lineno (param 2). Called from ScanFilesForViewsAndPackages.
+    line lineNo (param 3) if defined - otherwise at line 0. Called from
+    ScanFilesForViewsAndPackages.
     Returns a list of instances of the JavaDoc class - one instance per javadoc
     comment block.
     """
@@ -285,7 +297,7 @@ def ScanJavaDoc(text,lineno=0):
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
               'see', 'webpage', 'license'] # other supported tags
-    for lineNumber in range(lineno,len(text)):
+    for lineNumber in range(lineNo,len(text)):
       line = text[lineNumber].strip()
       if not opened and line[0:3] != '/**':
         continue
@@ -301,6 +313,7 @@ def ScanJavaDoc(text,lineno=0):
           opened = True
           item = JavaDoc()
           item.lineNumber = lineNumber
+          item.file = fileName
           item.desc += line[3:].strip()
           continue
         if line[0:1] != '@':
@@ -380,7 +393,10 @@ def ScanJavaDoc(text,lineno=0):
             item.webpage = line[len(tag)+1:].strip()
           elif tag == 'license':
             item.license = line[len(tag)+1:].strip()
+          else:
+            logger.debug('Ooops - tag %s not handled?', tag)
         else:             # unsupported tag, ignore
+          logger.warn('unsupported JavaDoc tag "%s" in %s line %s', tag, fileName, lineNumber)
           continue
         
     return res

@@ -1,5 +1,14 @@
 # History of Changes for HyperSQL
 
+v1.9.0
+-------------------
+* outsourced config class (HyperConf). Now it reads all available config files,
+  overwriting more common data (default config files) by project specific ones
++ extended the ConfigParser with the IniParser class (which then is extended
+  by HyperConf). This way we can intercept possible user errors (specifiying
+  invalid configuration values) in a better way
++ added logging facility (including a corresponding config section)
+
 v1.8.0 (26.02.2010)
 -------------------
 + added project wide Todo and Bug list (compiled of the JavaDoc @todo and @bug

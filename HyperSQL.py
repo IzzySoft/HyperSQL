@@ -30,7 +30,7 @@
 """
 
 # first import standard modules we use
-import os, sys, string, time, ConfigParser, fileinput
+import os, sys, string, time, ConfigParser, fileinput, logging
 from shutil import copy2
 
 # now import our own modules
@@ -38,15 +38,18 @@ sys.path.insert(0,os.path.split(sys.argv[0])[0] + os.sep + 'lib')
 from hypercore import *
 from hyperjdoc import *
 from hypercode import *
+from hyperconf import *
 
 
-def FindFilesAndBuildFileList(dir, fileInfoList, meta_info):
+def FindFilesAndBuildFileList(dir, fileInfoList):
     """
     Recursively scans the source directory specified (1st param) for
-    relevant files according to the file extensions configured in meta_info
-    (3rd param), while excluding RCS directories (such as 'RCS', 'CVS', and
-    '.svn'). Information for matching files is stored in fileInfoList (2nd param).
+    relevant files according to the file extensions configured in metaInfo,
+    while excluding RCS directories (such as 'RCS', 'CVS', and '.svn' - see
+    configuration section FileNames). Information for matching files is
+    stored in fileInfoList (2nd param).
     """
+    printProgress("Creating file list")
 
     # get a list of this directory's contents
     # these items are relative and not absolute
@@ -55,7 +58,7 @@ def FindFilesAndBuildFileList(dir, fileInfoList, meta_info):
     # iterate through the file list
     for i in names: 
 
-      if i in meta_info.rcsnames: # do not look in RCS/CVS/SVN/... special dirs
+      if i in metaInfo.rcsnames: # do not look in RCS/CVS/SVN/... special dirs
 	    continue
 
       # convert from relative to absolute addressing
@@ -64,29 +67,29 @@ def FindFilesAndBuildFileList(dir, fileInfoList, meta_info):
 
       # if this item is also a directory, recurse it too
       if os.path.isdir(f1):
-        FindFilesAndBuildFileList(f1, fileInfoList, meta_info)
+        FindFilesAndBuildFileList(f1, fileInfoList)
 	    
       else:  # file found, only add specific file extensions to the list
         fspl = f1.split('.')
         ext  = fspl[len(fspl)-1]
-        if ext in meta_info.sql_file_exts:
+        if ext in metaInfo.sql_file_exts:
           temp = FileInfo()
           temp.fileName = f1
           temp.fileType = "sql"
           if temp.uniqueNumber == 0:
-            temp.uniqueNumber = meta_info.NextIndex()
+            temp.uniqueNumber = metaInfo.NextIndex()
           fileInfoList.append(temp)
-        if ext in meta_info.cpp_file_exts:
+        if ext in metaInfo.cpp_file_exts:
           temp = FileInfo()
           temp.fileName = f1
           temp.fileType = "cpp"
           if temp.uniqueNumber == 0:
-            temp.uniqueNumber = meta_info.NextIndex()
+            temp.uniqueNumber = metaInfo.NextIndex()
           fileInfoList.append(temp)
 
-def ScanFilesForViewsAndPackages(meta_info):
+def ScanFilesForViewsAndPackages():
     """
-    Scans files from meta_info.fileInfoList for views and packages and collects
+    Scans files from metaInfo.fileInfoList for views and packages and collects
     some metadata about them (name, file, lineno). When encountering a package
     spec, it also scans for its functions and procedures.
     It simply searches the source file for keywords. With each object info,
@@ -94,8 +97,9 @@ def ScanFilesForViewsAndPackages(meta_info):
     and children) - for functions and procedures contained in packages, a link
     to their parent is stored along.
     """
+    printProgress("Scanning source files for views and packages")
 
-    fileInfoList = meta_info.fileInfoList
+    fileInfoList = metaInfo.fileInfoList
 
     # first, find views in files
     dot_count = 1
@@ -106,11 +110,7 @@ def ScanFilesForViewsAndPackages(meta_info):
             continue
         
         # print a . every file
-        sys.stdout.write(".")
-        sys.stdout.flush()
-        if (dot_count % 60) == 0: # carriage return every 60 dots
-            print
-            sys.stdout.flush()
+        dotProgress(dot_count)
 
         dot_count += 1
         infile = open(file_info.fileName, "r")
@@ -118,7 +118,7 @@ def ScanFilesForViewsAndPackages(meta_info):
         infile.close()
 
         # scan this file for possible JavaDoc style comments
-        jdoc = ScanJavaDoc(fileLines)
+        jdoc = ScanJavaDoc(fileLines, file_info.fileName)
 
         # if we find a package definition, this flag tells us to also look for
         # functions and procedures.  If we don't find a package definition, there
@@ -214,17 +214,18 @@ def ScanFilesForViewsAndPackages(meta_info):
                     file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
     # print carriage return after last dot
-    print
+    dotFlush()
 
 
-def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
+def ScanFilesForWhereViewsAndPackagesAreUsed():
     """
-    Scans files collected in meta_info.fileInfoList and checks them line by line
-    with meta_info.<object>list for calls to those objects. If it finds any, it
+    Scans files collected in metaInfo.fileInfoList and checks them line by line
+    with metaInfo.<object>list for calls to those objects. If it finds any, it
     updates <object>list where_used property accordingly.
     """
+    printProgress("Scanning source files for where views and packages are used")
 
-    fileInfoList = meta_info.fileInfoList
+    fileInfoList = metaInfo.fileInfoList
 
     outerfileInfoList = []
     for file_info in fileInfoList:
@@ -233,11 +234,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
     dot_count = 1
     for outer_file_info in outerfileInfoList:
         # print a . every file
-        sys.stdout.write(".")
-        sys.stdout.flush()
-        if (dot_count % 60) == 0: # carriage return every 60 dots
-            print
-            sys.stdout.flush()
+        dotProgress(dot_count)
         dot_count += 1
 
         infile = open(outer_file_info.fileName, "r")
@@ -310,7 +307,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
                                 view_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                             # generate a unique number for use in making where used file if needed
                             if view_info.uniqueNumber == 0:
-                                view_info.uniqueNumber = meta_info.NextIndex()
+                                view_info.uniqueNumber = metaInfo.NextIndex()
 
 
                 # if this FileInfo instance has packages
@@ -327,7 +324,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
                                 package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                             # generate a unique number for use in making where used file if needed
                             if package_info.uniqueNumber == 0:
-                                package_info.uniqueNumber = meta_info.NextIndex()
+                                package_info.uniqueNumber = metaInfo.NextIndex()
 
                             #look for any of this packages' functions
                             for function_info in package_info.functionInfoList:
@@ -341,7 +338,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
                                         function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                                     # generate a unique number for use in making where used file if needed
                                     if function_info.uniqueNumber == 0:
-                                        function_info.uniqueNumber = meta_info.NextIndex()
+                                        function_info.uniqueNumber = metaInfo.NextIndex()
                             #look for any of this packages procedures
                             for procedure_info in package_info.procedureInfoList:
                                 # perform case insensitive find
@@ -354,10 +351,11 @@ def ScanFilesForWhereViewsAndPackagesAreUsed(meta_info):
                                         procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                                     # generate a unique number for use in making where used file if needed
                                     if procedure_info.uniqueNumber == 0:
-                                        procedure_info.uniqueNumber = meta_info.NextIndex()
+                                        procedure_info.uniqueNumber = metaInfo.NextIndex()
 
     # print carriage return after last dot
-    print
+    dotFlush()
+
 
 def MakeNavBar(current_page):
     """Generates HTML code for the general navigation links to all the index pages"""
@@ -426,6 +424,7 @@ def MakeHTMLFooter(title_name):
 
 def CreateHTMLDirectory(metaInfo):
     """Creates the html directory if needed"""
+    printProgress("Creating html subdirectory")
     splitted = metaInfo.htmlDir.split(os.sep)
     temp = ""
     for path_element in splitted: # loop through path components, making directories as needed
@@ -448,10 +447,10 @@ def MakeFileIndex(objectType):
         return
 
     if objectType == 'file':
-        print "Creating filename no path index"
+        printProgress("Creating filename no path index")
         html_title = 'Index Of All Files By File Name'
     else:
-        print "Creating filename by path index"
+        printProgress("Creating filename by path index")
         html_title = 'Index Of All Files By Path Name'
 
     fileInfoList = metaInfo.fileInfoList
@@ -500,7 +499,7 @@ def MakeElemIndex(objectType):
     if metaInfo.indexPage[objectType] == '':       # index for this objectType is turned off
         return
 
-    print 'Creating '+objectType+' index'
+    printProgress('Creating '+objectType+' index')
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -583,18 +582,17 @@ def MakeElemIndex(objectType):
     outfile.close()
 
 
-def MakeViewIndex(meta_info):
+def MakeViewIndex():
     """Generate HTML index page for all views"""
 
     if metaInfo.indexPage['view'] == '':
         return
 
-    print "Creating view index"
+    printProgress("Creating view index")
 
-    fileInfoList = meta_info.fileInfoList
-    html_dir = meta_info.htmlDir
+    fileInfoList = metaInfo.fileInfoList
+    html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage['view']
-    top_level_directory = meta_info.topLevelDirectory
 
     viewtuplelist = []
     for file_info in fileInfoList:
@@ -647,7 +645,7 @@ def MakeTaskList(taskType):
     if metaInfo.indexPage[taskType] == '':
         return
 
-    print "Creating "+taskType+" list"
+    printProgress("Creating "+taskType+" list")
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -705,18 +703,17 @@ def MakeTaskList(taskType):
     outfile.close()
 
 
-def MakePackageIndex(meta_info):
+def MakePackageIndex():
     """Generate HTML index page for all packages"""
 
     if metaInfo.indexPage['package'] == '':
         return
 
-    print "Creating package index"
+    printProgress("Creating package index")
 
-    fileInfoList = meta_info.fileInfoList
-    html_dir = meta_info.htmlDir
+    fileInfoList = metaInfo.fileInfoList
+    html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage['package']
-    top_level_directory = meta_info.topLevelDirectory
 
     packagetuplelist = []
     for file_info in fileInfoList:
@@ -764,18 +761,17 @@ def MakePackageIndex(meta_info):
     outfile.close()
 
 
-def MakePackagesWithFuncsAndProcsIndex(meta_info):
+def MakePackagesWithFuncsAndProcsIndex():
     """Generate HTML index page for all packages, including their functions and procedures"""
 
     if metaInfo.indexPage['package_full'] == '':
         return
 
-    print "Creating 'package with functions and procedures' index"
+    printProgress("Creating 'package with functions and procedures' index")
 
-    fileInfoList = meta_info.fileInfoList
-    html_dir = meta_info.htmlDir
+    fileInfoList = metaInfo.fileInfoList
+    html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage['package_full']
-    top_level_directory = meta_info.topLevelDirectory
 
     packagetuplelist = []
     for file_info in fileInfoList:
@@ -876,17 +872,18 @@ def MakePackagesWithFuncsAndProcsIndex(meta_info):
     outfile.close()
 
 
-def CreateHyperlinkedSourceFilePages(meta_info):
+def CreateHyperlinkedSourceFilePages():
     """
     Generates pages with the complete source code of each file, including link
     targets (A NAME=) for each line. This way we can link directly to the line
     starting the definition of an object, or where it is called (used) from.
     Very basic syntax highlighting is performed here as well.
     """
+    printProgress("Creating hyperlinked source file pages")
 
-    fileInfoList = meta_info.fileInfoList
-    html_dir = meta_info.htmlDir
-    top_level_directory = meta_info.topLevelDirectory
+    fileInfoList = metaInfo.fileInfoList
+    html_dir = metaInfo.htmlDir
+    top_level_directory = metaInfo.topLevelDirectory
 
     sqlkeywords = []
     sqltypes    = []
@@ -905,13 +902,9 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         if file_info.fileType != "sql":
             continue
 
-	# print a . every file
-	sys.stdout.write(".")
-	sys.stdout.flush()
-	if (dot_count % 60) == 0: # carriage return every 60 dots
-	    print
-	    sys.stdout.flush()
-	dot_count += 1
+        # print a . every file
+        dotProgress(dot_count)
+        dot_count += 1
 
         # read up the source file
         infile = open(file_info.fileName, "r")
@@ -1005,31 +998,32 @@ def CreateHyperlinkedSourceFilePages(meta_info):
         outfile.close()
 
     # print carriage return after last dot
-    print
+    dotFlush()
 
 
-def CreateIndexPage(meta_info):
+def CreateIndexPage():
     """Generates the main index page"""
+    printProgress("Creating site index page")
 
-    html_dir = meta_info.htmlDir
-    script_name = meta_info.scriptName
+    html_dir = metaInfo.htmlDir
+    script_name = metaInfo.scriptName
 
     outfile = open(html_dir + 'index.html', "w")
     outfile.write(MakeHTMLHeader('Index'))
 
     # Copy the StyleSheet
-    if os.path.exists(meta_info.css_file):
-      copy2(meta_info.css_file,html_dir + os.path.split(meta_info.css_file)[1])
+    if os.path.exists(metaInfo.css_file):
+      copy2(metaInfo.css_file,html_dir + os.path.split(metaInfo.css_file)[1])
 
     outfile.write("<H1 STYLE='margin-top:100px'>" + metaInfo.title_prefix + " HyperSQL Reference</H1>\n")
 
     outfile.write("<BR><BR>\n")
     outfile.write("<TABLE ID='projectinfo' ALIGN='center'><TR><TD VALIGN='middle' ALIGN='center'>\n")
-    if meta_info.projectLogo != '':
-      logoname = os.path.split(meta_info.projectLogo)[1]
-      copy2(meta_info.projectLogo,html_dir + logoname)
+    if metaInfo.projectLogo != '':
+      logoname = os.path.split(metaInfo.projectLogo)[1]
+      copy2(metaInfo.projectLogo,html_dir + logoname)
       outfile.write("  <IMG ALIGN='center' SRC='" + logoname + "' ALT='Logo'><BR><BR><BR>\n")
-    outfile.write(meta_info.projectInfo)
+    outfile.write(metaInfo.projectInfo)
     outfile.write("</TD></TR></TABLE>\n")
     outfile.write("<BR><BR>\n")
 
@@ -1037,11 +1031,12 @@ def CreateIndexPage(meta_info):
     outfile.close()
 
 
-def CreateWhereUsedPages(meta_info):
+def CreateWhereUsedPages():
     """Generate a where-used-page for each object"""
+    printProgress("Creating 'where used' pages")
 
-    html_dir = meta_info.htmlDir
-    fileInfoList = meta_info.fileInfoList
+    html_dir = metaInfo.htmlDir
+    fileInfoList = metaInfo.fileInfoList
 
     # loop through files
     dot_count = 1
@@ -1051,13 +1046,9 @@ def CreateWhereUsedPages(meta_info):
         if file_info.fileType != "sql":
             continue
 
-	# print a . every file
-	sys.stdout.write(".")
-	sys.stdout.flush()
-	if (dot_count % 60) == 0: # carriage return every 60 dots
-	    print
-	    sys.stdout.flush()
-	dot_count += 1
+        # print a . every file
+        dotProgress(dot_count)
+        dot_count += 1
 	
         # loop through views
         for view_info in file_info.viewInfoList:
@@ -1219,97 +1210,45 @@ def CreateWhereUsedPages(meta_info):
                 outfile.close()
 
     # print carriage return after last dot
-    print
+    dotFlush()
 
-
-def confName(projName):
-    """ Get the name of the .ini file to use for configuration """
-    if os.path.exists(projName+'.ini'):
-      return projName+'.ini'
-    if os.path.exists(projName.lower()+'.ini'):
-      return projName.lower()+'.ini'
-    if os.path.exists('HyperSQL.ini'):
-      return 'HyperSQL.ini'
-    if os.path.exists('hypersql.ini'):
-      return 'hypersql.ini'
-    return ''
-
-def confGet(sect,opt,default=''):
-    """
-    Get an option from the config as string
-    Parameters: section name, option name, default value
-    """
-    if config.has_option(sect,opt):
-      return config.get(sect,opt)
-    else:
-      return default
-
-def confGetList(sect,opt,default=[]):
-    """
-    Get an option from the config as list
-    Parameters: section name, option name, default value
-    """
-    if config.has_option(sect,opt):
-      return config.get(sect,opt).split(' ')
-    else:
-      return default
-
-def confGetBool(sect,opt,default=False):
-    """
-    Get an option from the config as boolean value
-    Parameters: section name, option name, default value
-    """
-    if config.has_option(sect,opt):
-      return config.getboolean(sect,opt)
-    else:
-      return default
-
-def confGetInt(sect,opt,default=0):
-    """
-    Get an option from the config as integer value
-    Parameters: section name, option name, default value
-    """
-    if config.has_option(sect,opt):
-      return config.getint(sect,opt)
-    else:
-      return default
 
 def confPage(page,filenameDefault,pagenameDefault,enableDefault):
     """
     Add the specified page to the list of pages to process if it is enabled
     """
-    if confGetBool('Pages',page,enableDefault):
-        metaInfo.indexPage[page] = confGet('FileNames',page,filenameDefault)
-        metaInfo.indexPageName[page] = confGet('PageNames',page,pagenameDefault)
+    if config.getBool('Pages',page,enableDefault):
+        metaInfo.indexPage[page] = config.get('FileNames',page,filenameDefault)
+        metaInfo.indexPageName[page] = config.get('PageNames',page,pagenameDefault)
         metaInfo.indexPageCount += 1
     else:
         metaInfo.indexPage[page] = ''
 
 def configRead():
     # Section GENERAL
-    metaInfo.title_prefix  = confGet('General','title_prefix','HyperSQL')
-    metaInfo.projectInfo   = confGet('General','project_info','')
-    infofile               = confGet('General','project_logo_url','')
+    metaInfo.title_prefix  = config.get('General','title_prefix','HyperSQL')
+    metaInfo.projectInfo   = config.get('General','project_info','')
+    infofile               = config.get('General','project_logo_url','')
     if infofile == '':
-      metaInfo.projectLogo = confGet('General','project_logo','')
+      metaInfo.projectLogo = config.get('General','project_logo','')
     else:
       metaInfo.projectLogo = infofile
-    infofile               = confGet('General','project_info_file','')
+    infofile               = config.get('General','project_info_file','')
     if infofile != '' and os.path.exists(infofile):
         infile = open(infofile, "r")
         fileLines = infile.readlines()
         infile.close()
         for i in range(len(fileLines)):
             metaInfo.projectInfo += fileLines[i]
-    metaInfo.encoding     = confGet('General','encoding','utf8')
+    metaInfo.encoding     = config.get('General','encoding','utf8')
     # Section FILENAMES
-    metaInfo.topLevelDirectory  = confGet('FileNames','top_level_directory','.') # directory under which all files will be scanned
-    metaInfo.rcsnames           = confGetList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
-    metaInfo.sql_file_exts      = confGetList('FileNames','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
-    metaInfo.cpp_file_exts      = confGetList('FileNames','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
-    metaInfo.htmlDir            = confGet('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
-    metaInfo.css_file           = confGet('FileNames','css_file','hypersql.css')
-    metaInfo.css_url            = confGet('FileNames','css_url','')
+    metaInfo.topLevelDirectory  = config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned
+    metaInfo.rcsnames           = config.getList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
+    metaInfo.sql_file_exts      = config.getList('FileNames','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
+    metaInfo.cpp_file_exts      = config.getList('FileNames','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
+    metaInfo.htmlDir            = config.get('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
+    metaInfo.css_file           = config.get('FileNames','css_file','hypersql.css')
+    metaInfo.css_url            = config.get('FileNames','css_url','')
     metaInfo.indexPage          = {}
     metaInfo.indexPageCount     = 1 # We at least have the main index page
     metaInfo.indexPageName      = {}
@@ -1324,80 +1263,130 @@ def configRead():
     confPage('todo','TodoIndex.html','Todo List',True)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
     # Section PROCESS
-    purgeOnStart = confGetBool('Process','purge_on_start',False)
-    metaInfo.blindOffset = abs(confGetInt('Process','blind_offset',0)) # we need a positive integer
-    metaInfo.includeSource = confGetBool('Process','include_source',True)
+    metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
+    metaInfo.includeSource = config.getBool('Process','include_source',True)
 
+def confLogger():
+    logging.addLevelName(99,'NONE')
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler( config.get('Logging','logfile') )
+    ch = logging.StreamHandler()
+    #fh.setFormatter( logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s") )
+    fh.setFormatter( logging.Formatter("%(asctime)s %(module)s %(levelname)s %(message)s") )
+    #ch.setFormatter( logging.Formatter("* %(name)s %(levelname)s %(message)s") )
+    ch.setFormatter( logging.Formatter("* %(module)s %(levelname)s %(message)s") )
+    try:
+        fh.setLevel( eval('logging.'+config.get('Logging','filelevel','WARNING').upper()) )
+    except AttributeError:
+        fh.setLevel(logging.WARNING)
+    try:
+        ch.setLevel( eval('logging.'+config.get('Logging','screenlevel','WARNING').upper()) )
+    except AttributeError:
+        ch.setLevel(logging.ERROR)
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+
+def printProgress(msg):
+    """
+    If config(Logging.progress) evaluates to True, print which step we are performing
+    """
+    logger.debug(msg)
+    if config.getBool('Logging','progress',True):
+        print msg
+
+def dotProgress(dot_count):
+    """
+    If config(Logging.progress) evaluates to True, print a '.' for each processed object
+    (usually for each processed file), plus a line break all 60 dots
+    """
+    if config.getBool('Logging','progress',True):
+        sys.stdout.write(".")
+        sys.stdout.flush()
+        if (dot_count % 60) == 0: # carriage return every 60 dots
+            print
+            sys.stdout.flush()
+
+def dotFlush():
+    """
+    If we print progress dots (see dotProgress), we need to close the last line
+    """
+    if config.getBool('Logging','progress',True):
+        print
 
 if __name__ == "__main__":
 
-    # Read the config file
+    # Read configuration
+    config = HyperConf()
+    config.initDefaults()
+
+    # Check the config files
+    confName = []
+    scriptpath = os.path.split(sys.argv[0])[0] + os.sep
+    for proj in ['HyperSQL','hypersql']:
+        if not scriptpath + proj + '.ini' in confName and os.path.exists(scriptpath + proj + '.ini'):
+            confName.append(scriptpath + proj + '.ini')
     if len(sys.argv)>1:
-      configFile = confName(sys.argv[1])
+        for proj in [sys.argv[1].lower(),sys.argv[1]]:
+            if not scriptpath + proj + '.ini' in confName and os.path.exists(scriptpath + proj + '.ini'):
+                confName.append(scriptpath + proj + '.ini')
+    # If we have any config files, read them!
+    if len(confName) > 0:
+      config.read(confName)
     else:
-      configFile = confName('HyperSQL')
-    config = ConfigParser.ConfigParser()
-    if configFile != '':
-      print 'Reading config file ' + configFile
-      config.read(configFile)
+      print 'No config file found, using defaults.'
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    purgeOnStart = False
+    metaInfo.versionString = "1.9"
+    metaInfo.scriptName = sys.argv[0]
+
+    # Initiate logging
+    logger = logging.getLogger('main')
+    confLogger()
+    logger.info('HyperSQL v.'+metaInfo.versionString+' initialized')
+    logger.debug('ScriptName: '+metaInfo.scriptName)
+    if len(confName) > 0:
+      logger.info('Using config file(s) ' + ', '.join(confName))
+    else:
+      logger.info('No config file found, using defaults.')
+
     configRead()
     top_level_directory = metaInfo.topLevelDirectory
     if not os.path.exists(top_level_directory):
-        print >>sys.stderr, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" \
-            + "The source path you configured for top_level_directory\n(" \
-            + top_level_directory \
-            + ")\ndoes not exist - terminating.\n" \
-            + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+        logger.critical('top_level_directory "'+top_level_directory+'" does not exist - terminating.')
         sys.exit(os.EX_OSFILE)
-
-    metaInfo.scriptName = sys.argv[0]
-    metaInfo.versionString = "1.8"
 
     #
     # Start processing
     #
 
-    print "Creating file list" 
-    FindFilesAndBuildFileList(metaInfo.topLevelDirectory, metaInfo.fileInfoList, metaInfo)
+    FindFilesAndBuildFileList(metaInfo.topLevelDirectory, metaInfo.fileInfoList)
+    ScanFilesForViewsAndPackages()
+    ScanFilesForWhereViewsAndPackagesAreUsed()
 
-    print "Scanning source files for views and packages"
-    ScanFilesForViewsAndPackages(metaInfo)
-
-    print "Scanning source files for where views and packages are used"
-    ScanFilesForWhereViewsAndPackagesAreUsed(metaInfo)
-
-    if purgeOnStart and os.path.exists(metaInfo.htmlDir):
+    if config.getBool('Process','purge_on_start',False) and os.path.exists(metaInfo.htmlDir):
       print "Removing html files from previous run"
       names=os.listdir(metaInfo.htmlDir)
       for i in names:
         os.unlink(metaInfo.htmlDir + i)
 
-    print "Creating html subdirectory"
     CreateHTMLDirectory(metaInfo)
 
     # Generating the index pages
     MakeFileIndex('filepath')
     MakeFileIndex('file')
-    MakeViewIndex(metaInfo)
-    MakePackageIndex(metaInfo)
+    MakeViewIndex()
+    MakePackageIndex()
     MakeElemIndex('function')
     MakeElemIndex('procedure')
-    MakePackagesWithFuncsAndProcsIndex(metaInfo)
+    MakePackagesWithFuncsAndProcsIndex()
 
-    print "Creating 'where used' pages"
-    CreateWhereUsedPages(metaInfo)
-
-    print "Creating hyperlinked source file pages"
-    CreateHyperlinkedSourceFilePages(metaInfo)
-
-    print "Creating site index page"
-    CreateIndexPage(metaInfo)
+    CreateWhereUsedPages()
+    CreateHyperlinkedSourceFilePages()
+    CreateIndexPage()
 
     # Bug and Todo lists
     MakeTaskList('bug')
     MakeTaskList('todo')
 
-    print "done"
+    printProgress("done")
+    logger.info('HyperSQL v.'+metaInfo.versionString+' exiting normally')

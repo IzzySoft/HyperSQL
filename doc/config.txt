@@ -87,4 +87,66 @@ Here come processing options:
    should leave it to the default of 0. You may however use any positive integer
    here - but keep in mind: the larger it is, the more it finds - which may not
    always fit...
+ * include_source: whether to include the (highlighted) sourcecode and link to it.
+   The value must evaluate to a Boolean (, e.g. 0 for no, 1 for yes)
 
+Logging
+-------
+
+Several logging features are available, which can be configured here. As for log
+levels, chose between NONE, DEBUG, INFO, WARNING, ERROR and CRITICAL - all levels
+right-hand from the chosen one are automatically included as well.
+
+ * screenlevel: what should be logged to the screen (aka STDOUT). Defaults to ERROR
+ * filelevel: what should be logged to the log file specified. Defaults to DEBUG
+ * logfile: File name of the log file. Defaults to HyperSQL.log
+ * progress: whether to output progress information to STDOUT. Boolean, defaults
+   to 1 (True)
+
+
+How the configuration works
+===========================
+
+You may ask the "Ruby Rod question" now: Who cares? But understanding how
+configuration is done may help you doing it in the most optimal way, so here we
+go:
+
+On startup, HyperSQL first reads its "internal configuration defaults" - which
+is a complete configuration set with default values for each available setting,
+so it can even be run without any configuration file theoretically.
+
+Next step is to check for available configuration files within the same directory
+the script resides. If they exist, they are processed in the following order:
+
+ * HyperSQL.ini
+ * hypersql.ini
+ * <ProjectName>.ini
+ * <projectname>.ini
+
+where the last two are only checked if a project name was specified at the command
+line. Settings found in each of the files overwrite previously defined settings.
+This especially means: None of the configuration files has to specify all
+possible settings.
+
+So how can you make use of this?
+
+First, keep the HyperSQL.ini untouched, as it would either be overwritten on
+updates. It may very well be the stupid programmer forgot to add an option to
+the "internal configuration data" which then is handled here.
+
+Second, if you have multiple different projects you process separately with
+HyperSQL, create yourself a new file named hypersql.ini (all letters lowercase)
+with those settings all (or most) of your projects have in common. Of course,
+this only works with "real operating systems" - so this cannot be done under
+Windows (which is not case sensitive regarding file names).
+
+Last, create a separate configuration file holding only those values specific
+to each of your projects. This file will be the only one you need to create
+for new projects then.
+
+This way, each projects configuration inherits from your global configuration,
+which inherits from the HyperSQL default configuration file, which inherits from
+the HyperSQL internal configuration.
+
+Not to mention that, as soon as this is implemented, additional command line
+parameters can be used to override options of this final configuration...
