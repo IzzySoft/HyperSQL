@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v1.9.0
+v1.9.0 (03.03.2010)
 -------------------
 * outsourced config class (HyperConf). Now it reads all available config files,
   overwriting more common data (default config files) by project specific ones
