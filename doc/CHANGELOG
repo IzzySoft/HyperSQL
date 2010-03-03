@@ -8,6 +8,7 @@ v1.9.0
   by HyperConf). This way we can intercept possible user errors (specifiying
   invalid configuration values) in a better way
 + added logging facility (including a corresponding config section)
+! overloading functions/procedures should no longer cause javadoc confusion
 
 v1.8.0 (26.02.2010)
 -------------------

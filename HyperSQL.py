@@ -189,7 +189,13 @@ def ScanFilesForViewsAndPackages():
                     for j in range(len(jdoc)):
                       ln = jdoc[j].lineNumber - lineNumber
                       if (CaseInsensitiveComparison(function_name,jdoc[j].name)==0 and jdoc[j].objectType=='function') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                        function_info.javadoc = jdoc[j]
+                        if function_info.javadoc.isDefault():
+                          function_info.javadoc = jdoc[j]
+                          function_info.javadoc.lndiff = abs(ln)
+                        else:
+                          if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
+                            function_info.javadoc = jdoc[j]
+                            function_info.javadoc.lndiff = abs(ln)
                         if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
                             file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
@@ -206,7 +212,13 @@ def ScanFilesForViewsAndPackages():
                     for j in range(len(jdoc)):
                       ln = jdoc[j].lineNumber - lineNumber
                       if (CaseInsensitiveComparison(procedure_name,jdoc[j].name)==0 and jdoc[j].objectType=='procedure') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                        procedure_info.javadoc = jdoc[j]
+                        if procedure_info.javadoc.isDefault():
+                          procedure_info.javadoc = jdoc[j]
+                          procedure_info.javadoc.lndiff = abs(ln)
+                        else:
+                          if abs(ln) < procedure_info.javadoc.lndiff: # this desc is closer to the object
+                            procedure_info.javadoc = jdoc[j]
+                            procedure_info.javadoc.lndiff = abs(ln)
                         if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
                             file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':

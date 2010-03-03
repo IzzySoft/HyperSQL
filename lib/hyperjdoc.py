@@ -4,13 +4,16 @@ HyperSQL Javadoc support
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
+from sys import maxint
 import logging
 logger = logging.getLogger('main.jdoc')
 
 otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
 
 class JavaDoc:
-    """Object to hold details from javadoc style comments"""
+    """
+    Object to hold details from javadoc style comments
+    """
     def __init__(self):
         self.lineNumber = -1
         self.lines = 0
@@ -32,6 +35,7 @@ class JavaDoc:
         self.webpage = ''
         self.license = ''
         self.file = ''
+        self.lndiff = maxint # needed for function/procedure overloading
     def isDefault(self):
         """Check if this is just an empty dummy (True), or if any real data have been assigned (False)"""
         if self.lineNumber != -1: return False
@@ -49,6 +53,7 @@ class JavaDoc:
                 logger.warn('Unnamed object with ID %s (%s line %s has no object type set!', unum, self.file, self.lineNumber)
             else:
                 logger.warn('No object type specified for object id %s, ID %s in %s line %s', self.name, unum, self.file, self.lineNumber)
+            return ''
         html = ''
         if self.objectType != 'pkg':
           html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
@@ -132,7 +137,7 @@ class JavaDoc:
 
 
 class JavaDocParam:
-    """Parameters passed to a function/Procedure. Used by JavaDoc.params and JavaDoc.retVals"""
+    """ Parameters passed to a function/Procedure. Used by JavaDoc.params and JavaDoc.retVals """
     def __init__(self):
         self.inout = 'in' # 'in', 'out', or 'inout'. Ignored for retVals
         self.sqltype = 'VARCHAR2'
@@ -142,7 +147,7 @@ class JavaDocParam:
 
 
 class TaskItem:
-    """Task for Todo / Bug lists"""
+    """ Task for Todo / Bug lists """
     def __init__(self,name='',line=''):
         self.name = name
         self.desc = line
@@ -344,57 +349,66 @@ def ScanJavaDoc(text,fileName,lineNo=0):
           item.name = doc[1]
         elif tag in tags: # other supported tag
           if tag == 'param':    # @param inout type [name [desc]]
-            p = JavaDocParam()
-            if doc[1] in ['in','out','inout']:
-              p.inout   = doc[1].upper()
-              p.sqltype = doc[2].upper()
-              if len(doc) > 3:
-                p.name = doc[3]
-                for w in range(4,len(doc)):
-                  p.desc += doc[w] + ' '
-                p.desc = p.desc.strip()
+            if len(doc) < 2:
+              logger.warn('@param requires at least one parameter, none given in %s line %s', fileName, lineNumber)
             else:
-              p.sqltype = doc[1]
-              if len(doc) > 2:
+              p = JavaDocParam()
+              if doc[1] in ['in','out','inout']:
+                p.inout   = doc[1].upper()
+                p.sqltype = doc[2].upper()
+                if len(doc) > 3:
+                  p.name = doc[3]
+                  for w in range(4,len(doc)):
+                    p.desc += doc[w] + ' '
+                  p.desc = p.desc.strip()
+              else:
+                p.sqltype = doc[1]
+                if len(doc) > 2:
+                  p.name = doc[2]
+                  for w in range(3,len(doc)):
+                    p.desc += doc[w] + ' '
+                  p.desc = p.desc.strip()
+              item.params.append(p)
+          elif tag == 'return': # @return type [name [desc]
+            if len(doc) < 2:
+              logger.warn('@return requires at least one parameter, none given in %s line %s', fileName, lineNumber)
+            else:
+              p = JavaDocParam()
+              p.sqltype = doc[1].upper()
+              if len(doc)>2:
                 p.name = doc[2]
                 for w in range(3,len(doc)):
                   p.desc += doc[w] + ' '
-                p.desc = p.desc.strip()
-            item.params.append(p)
-          elif tag == 'return': # @return type [name [desc]
-            p = JavaDocParam()
-            p.sqltype = doc[1].upper()
-            if len(doc)>2:
-              p.name = doc[2]
-              for w in range(3,len(doc)):
-                p.desc += doc[w] + ' '
-            item.retVals.append(p)
-          elif tag == 'version':
-            item.version = line[len(tag)+1:].strip()
-          elif tag == 'author':
-            item.author = line[len(tag)+1:].strip()
-          elif tag == 'info':
-            item.info = line[len(tag)+1:].strip()
-          elif tag == 'example':
-            item.example = line[len(tag)+1:].strip()
-          elif tag == 'todo':
-            item.todo = line[len(tag)+1:].strip()
-          elif tag == 'bug':
-            item.bug = line[len(tag)+1:].strip()
-          elif tag == 'copyright':
-            item.copyright = line[len(tag)+1:].strip()
-          elif tag == 'deprecated':
-            item.deprecated = line[len(tag)+1:].strip()
+              item.retVals.append(p)
           elif tag == 'private':
             item.private = True
-          elif tag == 'see':
-            item.see = line[len(tag)+1:].strip()
-          elif tag == 'webpage':
-            item.webpage = line[len(tag)+1:].strip()
-          elif tag == 'license':
-            item.license = line[len(tag)+1:].strip()
-          else:
-            logger.debug('Ooops - tag %s not handled?', tag)
+          else: # tags with only one <text> parameter
+            if len(doc) < 2:
+              logger.warn('@%s requires <text> parameter, none given in %s line %s', tag, fileName, lineNumber)
+            elif tag == 'version':
+              item.version = line[len(tag)+1:].strip()
+            elif tag == 'author':
+              item.author = line[len(tag)+1:].strip()
+            elif tag == 'info':
+              item.info = line[len(tag)+1:].strip()
+            elif tag == 'example':
+              item.example = line[len(tag)+1:].strip()
+            elif tag == 'todo':
+              item.todo = line[len(tag)+1:].strip()
+            elif tag == 'bug':
+              item.bug = line[len(tag)+1:].strip()
+            elif tag == 'copyright':
+              item.copyright = line[len(tag)+1:].strip()
+            elif tag == 'deprecated':
+              item.deprecated = line[len(tag)+1:].strip()
+            elif tag == 'see':
+              item.see = line[len(tag)+1:].strip()
+            elif tag == 'webpage':
+              item.webpage = line[len(tag)+1:].strip()
+            elif tag == 'license':
+              item.license = line[len(tag)+1:].strip()
+            else:
+              logger.debug('Ooops - tag %s not handled?', tag)
         else:             # unsupported tag, ignore
           logger.warn('unsupported JavaDoc tag "%s" in %s line %s', tag, fileName, lineNumber)
           continue

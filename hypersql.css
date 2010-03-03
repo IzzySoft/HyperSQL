@@ -39,7 +39,7 @@ pre {
 /*
  * Navigation
  */
-#navbar {
+.navbar {
   background: #eef;
   font-weight: bold;
   text-align: center;
