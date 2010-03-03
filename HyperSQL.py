@@ -30,7 +30,7 @@
 """
 
 # first import standard modules we use
-import os, sys, string, time, ConfigParser, fileinput, logging
+import os, sys, string, time, ConfigParser, fileinput, logging, re
 from shutil import copy2
 
 # now import our own modules
@@ -100,6 +100,7 @@ def ScanFilesForViewsAndPackages():
     printProgress("Scanning source files for views and packages")
 
     fileInfoList = metaInfo.fileInfoList
+    strpatt = re.compile("('[^']*')+")    # String-Regexp
 
     # first, find views in files
     dot_count = 1
@@ -124,17 +125,65 @@ def ScanFilesForViewsAndPackages():
         # functions and procedures.  If we don't find a package definition, there
         # is no reason to look for them
         package_count = -1
+        in_block_comment = 0
+        new_file = 1
 
         for lineNumber in range(len(fileLines)):
+            if new_file == 1:
+                token_list = fileLines[lineNumber].split()
+            else:
+                token_list = token_list1
 
-            token_list = fileLines[lineNumber].split()
+            new_file = 0
+            # len()-1 because we start with index 0
+            if len(fileLines)-1 > lineNumber:
+                # eat string contents
+                result = strpatt.search(fileLines[lineNumber+1])
+                while result != None:
+                    for g in range(len(result.groups())):
+                        fileLines[lineNumber+1] = fileLines[lineNumber+1].replace(result.group(g) , "")
+                    result = strpatt.search(fileLines[lineNumber+1])
+                
+                token_list1 = fileLines[lineNumber+1].split()
+            else:
+                token_list1 = [] 
 
             # ignore very short lines
-            if len(token_list) < 2:
-                continue
+            if len(token_list)<2:
+                if len(token_list) > 0:
+                    if token_list[0][:2] != "/*" and token_list[0][:2] != "*/":
+                        continue
+                else:
+                    continue
 
             # ignore lines that begin with comments
             if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
+                continue
+
+            # ignore block comments
+            if token_list[0][:2] == "/*" and token_list[0][len(token_list[0])-2:len(token_list[0])] == "*/":
+                # block comments like  "/***....*****/"
+                token_list.pop(0)
+            elif token_list[0][:2] == "/*" or in_block_comment == 1:
+                # 
+                in_block_comment = 1
+                clean_list = []
+                for token_index in range(len(token_list)):
+                    if token_list[token_index][:2] == "*/":
+                        clean_list.append(token_index)
+                        in_block_comment = 0
+                    else:
+                        clean_list.append(token_index)
+                if len(clean_list) > 0:
+                    if len(clean_list) == 1:
+                        # pop only index 0
+                        token_list.pop(clean_list[0])
+                    else:
+                        for clean_index in range(len(clean_list)-1,-1,-1):
+                            # work reverse from back
+                            token_list.pop(clean_list[clean_index])
+            if  len(token_list) == 0:
+                # nothing more on line
                 continue
 
             # find views.  Loop through looking for the different styles of view definition
@@ -148,7 +197,10 @@ def ScanFilesForViewsAndPackages():
                         or token_list[token_index].upper() == "FORCE"):
                         view_info = ElemInfo()
                         view_info.parent = file_info
-                        view_info.name = token_list[token_index+2]
+                        if len(token_list) > token_index+2:       
+                          view_info.viewName = token_list[token_index+2]
+                        else:
+                          view_info.view_name = token_list1[0]
                         view_info.lineNumber = lineNumber
                         for j in range(len(jdoc)):
                           ln = jdoc[j].lineNumber - lineNumber
@@ -157,26 +209,21 @@ def ScanFilesForViewsAndPackages():
                         file_info.viewInfoList.append(view_info)
 
             # find package definitions - set flag if found
-            # look for PACKAGE BODY x, making sure enough tokens exist
+            # look for CREATE [OR REPLACE] PACKAGE BODY x, making sure enough tokens exist
             for token_index in range(len(token_list)):
-                if len(token_list) > token_index+2 \
-                and token_list[token_index].upper() == "PACKAGE" \
-                and token_list[token_index+1].upper() == "BODY":
+                if len(token_list) > token_index+3 \
+                   and (token_list[token_index].upper() == "CREATE" \
+                        or token_list[token_index].upper() == "REPLACE" \
+                        or token_list[token_index].upper() == "FORCE") \
+                       and token_list[token_index+1].upper() == "PACKAGE" \
+                       and token_list[token_index+2].upper() == "BODY":
                     package_info = PackageInfo()
                     package_info.parent = file_info
-                    package_info.packageName = token_list[token_index+2]
+                    package_info.packageName = token_list[token_index+3]
                     package_info.lineNumber = lineNumber
-                    for j in range(len(jdoc)):
-                      ln = jdoc[j].lineNumber - lineNumber
-                      if (CaseInsensitiveComparison(package_info.packageName,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                        package_info.javadoc = jdoc[j]
-                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
-                            package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug)
-                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
-                            package_info.todo.addItem(jdoc[j].name,jdoc[j].todo)
                     file_info.packageInfoList.append(package_info) # permanent storage
                     package_count += 1 # use this flag below
-		    
+
             # if a package definition was found, look for functions and procedures
             if package_count != -1:
                 # first find functions
@@ -257,20 +304,64 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         # functions and procedures.  If we don't find a package definition, there
         # is no reason to look for them
         package_count = -1
+        in_block_comment = 0
+        new_file = 1
+        
+        strpatt = re.compile("('[^']*')+")    # String-Regexp
 
         for lineNumber in range(len(fileLines)):
 
-            token_list = fileLines[lineNumber].split()
+            if new_file == 1:
+                token_list = fileLines[lineNumber].split()
+            else:
+                token_list = token_list1
+                
+            # len()-1 because we start with index 0
+            if len(fileLines)-1 > lineNumber:
+                # eat string contents
+                result = strpatt.search(fileLines[lineNumber+1])
+                while result != None:
+                    for g in range(len(result.groups())):
+                        fileLines[lineNumber+1] = fileLines[lineNumber+1].replace(result.group(g) , "")
+                    result = strpatt.search(fileLines[lineNumber+1])
 
-            # ignore very short lines - commented out, since otherwise some where_useds are not found
-            #if len(token_list) < 2:
-            #    print 'SKIPPED: ' + fileLines[lineNumber]
-            #    continue
+                token_list1 = fileLines[lineNumber+1].split()
+            else:
+                token_list1 = []
+            new_file = 0
+
+            # Skip empty lines
+            if len(token_list) < 1:
+                continue
 
             # ignore lines that begin with comments
-            if len(token_list) > 0:
-                if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
-                    continue
+            if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
+                continue
+            # ignore block comments
+            if token_list[0][:2] == "/*" and token_list[0][len(token_list[0])-2:len(token_list[0])] == "*/":
+                # block comments like  "/***....*****/"
+                token_list.pop(0)
+            elif token_list[0][:2] == "/*" or in_block_comment == 1:
+                # 
+                in_block_comment = 1
+                clean_list = []
+                for token_index in range(len(token_list)):
+                    if token_list[token_index][:2] == "*/":
+                        clean_list.append(token_index)
+                        in_block_comment = 0
+                    else:
+                        clean_list.append(token_index)
+                if len(clean_list) > 0:
+                    if len(clean_list) == 1:
+                        # pop only index 0
+                        token_list.pop(clean_list[0])
+                    else:
+                        for clean_index in range(len(clean_list)-1,-1,-1):
+                            # work reverse from back
+                            token_list.pop(clean_list[clean_index])
+            if  len(token_list) == 0:
+                # nothing more on line
+                continue
 
             # usage only, no creates, replace, force views packages functions or procedures
             usage_flag = 1
@@ -287,19 +378,25 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
                 # look for PACKAGE BODY x IS, making sure enough tokens exist
                 if token_list[token_index].upper() == "PACKAGE" \
-                and len(token_list) > token_index+2 \
-                and token_list[token_index+1].upper() == "BODY":
+                and len(token_list) > token_index+2:
+                    #and token_list[token_index+1].upper() == "BODY": # commented out - creates trouble if package spec is in the same file
                     package_count += 1 # set flag
                     usage_flag = 0
 
                 # if a package definition was found, look for functions and procedures
                 if package_count != -1:
                     # first find functions
-                    if token_list[0] == "FUNCTION" and len(token_list) > 1:
+                    if token_list[0].upper() == "FUNCTION" and len(token_list) > 1:
                         usage_flag = 0
                     # now find procedures
-                    if token_list[0] == "PROCEDURE" and len(token_list) > 1:
+                    if token_list[0].upper() == "PROCEDURE" and len(token_list) > 1:
                         usage_flag = 0
+
+		# look for END x, making sure enough tokens exist
+		if token_list[token_index].upper() == "END" \
+		and len(token_list) > token_index+1:
+		    usage_flag = 0
+
 
             if usage_flag == 0:
                 continue
@@ -364,6 +461,57 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                     # generate a unique number for use in making where used file if needed
                                     if procedure_info.uniqueNumber == 0:
                                         procedure_info.uniqueNumber = metaInfo.NextIndex()
+
+                        elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber):
+                            # possibly a call without a package_name
+			    if outer_file_info.fileName not in package_info.whereUsed.keys():
+				package_info.whereUsed[outer_file_info.fileName] = []
+				package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+			    else:
+				package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+			    # generate a unique number for use in making where used file if needed
+			    if package_info.uniqueNumber == 0:
+                                package_info.uniqueNumber = metaInfo.NextIndex()
+
+                            # check for inline comments to be excluded
+                            if fileLines[lineNumber].find('--') == -1:
+                              epos = sys.maxint
+                            else:
+                              epos = fileLines[lineNumber].find('--')
+
+			    #look for any of this packages' functions
+			    for function_info in package_info.functionInfoList:
+				# perform case insensitive find
+				if fileLines[lineNumber].upper().find(function_info.name.upper()) != -1 \
+                                       and (fileLines[lineNumber].upper().find(" " + function_info.name.upper(),0,epos) == -1 \
+                                        or fileLines[lineNumber].upper().find(function_info.name.upper(),0,epos) == 0) \
+                                       and (fileLines[lineNumber].upper().find(function_info.name.upper()+" ",0,epos) != -1 \
+                                        or fileLines[lineNumber].upper().find(function_info.name.upper()+"(",0,epos) != -1):
+				    if outer_file_info.fileName not in function_info.whereUsed.keys():
+					function_info.whereUsed[outer_file_info.fileName] = []
+					function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+				    else:
+					function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                                    # generate a unique number for use in making where used file if needed
+                                    if function_info.uniqueNumber == 0:
+                                        function_info.uniqueNumber = metaInfo.NextIndex()
+			    #look for any of this packages procedures
+			    for procedure_info in package_info.procedureInfoList:
+				# perform case insensitive find
+				if fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) != -1 \
+                                       and (fileLines[lineNumber].upper().find(" " + procedure_info.name.upper(),0,epos) != -1 \
+                                        or fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) == 0) \
+                                       and (fileLines[lineNumber].upper().find(procedure_info.name.upper()+" ",0,epos) != -1 \
+                                        or fileLines[lineNumber].upper().find(procedure_info.name.upper()+"(",0,epos) != -1):
+				    if outer_file_info.fileName not in procedure_info.whereUsed.keys():
+					procedure_info.whereUsed[outer_file_info.fileName] = []
+					procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+				    else:
+					procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                                    # generate a unique number for use in making where used file if needed
+                                    if procedure_info.uniqueNumber == 0:
+                                        procedure_info.uniqueNumber = metaInfo.NextIndex()
+
 
     # print carriage return after last dot
     dotFlush()
@@ -1348,7 +1496,7 @@ if __name__ == "__main__":
       print 'No config file found, using defaults.'
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "1.9"
+    metaInfo.versionString = "1.10"
     metaInfo.scriptName = sys.argv[0]
 
     # Initiate logging

@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v1.10.0
+-------------------
+* adapted a patch made against Randys original code on 07/12/2005 by Matthias
+  Schade, which lets the code parser ignore block comments and string contents
+  plus lets it scan for local calls inside package bodies
+
 v1.9.0 (03.03.2010)
 -------------------
 * outsourced config class (HyperConf). Now it reads all available config files,
