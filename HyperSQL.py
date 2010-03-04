@@ -221,6 +221,14 @@ def ScanFilesForViewsAndPackages():
                     package_info.parent = file_info
                     package_info.packageName = token_list[token_index+3]
                     package_info.lineNumber = lineNumber
+                    for j in range(len(jdoc)):
+                      ln = jdoc[j].lineNumber - lineNumber
+                      if (CaseInsensitiveComparison(package_info.packageName,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                        package_info.javadoc = jdoc[j]
+                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
+                            package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug)
+                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
+                            package_info.todo.addItem(jdoc[j].name,jdoc[j].todo)
                     file_info.packageInfoList.append(package_info) # permanent storage
                     package_count += 1 # use this flag below
 
@@ -283,6 +291,12 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     updates <object>list where_used property accordingly.
     """
     printProgress("Scanning source files for where views and packages are used")
+    scan_instring = config.getBool('Process','whereused_scan_instring')
+    if scan_instring:
+        logger.debug('Including strings in where_used scan')
+    else:
+        logger.debug('Excluding strings from where_used scan')
+        strpatt = re.compile("('[^']*')+")    # String-Regexp
 
     fileInfoList = metaInfo.fileInfoList
 
@@ -307,7 +321,6 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         in_block_comment = 0
         new_file = 1
         
-        strpatt = re.compile("('[^']*')+")    # String-Regexp
 
         for lineNumber in range(len(fileLines)):
 
@@ -317,7 +330,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 token_list = token_list1
                 
             # len()-1 because we start with index 0
-            if len(fileLines)-1 > lineNumber:
+            if len(fileLines)-1 > lineNumber and not scan_instring:
                 # eat string contents
                 result = strpatt.search(fileLines[lineNumber+1])
                 while result != None:
@@ -392,10 +405,10 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     if token_list[0].upper() == "PROCEDURE" and len(token_list) > 1:
                         usage_flag = 0
 
-		# look for END x, making sure enough tokens exist
-		if token_list[token_index].upper() == "END" \
-		and len(token_list) > token_index+1:
-		    usage_flag = 0
+                # look for END x, making sure enough tokens exist
+                if token_list[token_index].upper() == "END" \
+                and len(token_list) > token_index+1:
+                    usage_flag = 0
 
 
             if usage_flag == 0:
@@ -462,52 +475,55 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                     if procedure_info.uniqueNumber == 0:
                                         procedure_info.uniqueNumber = metaInfo.NextIndex()
 
-                        elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber):
+                        ### File internal references
+                        elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber) \
+                         and config.getBool('Process','whereused_scan_shortrefs'):
                             # possibly a call without a package_name
-			    if outer_file_info.fileName not in package_info.whereUsed.keys():
-				package_info.whereUsed[outer_file_info.fileName] = []
-				package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-			    else:
-				package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-			    # generate a unique number for use in making where used file if needed
-			    if package_info.uniqueNumber == 0:
-                                package_info.uniqueNumber = metaInfo.NextIndex()
+                            logger.debug('Scanning for where_used shortrefs')
+                            if outer_file_info.fileName not in package_info.whereUsed.keys():
+                                package_info.whereUsed[outer_file_info.fileName] = []
+                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            else:
+                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
 
+                            # generate a unique number for use in making where used file if needed
+                            if package_info.uniqueNumber == 0:
+                                package_info.uniqueNumber = metaInfo.NextIndex()
                             # check for inline comments to be excluded
                             if fileLines[lineNumber].find('--') == -1:
                               epos = sys.maxint
                             else:
                               epos = fileLines[lineNumber].find('--')
 
-			    #look for any of this packages' functions
-			    for function_info in package_info.functionInfoList:
-				# perform case insensitive find
-				if fileLines[lineNumber].upper().find(function_info.name.upper()) != -1 \
-                                       and (fileLines[lineNumber].upper().find(" " + function_info.name.upper(),0,epos) == -1 \
-                                        or fileLines[lineNumber].upper().find(function_info.name.upper(),0,epos) == 0) \
-                                       and (fileLines[lineNumber].upper().find(function_info.name.upper()+" ",0,epos) != -1 \
-                                        or fileLines[lineNumber].upper().find(function_info.name.upper()+"(",0,epos) != -1):
-				    if outer_file_info.fileName not in function_info.whereUsed.keys():
-					function_info.whereUsed[outer_file_info.fileName] = []
-					function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-				    else:
-					function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            #look for any of this packages' functions
+                            for function_info in package_info.functionInfoList:
+                                # perform case insensitive find
+                                if fileLines[lineNumber].upper().find(function_info.name.upper()) != -1 \
+                                 and (fileLines[lineNumber].upper().find(" " + function_info.name.upper(),0,epos) == -1 \
+                                  or fileLines[lineNumber].upper().find(function_info.name.upper(),0,epos) == 0) \
+                                 and (fileLines[lineNumber].upper().find(function_info.name.upper()+" ",0,epos) != -1 \
+                                  or fileLines[lineNumber].upper().find(function_info.name.upper()+"(",0,epos) != -1):
+                                    if outer_file_info.fileName not in function_info.whereUsed.keys():
+                                        function_info.whereUsed[outer_file_info.fileName] = []
+                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                                    else:
+                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                                     # generate a unique number for use in making where used file if needed
                                     if function_info.uniqueNumber == 0:
                                         function_info.uniqueNumber = metaInfo.NextIndex()
-			    #look for any of this packages procedures
-			    for procedure_info in package_info.procedureInfoList:
-				# perform case insensitive find
-				if fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) != -1 \
-                                       and (fileLines[lineNumber].upper().find(" " + procedure_info.name.upper(),0,epos) != -1 \
-                                        or fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) == 0) \
-                                       and (fileLines[lineNumber].upper().find(procedure_info.name.upper()+" ",0,epos) != -1 \
-                                        or fileLines[lineNumber].upper().find(procedure_info.name.upper()+"(",0,epos) != -1):
-				    if outer_file_info.fileName not in procedure_info.whereUsed.keys():
-					procedure_info.whereUsed[outer_file_info.fileName] = []
-					procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-				    else:
-					procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                            #look for any of this packages procedures
+                            for procedure_info in package_info.procedureInfoList:
+                                # perform case insensitive find
+                                if fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) != -1 \
+                                 and (fileLines[lineNumber].upper().find(" " + procedure_info.name.upper(),0,epos) != -1 \
+                                  or fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) == 0) \
+                                 and (fileLines[lineNumber].upper().find(procedure_info.name.upper()+" ",0,epos) != -1 \
+                                  or fileLines[lineNumber].upper().find(procedure_info.name.upper()+"(",0,epos) != -1):
+                                    if outer_file_info.fileName not in procedure_info.whereUsed.keys():
+                                        procedure_info.whereUsed[outer_file_info.fileName] = []
+                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                                    else:
+                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                                     # generate a unique number for use in making where used file if needed
                                     if procedure_info.uniqueNumber == 0:
                                         procedure_info.uniqueNumber = metaInfo.NextIndex()
@@ -1401,6 +1417,8 @@ def configRead():
         for i in range(len(fileLines)):
             metaInfo.projectInfo += fileLines[i]
     metaInfo.encoding     = config.get('General','encoding','utf8')
+    JavaDocVars['bugzilla_url'] = config.get('General','bugzilla_url','')
+    JavaDocVars['wiki_url']     = config.get('General','wiki_url','')
     # Section FILENAMES
     metaInfo.topLevelDirectory  = config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned
     metaInfo.rcsnames           = config.getList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore

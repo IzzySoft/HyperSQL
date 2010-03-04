@@ -5,6 +5,10 @@ v1.10.0
 * adapted a patch made against Randys original code on 07/12/2005 by Matthias
   Schade, which lets the code parser ignore block comments and string contents
   plus lets it scan for local calls inside package bodies
++ new boolean options in [Process]: whereused_scan_shortrefs, whereused_scan_instring
++ new tags: @bugzilla, @wiki (options: [General] bugzilla_url, wiki_url - with
+  placeholder for the bug ID resp. wiki page name, so it should be useable
+  with all kind of trackers/wikis.
 
 v1.9.0 (03.03.2010)
 -------------------

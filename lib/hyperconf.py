@@ -36,6 +36,8 @@ class HyperConf(IniParser):
             project_info_file='',
             project_logo='',
             project_logo_url='',
+            bugzilla_url='',
+            wiki_url='',
             encoding='utf8'
         )
         # Section FILENAMES
@@ -85,7 +87,9 @@ class HyperConf(IniParser):
         process = dict (
             purge_on_start = '0',
             blind_offset = '0',
-            include_source = '1'
+            include_source = '1',
+            whereused_scan_shortrefs = '0',
+            whereused_scan_instring = '0'
         )
         # Section LOGGING
         logg = dict (

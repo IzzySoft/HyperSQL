@@ -5,10 +5,27 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
 from sys import maxint
-import logging
+import logging, re
 logger = logging.getLogger('main.jdoc')
 
 otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
+
+def mkHref(text):
+    """ Search for URLS and make them clickable """
+    if text.find('http://') == -1:
+        return text
+    refpatt = re.compile("[^'\">](http\:\/\/\S+)+")    # URL-Regexp
+    result = refpatt.search(text)
+    while result != None:
+        for g in range(len(result.groups())):
+            text = text.replace(result.group(g) , ' <A HREF="'+result.group(g).strip()+'">'+result.group(g).strip()+'</A>')
+        result = refpatt.search(text)
+    return text
+
+JavaDocVars = dict(
+    wiki_url     = '',
+    bugzilla_url = ''
+)
 
 class JavaDoc:
     """
@@ -35,6 +52,8 @@ class JavaDoc:
         self.webpage = ''
         self.license = ''
         self.file = ''
+        self.bugzilla = ''
+        self.wiki = ''
         self.lndiff = maxint # needed for function/procedure overloading
     def isDefault(self):
         """Check if this is just an empty dummy (True), or if any real data have been assigned (False)"""
@@ -59,7 +78,7 @@ class JavaDoc:
           html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if self.desc != '':
-          html += '  <DIV CLASS="jd_desc">' + self.desc + '</DIV>\n'
+          html += '  <DIV CLASS="jd_desc">' + mkHref(self.desc) + '</DIV>\n'
         html += '  <DL>'
         if self.objectType in ['function', 'procedure']:
           if self.private:
@@ -97,17 +116,37 @@ class JavaDoc:
         if self.webpage != '':
           html += '<DT>Webpage:</DT><DD><A HREF="' + self.webpage + '">' + self.webpage + '</A></DD>'
         if self.bug != '':
-          html += '<DT>BUG:</DT><DD>' + self.bug + '</DD>'
+          html += '<DT>BUG:</DT><DD>' + mkHref(self.bug) + '</DD>'
         if self.deprecated != '':
-          html += '<DT>DEPRECATED:</DT><DD>' + self.deprecated + '</DD>'
+          html += '<DT>DEPRECATED:</DT><DD>' + mkHref(self.deprecated) + '</DD>'
         if self.version != '':
-          html += '<DT>Version Info:</DT><DD>' + self.version + '</DD>'
+          html += '<DT>Version Info:</DT><DD>' + mkHref(self.version) + '</DD>'
         if self.info != '':
-          html += '<DT>Additional Info:</DT><DD>' + self.info + '</DD>'
+          html += '<DT>Additional Info:</DT><DD>' + mkHref(self.info) + '</DD>'
+        if self.bugzilla != '':
+          html += '<DT>Bugzilla:</DT><DD>'
+          if JavaDocVars['bugzilla_url'] != '':
+            doc = self.bugzilla.split(' ');
+            if doc[0].isdigit():
+              html += '<A HREF="'+JavaDocVars['bugzilla_url'].replace('%s',doc[0])+'">#'+doc[0]+'</A>'
+              html += self.bugzilla[len(doc[0]):]
+            else:
+              html += self.bugzilla
+          else:
+            html += self.bugzilla
+          html += '</DD>'
+        if self.wiki != '':
+          html += '<DT>Wiki:</DT><DD>'
+          if JavaDocVars['wiki_url'] != '':
+            doc = self.wiki.split(' ')
+            html += '<A HREF="'+JavaDocVars['wiki_url'].replace('%s',doc[0])+'">'+doc[0]+'</A>'+self.wiki[len(doc[0]):]
+          else:
+            html += self.wiki
+          html += '</DD>'
         if self.see != '':
-          html += '<DT>See also:</DT><DD>' + self.see + '</DD>'
+          html += '<DT>See also:</DT><DD>' + mkHref(self.see) + '</DD>'
         if self.todo != '':
-          html += '<DT>TODO:</DT><DD>' + self.todo + '</DD>'
+          html += '<DT>TODO:</DT><DD>' + mkHref(self.todo) + '</DD>'
         html += '\n</DL>'
         if self.objectType != 'pkg':
           html += '</TD></TR></TABLE>\n'
@@ -301,7 +340,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
-              'see', 'webpage', 'license'] # other supported tags
+              'see', 'webpage', 'license', 'bugzilla', 'wiki'] # other supported tags
     for lineNumber in range(lineNo,len(text)):
       line = text[lineNumber].strip()
       if not opened and line[0:3] != '/**':
@@ -407,6 +446,10 @@ def ScanJavaDoc(text,fileName,lineNo=0):
               item.webpage = line[len(tag)+1:].strip()
             elif tag == 'license':
               item.license = line[len(tag)+1:].strip()
+            elif tag == 'bugzilla':
+              item.bugzilla = line[len(tag)+1:].strip()
+            elif tag == 'wiki':
+              item.wiki = line[len(tag)+1:].strip()
             else:
               logger.debug('Ooops - tag %s not handled?', tag)
         else:             # unsupported tag, ignore

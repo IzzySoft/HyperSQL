@@ -1,9 +1,5 @@
 Known issues and limitations
 ============================
 
-- javadoc overwrites "duplicate" declarations (i.e. "overloading" - same function
-  with different parameters)
 - all javadoc keywords can only be used once (no multiple declarations of e.g.
   author, todo, ...) - except for the @param of course
-- script crashes if input dir (top_level_directory) does not exist - instead it
-  should abort correctly with an error msg

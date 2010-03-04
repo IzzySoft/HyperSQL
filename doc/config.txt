@@ -89,6 +89,17 @@ Here come processing options:
    always fit...
  * include_source: whether to include the (highlighted) sourcecode and link to it.
    The value must evaluate to a Boolean (, e.g. 0 for no, 1 for yes)
+ * whereused_scan_shortrefs: whether we shall also scan for not fully qualified
+   references when building the where_used list, i.e. calls to some function or
+   procedure not specifying its package. Those calls are sometimes used
+   package internally (calling to a function/procedure within the same package),
+   but probably never outside. If enabled, this may produce some false positives
+   (especially if one (or more) of your files contain more than one package each)
+   Default is '0' (No, Off, Don't)
+ * whereused_scan_instring: whether to scan strings (i.e. things enclosed within
+   single quotes) for where_used. This only makes sense if you have such calls
+   created dynamically for EXECUTE IMMEDIATE or REF_CURSOR, and is subject to
+   false positives. Default is '0' (No, Off, Don't)
 
 Logging
 -------
