@@ -39,6 +39,16 @@ pre {
 /*
  * Navigation
  */
+.toppagelink {
+  float: right;
+  margin-right:5px;
+  background-color: #d5d5d5;
+}
+.toppagelink a {
+  text-decoration: none !important;
+  font-size: 80%;
+}
+
 .navbar {
   background: #eef;
   font-weight: bold;

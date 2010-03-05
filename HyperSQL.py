@@ -577,6 +577,7 @@ def MakeHTMLHeader(title_name):
     s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + metaInfo.css_file + '">\n'
     s += '  <META HTTP-EQUIV="Content-Type" CONTENT="text/html;charset='+metaInfo.encoding+'">\n'
     s += '</head><body>\n'
+    s += '<A NAME="topOfPage"></A>\n'
     s += MakeNavBar(title_name)
     s += '<HR CLASS="topend">\n'
     return s
@@ -873,6 +874,7 @@ def MakeTaskList(taskType):
         if task.procCount() > 0:
             outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Procedures</I></B></TD></TR>\n")
             outfile.write( task.getProcHtml() )
+        outfile.write("  <TR><TD COLSPAN='2'><DIV CLASS='toppagelink'><A HREF='#topOfPage'>^ Top</A></DIV></TD></TR>\n")
 
     outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter(taskType))
@@ -1168,7 +1170,8 @@ def CreateHyperlinkedSourceFilePages():
             outfile.write('\n<H2>Source</H2>\n')
             outfile.write('<code><pre>')
             outfile.write( hypercode(infile_line_list, sqlkeywords, sqltypes) )
-            outfile.write("</pre></code>")
+            outfile.write("</pre></code>\n")
+            outfile.write('<DIV CLASS="toppagelink"><A HREF="#topOfPage">^ Top</A></DIV><BR>\n')
             outfile.write(MakeHTMLFooter(file_info.fileName[len(top_level_directory)+1:]))
 
         outfile.close()
@@ -1417,7 +1420,7 @@ def configRead():
         for i in range(len(fileLines)):
             metaInfo.projectInfo += fileLines[i]
     metaInfo.encoding     = config.get('General','encoding','utf8')
-    JavaDocVars['bugzilla_url'] = config.get('General','bugzilla_url','')
+    JavaDocVars['ticket_url']   = config.get('General','ticket_url','')
     JavaDocVars['wiki_url']     = config.get('General','wiki_url','')
     # Section FILENAMES
     metaInfo.topLevelDirectory  = config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned

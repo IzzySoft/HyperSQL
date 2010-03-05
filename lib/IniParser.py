@@ -19,6 +19,15 @@ class IniParser(ConfigParser):
     or specify section specific defaults using the IniParser.setVals() method.
     """
     def __init__(self,defaults=None):
+        """
+        Initialize the instance
+        @param self
+        @param defaults A dictionary of intrinsic defaults. The keys must be
+               strings, the values must be appropriate for %()s string
+               interpolation.  Note that `__name__' is always an intrinsic
+               default; it's value is the section's name. These defaults are
+               not section specific.
+        """
         ConfigParser.__init__(self,defaults)
         self.logMode = stderr
 
@@ -29,6 +38,7 @@ class IniParser(ConfigParser):
         defaults (section specific - not global as the constructor does) -
         or to overwrite settings at a later point (e.g. after parsing additional
         command line options).
+        @param self
         @param defaults dictionary with the structure defaults[section][option]=string
         ATTENTION: Keep in mind: Already existing options will be overwritten by
         values from the passed dict!
@@ -48,6 +58,7 @@ class IniParser(ConfigParser):
         passed a default value to getInt, IniParser this and only raises an
         exeption otherwise. Though, you might want to inform the user - which will
         be done if you set the logMode correspondingly
+        @param self
         @param mode logMode to set: None to keep quite, 'stderr' for error output (default)
         """
         if mode in ['None','stderr']:
@@ -56,6 +67,7 @@ class IniParser(ConfigParser):
     def log(self,msg):
         """
         Print an error message to the output specified by setLogMode()
+        @param self
         @param msg message to print
         """
         if self.logMode != 'None':
@@ -64,7 +76,11 @@ class IniParser(ConfigParser):
     def get(self,sect,opt,default=None):
         """
         Get an option from the config as string
-        Parameters: section name, option name, default value (default: empty string)
+        @param self
+        @param string section name
+        @param string option name
+        @param optional string default value (default: None)
+        @return string value
         """
         try:
           if self.has_option(sect,opt):
@@ -81,7 +97,11 @@ class IniParser(ConfigParser):
     def getList(self,sect,opt,default=None):
         """
         Get an option from the config as list
-        Parameters: section name, option name, default value (default: empty list)
+        @param self
+        @param string section name
+        @param string option name
+        @param optional list default value (default: None)
+        @return list value
         """
         if self.has_option(sect,opt):
           return ConfigParser.get(self,sect,opt).split(' ')
@@ -91,7 +111,11 @@ class IniParser(ConfigParser):
     def getBool(self,sect,opt,default=None):
         """
         Get an option from the config as boolean value
-        Parameters: section name, option name, default value (default: None)
+        @param self
+        @param string section name
+        @param string option name
+        @param optional boolean default value (default: None)
+        @return boolean value
         """
         try:
           if self.has_option(sect,opt):
@@ -109,7 +133,11 @@ class IniParser(ConfigParser):
     def getInt(self,sect,opt,default=None):
         """
         Get an option from the config as integer value
-        Parameters: section name, option name, default value (default: None)
+        @param self
+        @param string section name
+        @param string option name
+        @param optional int default value (default: None)
+        @return int value
         """
         try:
           if self.has_option(sect,opt):
@@ -127,7 +155,11 @@ class IniParser(ConfigParser):
     def getFloat(self,sect,opt,default=None):
         """
         Get an option from the config as float value
-        Parameters: section name, option name, default value (default: None)
+        @param self
+        @param string section name
+        @param string option name
+        @param optional float default value (default: None)
+        @return float value
         """
         try:
           if self.has_option(sect,opt):

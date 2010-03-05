@@ -6,9 +6,15 @@ v1.10.0
   Schade, which lets the code parser ignore block comments and string contents
   plus lets it scan for local calls inside package bodies
 + new boolean options in [Process]: whereused_scan_shortrefs, whereused_scan_instring
-+ new tags: @bugzilla, @wiki (options: [General] bugzilla_url, wiki_url - with
++ new tags: @ticket, @wiki (options: [General] bugzilla_url, wiki_url - with
   placeholder for the bug ID resp. wiki page name, so it should be useable
   with all kind of trackers/wikis.
++ scanning for ticket:123 and wiki:pagename in all JavaDoc text fields and
+  turning this into hyperlinks (if ticket_url and wiki_url are set correspondingly)
+! double quotes in second line of JavaDoc <text> caused HyperSQL to crash with
+  a SyntaxError exception
++ added "goto TOP" (TopOfPage) link
+* some more code documentation (internal)
 
 v1.9.0 (03.03.2010)
 -------------------

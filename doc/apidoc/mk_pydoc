@@ -6,13 +6,38 @@ cd ${0%/*}
 # cleanup first
 rm -f *.txt
 rm -f *.html
+rm -f *.pyc
+rm -f *.py
 
 # get the code here
 cp ../../HyperSQL.py .
+cp ../../lib/*.py .
+cp ../../hypersql.css .
+rm test*.py
 
 # Generate the apidoc
-pydoc ./HyperSQL.py > HyperSQL.txt
-pydoc -w ./HyperSQL.py
+for file in *.py; do
+  pydoc ./$file >${file%.py}.txt
+  pydoc -w ./$file
+done
+#pydoc ./HyperSQL.py > HyperSQL.txt
+#pydoc -w ./HyperSQL.py
 
 # cleanup
-rm -f HyperSQL.py*
+rm -f *.py*
+
+# Generate an index
+echo '<HTML><HEAD>
+  <TITLE>HyperSQL Api Reference</TITLE>
+  <LINK REL="stylesheet" TYPE="text/css" HREF="hypersql.css">
+</HEAD><BODY>
+<H1>HyperSQL Api Reference</H1>
+<P>Api References are available for the following modules:</P>
+<UL>
+' > index.html
+for file in *.html; do
+  echo "  <LI><A HREF='${file}'>${file%.html}</A></LI>" >> index.html
+done
+echo '</UL>
+</BODY></HTML>' >> index.html
+echo generated index.html

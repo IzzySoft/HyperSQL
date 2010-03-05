@@ -10,28 +10,47 @@ logger = logging.getLogger('main.jdoc')
 
 otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
 
-def mkHref(text):
-    """ Search for URLS and make them clickable """
-    if text.find('http://') == -1:
-        return text
+JavaDocVars = dict(
+    wiki_url     = '',
+    ticket_url = ''
+)
+
+def HyperScan(text):
+    """
+    Search for URLS and make them clickable
+    This includes not-yet-hyperlinked http:// elements, ticket: and wiki: references
+    (the latter two depending on configuration of ticket_url and wiki_url)
+    """
     refpatt = re.compile("[^'\">](http\:\/\/\S+)+")    # URL-Regexp
     result = refpatt.search(text)
     while result != None:
         for g in range(len(result.groups())):
             text = text.replace(result.group(g) , ' <A HREF="'+result.group(g).strip()+'">'+result.group(g).strip()+'</A>')
         result = refpatt.search(text)
+    if JavaDocVars['wiki_url'] != '':
+        wikipat = re.compile("[^>](wiki:\S+)+")            # Wiki Page RegExp
+        result = wikipat.search(text)
+        while result != None:
+            for g in range(len(result.groups())):
+                text = text.replace(result.group(g) , ' <A HREF="'+JavaDocVars['wiki_url'].replace('%{page}',result.group(g).split(':')[1])+'">'+result.group(g).strip()+'</A>')
+            result = refpatt.search(text)
+    if JavaDocVars['ticket_url'] != '':
+        tickpat = re.compile("[^>](ticket:\d+)+")              # Ticket RegExp
+        result = tickpat.search(text)
+        while result != None:
+            for g in range(len(result.groups())):
+                text = text.replace(result.group(g) , ' <A HREF="'+JavaDocVars['ticket_url'].replace('%{id}',result.group(g).split(':')[1])+'">'+result.group(g).strip()+'</A>')
+            result = tickpat.search(text)
     return text
-
-JavaDocVars = dict(
-    wiki_url     = '',
-    bugzilla_url = ''
-)
 
 class JavaDoc:
     """
     Object to hold details from javadoc style comments
     """
     def __init__(self):
+        """
+        Initializes all properties with useful defaults.
+        """
         self.lineNumber = -1
         self.lines = 0
         self.name = ''
@@ -52,18 +71,24 @@ class JavaDoc:
         self.webpage = ''
         self.license = ''
         self.file = ''
-        self.bugzilla = ''
+        self.ticket = ''
         self.wiki = ''
         self.lndiff = maxint # needed for function/procedure overloading
     def isDefault(self):
-        """Check if this is just an empty dummy (True), or if any real data have been assigned (False)"""
+        """
+        Check if this is just an empty dummy, or if any real data have been assigned
+        @param self
+        @return boolean True (is a dummy) or False (has concrete data)
+        """
         if self.lineNumber != -1: return False
         return True
     def getHtml(self,unum):
         """
         Generates HTML block from JavaDoc Api Info for the element passed - or
         an empty string if it is still the default empty element.
-        Param: instance of JavaDoc class, int unique number
+        @param self
+        @param int unique number
+        @return string html code block
         """
         if self.isDefault():
             return ''
@@ -78,7 +103,7 @@ class JavaDoc:
           html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if self.desc != '':
-          html += '  <DIV CLASS="jd_desc">' + mkHref(self.desc) + '</DIV>\n'
+          html += '  <DIV CLASS="jd_desc">' + HyperScan(self.desc) + '</DIV>\n'
         html += '  <DL>'
         if self.objectType in ['function', 'procedure']:
           if self.private:
@@ -116,46 +141,49 @@ class JavaDoc:
         if self.webpage != '':
           html += '<DT>Webpage:</DT><DD><A HREF="' + self.webpage + '">' + self.webpage + '</A></DD>'
         if self.bug != '':
-          html += '<DT>BUG:</DT><DD>' + mkHref(self.bug) + '</DD>'
+          html += '<DT>BUG:</DT><DD>' + HyperScan(self.bug) + '</DD>'
         if self.deprecated != '':
-          html += '<DT>DEPRECATED:</DT><DD>' + mkHref(self.deprecated) + '</DD>'
+          html += '<DT>DEPRECATED:</DT><DD>' + HyperScan(self.deprecated) + '</DD>'
         if self.version != '':
-          html += '<DT>Version Info:</DT><DD>' + mkHref(self.version) + '</DD>'
+          html += '<DT>Version Info:</DT><DD>' + HyperScan(self.version) + '</DD>'
         if self.info != '':
-          html += '<DT>Additional Info:</DT><DD>' + mkHref(self.info) + '</DD>'
-        if self.bugzilla != '':
-          html += '<DT>Bugzilla:</DT><DD>'
-          if JavaDocVars['bugzilla_url'] != '':
-            doc = self.bugzilla.split(' ');
+          html += '<DT>Additional Info:</DT><DD>' + HyperScan(self.info) + '</DD>'
+        if self.ticket != '':
+          html += '<DT>Ticket:</DT><DD>'
+          if JavaDocVars['ticket_url'] != '':
+            doc = self.ticket.split(' ');
             if doc[0].isdigit():
-              html += '<A HREF="'+JavaDocVars['bugzilla_url'].replace('%s',doc[0])+'">#'+doc[0]+'</A>'
-              html += self.bugzilla[len(doc[0]):]
+              html += '<A HREF="'+JavaDocVars['ticket_url'].replace('%{id}',doc[0])+'">#'+doc[0]+'</A>'
+              html += self.ticket[len(doc[0]):]
             else:
-              html += self.bugzilla
+              html += self.ticket
           else:
-            html += self.bugzilla
+            html += self.ticket
           html += '</DD>'
         if self.wiki != '':
           html += '<DT>Wiki:</DT><DD>'
           if JavaDocVars['wiki_url'] != '':
             doc = self.wiki.split(' ')
-            html += '<A HREF="'+JavaDocVars['wiki_url'].replace('%s',doc[0])+'">'+doc[0]+'</A>'+self.wiki[len(doc[0]):]
+            html += '<A HREF="'+JavaDocVars['wiki_url'].replace('%{page}',doc[0])+'">'+doc[0]+'</A>'+self.wiki[len(doc[0]):]
           else:
             html += self.wiki
           html += '</DD>'
         if self.see != '':
-          html += '<DT>See also:</DT><DD>' + mkHref(self.see) + '</DD>'
+          html += '<DT>See also:</DT><DD>' + HyperScan(self.see) + '</DD>'
         if self.todo != '':
-          html += '<DT>TODO:</DT><DD>' + mkHref(self.todo) + '</DD>'
-        html += '\n</DL>'
+          html += '<DT>TODO:</DT><DD>' + HyperScan(self.todo) + '</DD>'
+        html += '\n</DL>\n'
         if self.objectType != 'pkg':
+          html += '<DIV CLASS="toppagelink"><A HREF="#topOfPage">^ Top</A></DIV>\n'
           html += '</TD></TR></TABLE>\n'
         return html
     def getShortDesc(self):
         """
-        Generate a short desc from the given desc
-        Truncates after the first occurence of "?!.;\n" - whichever from this
+        Generate a short desc from the given desc.
+        Truncates after the first occurence of "?!.;\\n" - whichever from this
         characters comes first
+        @param self
+        @return string short_desc
         """
         dot = []
         if self.desc.find('?')>0:
@@ -178,6 +206,10 @@ class JavaDoc:
 class JavaDocParam:
     """ Parameters passed to a function/Procedure. Used by JavaDoc.params and JavaDoc.retVals """
     def __init__(self):
+        """
+        Initializes properties with useful defaults.
+        @param self
+        """
         self.inout = 'in' # 'in', 'out', or 'inout'. Ignored for retVals
         self.sqltype = 'VARCHAR2'
         self.default = ''
@@ -188,11 +220,21 @@ class JavaDocParam:
 class TaskItem:
     """ Task for Todo / Bug lists """
     def __init__(self,name='',line=''):
+        """
+        Initializes properties with useful defaults.
+        @param self
+        @param optional name default ''
+        @param optional desc default ''
+        """
         self.name = name
         self.desc = line
 
 def taskSortDesc(a,b):
-    """ Helper for sorting a TaskList by descriptions """
+    """
+    Helper for sorting a TaskList by descriptions
+    @param TaskItem a
+    @param TaskItem b
+    """
     if a.desc < b.desc:
         return -1
     elif a.desc > b.desc:
@@ -206,7 +248,11 @@ def taskSortDesc(a,b):
             return 0
 
 def taskSortName(a,b):
-    """ Helper for sorting a TaskList by names """
+    """
+    Helper for sorting a TaskList by names
+    @param TaskItem a
+    @param TaskItem b
+    """
     if a.name < b.name:
         return -1
     elif a.name > b.name:
@@ -226,18 +272,44 @@ class TaskList:
     Properties: String name, List items (list of TaskItem)
     """
     def __init__(self,name=''):
+        """
+        Initialize properties with useful defaults
+        @param self
+        @param optional string name
+        """
         self.name  = name
         self.items = []
     def addItem(self,name,desc):
+        """
+        Add an item to the tasklist.
+        @param self
+        @param string name
+        @param string desc
+        """
         self.items.append(TaskItem(name,desc))
     def taskCount(self):
+        """
+        Give the number of tasks in this list
+        @param self
+        @return int
+        """
         return len(self.items)
     def itemSort(self,orderBy='name'):
+        """
+        Sort the tasks
+        @param self
+        @param optional string orderBy 'name' (default) or 'desc'
+        """
         if orderBy=='desc':
             self.items.sort(taskSortDesc)
         else:
             self.items.sort(taskSortName)
     def getHtml(self):
+        """
+        Return collected tasks as unordered HTML list
+        @param self
+        @return string html
+        """
         if self.taskCount < 1:
             return ''
         html = '<UL>\n'
@@ -256,33 +328,80 @@ class PackageTaskList(TaskList):
     specific tasks.
     """
     def __init__(self,name=''):
+        """
+        Initialize properties with useful defaults
+        @param self
+        @param optional string name (default: '')
+        """
         TaskList.__init__(self,name)
         self.funcs = []
         self.procs = []
     def addFunc(self,name,desc):
+        """
+        Add an item to this packages function task list
+        @param self
+        @param string name
+        @param string desc
+        """
         item = TaskItem(name,desc);
         item.parent = self
         self.funcs.append(item)
     def addProc(self,name,desc):
+        """
+        Add an item to this packages procedure task list
+        @param self
+        @param string name
+        @param string desc
+        """
         item = TaskItem(name,desc);
         item.parent = self
         self.procs.append(item)
     def funcCount(self):
+        """
+        How many function tasks we have for this package?
+        @param self
+        @return number tasks
+        """
         return len(self.funcs)
     def procCount(self):
+        """
+        How many procedure tasks we have for this package?
+        @param self
+        @return number tasks
+        """
         return len(self.procs)
     def allItemCount(self):
+        """
+        How many tasks we have for this package altogether?
+        @param self
+        @return number tasks
+        """
         return self.taskCount() + self.funcCount() + self.procCount()
     def sortAll(self,orderBy='name'):
+        """
+        Sort all task lists of this package
+        @param self
+        @param optional string orderBy 'name' (default) or 'desc'
+        """
         self.itemSort(orderBy)
         self.sortFuncs(orderBy)
         self.sortProcs(orderBy)
     def sortFuncs(self,orderBy='name'):
+        """
+        Sort this packages function task list
+        @param self
+        @param optional string orderBy 'name' (default) or 'desc'
+        """
         if orderBy == 'desc':
             self.funcs.sort(taskSortDesc)
         else:
             self.funcs.sort(taskSortName)
     def sortProcs(self,orderBy='name'):
+        """
+        Sort this packages procedure task list
+        @param self
+        @param optional string orderBy 'name' (default) or 'desc'
+        """
         if orderBy == 'desc':
             self.procs.sort(taskSortDesc)
         else:
@@ -292,6 +411,9 @@ class PackageTaskList(TaskList):
         Generate the Table BODY for tasks of the specified objectType
         This does not include the table opening and closing tags, but includes
         the special TH line. Table has 2 columns.
+        @param self
+        @param string objectType 'funcs' or 'procs'
+        @return string html
         """
         if objectType == 'funcs':
             if len(self.funcs) < 1:
@@ -321,8 +443,18 @@ class PackageTaskList(TaskList):
             html += '  <TR><TD>'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
         return html
     def getFuncHtml(self):
+        """
+        Generate HTML for function task list (wrapper to getSubHtml)
+        @param self
+        @return string html
+        """
         return self.getSubHtml('funcs')
     def getProcHtml(self):
+        """
+        Generate HTML for procedure task list (wrapper to getSubHtml)
+        @param self
+        @return string html
+        """
         return self.getSubHtml('procs')
 
 
@@ -333,6 +465,10 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     ScanFilesForViewsAndPackages.
     Returns a list of instances of the JavaDoc class - one instance per javadoc
     comment block.
+    @param string text to parse
+    @param string fileName name of the file this text is from (for eventual error messages)
+    @param optional number lineNo which line to start with (Default: 0, the very beginning)
+    @return list of JavaDoc instances
     """
     elem = 'desc'
     res  = []
@@ -340,7 +476,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
-              'see', 'webpage', 'license', 'bugzilla', 'wiki'] # other supported tags
+              'see', 'webpage', 'license', 'ticket', 'wiki'] # other supported tags
     for lineNumber in range(lineNo,len(text)):
       line = text[lineNumber].strip()
       if not opened and line[0:3] != '/**':
@@ -378,7 +514,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
       if elem != 'desc':
         if line[0:1] != '@': # 2nd+ line of a tag
           if elem in tags and elem not in ['param','return','private']: # maybe...
-            exec('item.'+elem+' += " '+line+'"')
+            exec('item.'+elem+' += " '+line.replace('"','&quot;')+'"')
           continue
         doc = line.split()
         tag = doc[0][1:]
@@ -446,8 +582,8 @@ def ScanJavaDoc(text,fileName,lineNo=0):
               item.webpage = line[len(tag)+1:].strip()
             elif tag == 'license':
               item.license = line[len(tag)+1:].strip()
-            elif tag == 'bugzilla':
-              item.bugzilla = line[len(tag)+1:].strip()
+            elif tag == 'ticket':
+              item.ticket = line[len(tag)+1:].strip()
             elif tag == 'wiki':
               item.wiki = line[len(tag)+1:].strip()
             else:

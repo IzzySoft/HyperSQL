@@ -18,16 +18,19 @@ class HyperConf(IniParser):
     def __init__(self,defaults=None):
         """
         Initialize the instance
+        @param self
         @param defaults A dictionary of intrinsic defaults. The keys must be
                strings, the values must be appropriate for %()s string
                interpolation.  Note that `__name__' is always an intrinsic
-               default; it's value is the section's name.
+               default; it's value is the section's name. These defaults are
+               not section specific.
         """
         IniParser.__init__(self,defaults)
 
     def initDefaults(self):
         """
         Initialize configuration with HyperSQL default settings
+        @param self
         """
         # Section GENERAL
         general = dict(
@@ -36,7 +39,7 @@ class HyperConf(IniParser):
             project_info_file='',
             project_logo='',
             project_logo_url='',
-            bugzilla_url='',
+            ticket_url='',
             wiki_url='',
             encoding='utf8'
         )
