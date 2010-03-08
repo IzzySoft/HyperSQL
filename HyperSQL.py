@@ -219,11 +219,11 @@ def ScanFilesForViewsAndPackages():
                        and token_list[token_index+2].upper() == "BODY":
                     package_info = PackageInfo()
                     package_info.parent = file_info
-                    package_info.packageName = token_list[token_index+3]
+                    package_info.name = token_list[token_index+3]
                     package_info.lineNumber = lineNumber
                     for j in range(len(jdoc)):
                       ln = jdoc[j].lineNumber - lineNumber
-                      if (CaseInsensitiveComparison(package_info.packageName,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                      if (CaseInsensitiveComparison(package_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                         package_info.javadoc = jdoc[j]
                         if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
                             package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug)
@@ -437,7 +437,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     for package_info in inner_file_info.packageInfoList:
 
                         # perform case insensitive find, this is "package name"."function or procedure name"
-                        if fileLines[lineNumber].upper().find(package_info.packageName.upper() + ".") != -1:
+                        if fileLines[lineNumber].upper().find(package_info.name.upper() + ".") != -1:
 
                             if outer_file_info.fileName not in package_info.whereUsed.keys():
                                 package_info.whereUsed[outer_file_info.fileName] = []
@@ -451,7 +451,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                             #look for any of this packages' functions
                             for function_info in package_info.functionInfoList:
                                 # perform case insensitive find
-                                if fileLines[lineNumber].upper().find(package_info.packageName.upper() + "." \
+                                if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
                                   + function_info.name.upper()) != -1:
                                     if outer_file_info.fileName not in function_info.whereUsed.keys():
                                         function_info.whereUsed[outer_file_info.fileName] = []
@@ -464,7 +464,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                             #look for any of this packages procedures
                             for procedure_info in package_info.procedureInfoList:
                                 # perform case insensitive find
-                                if fileLines[lineNumber].upper().find(package_info.packageName.upper() + "." \
+                                if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
                                   + procedure_info.name.upper()) != -1:
                                     if outer_file_info.fileName not in procedure_info.whereUsed.keys():
                                         procedure_info.whereUsed[outer_file_info.fileName] = []
@@ -536,11 +536,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 def MakeNavBar(current_page):
     """Generates HTML code for the general navigation links to all the index pages"""
     itemCount = 0
-    lineNumber = 1
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar' WIDTH='600px'>\n"
     for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo']:
-    #for item in ['package','function','procedure','package_full','view','file','filepath']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -548,10 +546,8 @@ def MakeNavBar(current_page):
         else:
             s += '    <A href="' + metaInfo.indexPage[item] + '">' + metaInfo.indexPageName[item] + '</A> &nbsp;&nbsp; \n'
         itemCount += 1
-        #if lineNumber < 2 and float(metaInfo.indexPageCount) / itemCount <= 2:
         if itemCount %4 == 0:
             s += '    <BR>\n'
-            lineNumber += 1
     if current_page == 'Index':
         s += '    <B><I>Main Index</I></B>\n'
     else:
@@ -565,7 +561,6 @@ def MakeNavBar(current_page):
 def MakeHTMLHeader(title_name):
     """Generates common HTML header with menu for all pages"""
 
-    #if title_name in ['file', 'filepath', 'view', 'package', ]
     if title_name in metaInfo.indexPageName:
         title_text = metaInfo.indexPageName[title_name]
     else:
@@ -610,6 +605,34 @@ def CreateHTMLDirectory(metaInfo):
             continue
         else:
             os.mkdir(temp)
+
+
+def getDualCodeLink(otuple):
+    """
+    Calculates links to Code and JavaDoc ref and returns them as triple HTMLref,HTMLjref,HTMLpref,HTMLpjref
+    @return string HTMLref link to code
+    @return string HTMLjref link to JavaDoc reference
+    @return string HTMLpjref link to JavaDoc package reference
+    """
+    # HTML[j]ref links to function Code / [ApiDoc]
+    HTMLref = os.path.split(otuple[2].fileName)[1].replace(".", "_")
+    HTMLref += "_" + `otuple[2].uniqueNumber` + ".html"
+    if otuple[1].javadoc.isDefault():
+        HTMLjref = ''
+    else:
+        HTMLjref = HTMLref + '#' + otuple[1].javadoc.name + '_' + `otuple[1].uniqueNumber`
+    # HTMLp[j]ref links to package Code [ApiDoc]
+    if len(otuple) > 3: # otuple[3] is package_info
+        if otuple[3].javadoc.isDefault():
+            HTMLpjref = ''
+        else:
+            HTMLpjref = HTMLref + '#' + otuple[3].name.lower() + '_' + `otuple[3].uniqueNumber`
+        HTMLpref = HTMLref + "#" + `otuple[3].lineNumber`
+    else:
+        HTMLpjref = ''
+        HTMLpref  = ''
+    HTMLref += "#" + `otuple[1].lineNumber`
+    return HTMLref,HTMLjref,HTMLpref,HTMLpjref
 
 
 def MakeFileIndex(objectType):
@@ -708,20 +731,7 @@ def MakeElemIndex(objectType):
     outfile.write("  <TR><TH>"+object_name+"</TH><TH>from Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
 
     for object_tuple in objectTupleList: # list of tuples describing every object
-        # HTML[j]ref links to function Code / [ApiDoc]
-        HTMLref = os.path.split(object_tuple[2].fileName)[1].replace(".", "_")
-        HTMLref += "_" + `object_tuple[2].uniqueNumber` + ".html"
-        if object_tuple[1].javadoc.isDefault():
-            HTMLjref = ''
-        else:
-            HTMLjref = HTMLref + '#' + object_tuple[1].javadoc.name + '_' + `object_tuple[1].uniqueNumber`
-        # HTMLp[j]ref links to package Code [ApiDoc]
-        if object_tuple[3].javadoc.isDefault():
-            HTMLpjref = ''
-        else:
-            HTMLpjref = HTMLref + '#' + object_tuple[3].packageName.lower() + '_' + `object_tuple[3].uniqueNumber`
-        HTMLpref = HTMLref + "#" + `object_tuple[3].lineNumber`
-        HTMLref += "#" + `object_tuple[1].lineNumber`
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(object_tuple)
         # Write column 1: Object name w/ links
         if HTMLjref == '':
             outfile.write("  <TR><TD>" + object_tuple[1].name.lower())
@@ -735,12 +745,12 @@ def MakeElemIndex(objectType):
             outfile.write("</TD>")
         # Write column 2: Package name w/ links
         outfile.write("<TD>")
-        if HTMLpjref == '':
-            outfile.write(object_tuple[3].packageName.lower())
+        if HTMLpjref == '': # object_tuple[3] is package_info
+            outfile.write(object_tuple[3].name.lower())
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
         else:
-            outfile.write("<A HREF='" + HTMLpjref + "'>" + object_tuple[3].packageName.lower() + "</A>")
+            outfile.write("<A HREF='" + HTMLpjref + "'>" + object_tuple[3].name.lower() + "</A>")
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
         outfile.write("</TD>")
@@ -834,7 +844,7 @@ def MakeTaskList(taskType):
         if file_info.fileType != "sql":
             continue        
         for package_info in file_info.packageInfoList:
-            packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
+            packagetuplelist.append((package_info.name.upper(), package_info, file_info)) # append as tuple for case insensitive sort
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
@@ -854,14 +864,8 @@ def MakeTaskList(taskType):
             task = package_tuple[1].todo
         if task.allItemCount() < 1:
             continue
-        HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
-        HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
-        if package_tuple[1].javadoc.isDefault():
-            HTMLjref = ''
-        else:
-            HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + '_' + `package_tuple[1].uniqueNumber`
-        HTMLref += "#" + `package_tuple[1].lineNumber`
-        outfile.write("  <TR><TH COLSPAN='2'><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A>")
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
+        outfile.write("  <TR><TH COLSPAN='2'><A HREF='" + HTMLjref + "'>" + package_tuple[1].name.lower() + "</A>")
         if metaInfo.includeSource:
             outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
         outfile.write("</TH></TR>\n");
@@ -899,7 +903,7 @@ def MakePackageIndex():
         if file_info.fileType != "sql":
             continue        
         for package_info in file_info.packageInfoList:
-            packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
+            packagetuplelist.append((package_info.name.upper(), package_info, file_info)) # append as tuple for case insensitive sort
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
@@ -910,20 +914,14 @@ def MakePackageIndex():
     outfile.write("  <TR><TH>Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
 
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
-        HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
-        HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
-        if package_tuple[1].javadoc.isDefault():
-            HTMLjref = ''
-        else:
-            HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + '_' + `package_tuple[1].uniqueNumber`
-        HTMLref += "#" + `package_tuple[1].lineNumber`
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
         if HTMLjref == '':
-            outfile.write("  <TR><TD>" + package_tuple[1].packageName.lower())
+            outfile.write("  <TR><TD>" + package_tuple[1].name.lower())
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         else:
-            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].packageName.lower() + "</A>")
+            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].name.lower() + "</A>")
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
@@ -957,7 +955,7 @@ def MakePackagesWithFuncsAndProcsIndex():
         if file_info.fileType != "sql":
             continue        
         for package_info in file_info.packageInfoList:
-            packagetuplelist.append((package_info.packageName.upper(), package_info, file_info)) # append as tuple for case insensitive sort
+            packagetuplelist.append((package_info.name.upper(), package_info, file_info)) # append as tuple for case insensitive sort
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
@@ -967,14 +965,8 @@ def MakePackagesWithFuncsAndProcsIndex():
 
     for package_tuple in packagetuplelist:
         # file name and line number as an HTML reference
-        HTMLref = os.path.split(package_tuple[2].fileName)[1].replace(".", "_")
-        HTMLref += "_" + `package_tuple[2].uniqueNumber` + ".html"
-        if package_tuple[1].javadoc.isDefault():
-            HTMLjref = ''
-        else:
-            HTMLjref = HTMLref + '#' + package_tuple[1].javadoc.name + `package_tuple[1].uniqueNumber`
-        HTMLref += "#" + `package_tuple[1].lineNumber`
-        outfile.write("<TABLE CLASS='apilist' WIDTH='98%'>\n  <TR><TH COLSPAN='3'>" + package_tuple[1].packageName.lower() + "</TH></TR>\n")
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
+        outfile.write("<TABLE CLASS='apilist' WIDTH='98%'>\n  <TR><TH COLSPAN='3'>" + package_tuple[1].name.lower() + "</TH></TR>\n")
         outfile.write("  <TR><TD ALIGN='center' WIDTH='33.33%'>")
         if metaInfo.includeSource:
             outfile.write("<A href=\"" + HTMLref + "\">Code</A>")
@@ -1004,10 +996,15 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("<TABLE ALIGN='center'>\n")
             outfile.write("    <TR><TD ALIGN='center'><B>Function</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
         for function_tuple in functiontuplelist:
-            HTMLref = os.path.split(function_tuple[2].fileName)[1].replace(".", "_")
-            HTMLref += "_" + `function_tuple[2].uniqueNumber` + ".html"
-            HTMLref += "#" + `function_tuple[1].lineNumber`
-            outfile.write("    <TR><TD><A href=\"" + HTMLref + "\">" + function_tuple[1].name.lower() + "</A></TD>\n")
+            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(function_tuple)
+            outfile.write("    <TR><TD>")
+            if HTMLjref == '':
+                outfile.write(function_tuple[1].name.lower())
+            else:
+                outfile.write('<A HREF="' + HTMLjref + '">' + function_tuple[1].name.lower() + '</A>')
+            if metaInfo.includeSource:
+                outfile.write(' <SUP><A HREF="' + HTMLref + '">#</A></SUP>')
+            outfile.write('</TD>\n')
             outfile.write("<TD>" + function_tuple[1].javadoc.getShortDesc() + "</TD>")
             outfile.write("        <TD>")
             if len(function_tuple[1].whereUsed.keys()) > 0:
@@ -1030,10 +1027,15 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("<TABLE ALIGN='center'>\n")
             outfile.write("    <TR><TD ALIGN='center'><B>Procedure</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
         for procedure_tuple in proceduretuplelist:
-            HTMLref = os.path.split(procedure_tuple[2].fileName)[1].replace(".", "_")
-            HTMLref += "_" + `procedure_tuple[2].uniqueNumber` + ".html"
-            HTMLref += "#" + `procedure_tuple[1].lineNumber`
-            outfile.write("    <TR><TD><A href=\"" + HTMLref + "\">" + procedure_tuple[1].name.lower() + "</A></TD>\n")
+            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(procedure_tuple)
+            outfile.write("    <TR><TD>")
+            if HTMLjref == '':
+                outfile.write(procedure_tuple[1].name.lower())
+            else:
+                outfile.write('<A HREF="' + HTMLjref + '">' + procedure_tuple[1].name.lower() + '</A>')
+            if metaInfo.includeSource:
+                outfile.write(' <SUP><A HREF="' + HTMLref + '">#</A></SUP>')
+            outfile.write('</TD>\n')
             outfile.write("<TD>" + procedure_tuple[1].javadoc.getShortDesc() + "</TD>")
             outfile.write("        <TD>")
             if len(procedure_tuple[1].whereUsed.keys()) > 0:
@@ -1102,7 +1104,7 @@ def CreateHyperlinkedSourceFilePages():
         viewdetails = '\n\n'
         #if len(file_info.viewInfoList) > 0:
             #print 'We have views here'
-            # Do we have to introduce JavaDoc here as well?
+            # Do we have to introduce JavaDoc here as well? # *!*
 
         # Do we have packages in this file?
         packagedetails = '\n\n'
@@ -1111,7 +1113,7 @@ def CreateHyperlinkedSourceFilePages():
             outfile.write('<TABLE CLASS="apilist">\n')
             for p in range(len(file_info.packageInfoList)):
                 jdoc = file_info.packageInfoList[p].javadoc
-                outfile.write(' <TR><TH COLSPAN="2">' + file_info.packageInfoList[p].packageName + '</TH></TR>\n')
+                outfile.write(' <TR><TH COLSPAN="2">' + file_info.packageInfoList[p].name + '</TH></TR>\n')
                 outfile.write(' <TR><TD COLSPAN="2">')
                 outfile.write( jdoc.getHtml(0) )
                 outfile.write('</TD></TR>\n')
@@ -1120,11 +1122,18 @@ def CreateHyperlinkedSourceFilePages():
                     packagedetails += '<A NAME="funcs"></A><H2>Functions</H2>\n';
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Functions</TH></TR>\n')
                     for item in file_info.packageInfoList[p].functionInfoList:
+                        if not item.javadoc.isDefault():
+                            if item.javadoc.private:
+                                iname = 'private '
+                            else:
+                                iname = 'public '
+                        else:
+                            iname = ''
                         if item.javadoc.name != '':
-                            iname = '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
+                            iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
                             idesc = item.javadoc.getShortDesc()
                         else:
-                            iname = item.name
+                            iname += item.name
                             idesc = ''
                         outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
                         if metaInfo.includeSource:
@@ -1142,11 +1151,18 @@ def CreateHyperlinkedSourceFilePages():
                     packagedetails += '<A NAME="procs"></A><H2>Procedures</H2>\n';
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Procedures</TH></TR>\n')
                     for item in file_info.packageInfoList[p].procedureInfoList:
+                        if not item.javadoc.isDefault():
+                            if item.javadoc.private:
+                                iname = 'private '
+                            else:
+                                iname = 'public '
+                        else:
+                            iname = ''
                         if item.javadoc.name != '':
-                            iname = '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
+                            iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
                             idesc = item.javadoc.getShortDesc()
                         else:
-                            iname = item.name
+                            iname += item.name
                             idesc = ''
                         outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
                         if metaInfo.includeSource:
@@ -1279,8 +1295,8 @@ def CreateWhereUsedPages():
             outfile = open(html_dir + whereusedfilename, "w")
             
             # write our header
-            outfile.write(MakeHTMLHeader(package_info.packageName + " Where Used List"))
-            outfile.write("<H1>" + package_info.packageName + " Where Used List</H1>\n")
+            outfile.write(MakeHTMLHeader(package_info.name + " Where Used List"))
+            outfile.write("<H1>" + package_info.name + " Where Used List</H1>\n")
             outfile.write("<TABLE CLASS='apilist'>\n")
             outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
 
@@ -1305,7 +1321,7 @@ def CreateWhereUsedPages():
 
             # footer and close
             outfile.write("</TABLE>")
-            outfile.write(MakeHTMLFooter(package_info.packageName + " Where Used List"))
+            outfile.write(MakeHTMLFooter(package_info.name + " Where Used List"))
             outfile.close()
 
             #look for any of this packages' functions
@@ -1318,8 +1334,8 @@ def CreateWhereUsedPages():
                 outfile = open(html_dir + whereusedfilename, "w")
                 
                 # write our header
-                outfile.write(MakeHTMLHeader(function_info.name.lower() + ' from ' + package_info.packageName))
-                outfile.write("<H1>" + function_info.name.lower() + " <I>from " + package_info.packageName)
+                outfile.write(MakeHTMLHeader(function_info.name.lower() + ' from ' + package_info.name))
+                outfile.write("<H1>" + function_info.name.lower() + " <I>from " + package_info.name)
                 outfile.write(" </I>Where Used List</H1>\n")
                 outfile.write("<TABLE CLASS='apilist'>\n")
                 outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
@@ -1345,7 +1361,7 @@ def CreateWhereUsedPages():
 
                 # footer and close
                 outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(function_info.name.lower() + ' from ' + package_info.packageName))
+                outfile.write(MakeHTMLFooter(function_info.name.lower() + ' from ' + package_info.name))
                 outfile.close()
 
             #look for any of this packages procedures
@@ -1358,8 +1374,8 @@ def CreateWhereUsedPages():
                 outfile = open(html_dir + whereusedfilename, "w")
                 
                 # write our header
-                outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' from ' + package_info.packageName.lower()))
-                outfile.write("<H1>" + procedure_info.name.lower() + " <I>from " + package_info.packageName.lower())
+                outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' from ' + package_info.name.lower()))
+                outfile.write("<H1>" + procedure_info.name.lower() + " <I>from " + package_info.name.lower())
                 outfile.write(" </I>Where Used List</H1>\n")
                 outfile.write("<TABLE CLASS='apilist'>\n")
                 outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
@@ -1385,7 +1401,7 @@ def CreateWhereUsedPages():
 
                 # footer and close
                 outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(procedure_info.name.lower() + ' from ' + package_info.packageName.lower()))
+                outfile.write(MakeHTMLFooter(procedure_info.name.lower() + ' from ' + package_info.name.lower()))
                 outfile.close()
 
     # print carriage return after last dot
@@ -1517,7 +1533,7 @@ if __name__ == "__main__":
       print 'No config file found, using defaults.'
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "1.10"
+    metaInfo.versionString = "1.11"
     metaInfo.scriptName = sys.argv[0]
 
     # Initiate logging

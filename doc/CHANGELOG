@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v1.11
+--------------------
+! function/procedure JavaDoc links missing in full package list
+* some more (internal) code documentation and reorganization
++ marking functions/procedures public/private in the overview of packages when
+  JavaDoc has been set up for them. This does not affect the general index pages.
+
 v1.10.0 (06.03.2010)
 --------------------
 * adapted a patch made against Randys original code on 07/12/2005 by Matthias

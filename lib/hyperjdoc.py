@@ -20,6 +20,7 @@ def HyperScan(text):
     Search for URLS and make them clickable
     This includes not-yet-hyperlinked http:// elements, ticket: and wiki: references
     (the latter two depending on configuration of ticket_url and wiki_url)
+    @param string text to scan
     """
     refpatt = re.compile("[^'\">](http\:\/\/\S+)+")    # URL-Regexp
     result = refpatt.search(text)
