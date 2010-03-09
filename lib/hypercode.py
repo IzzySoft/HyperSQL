@@ -26,6 +26,7 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
     line_number_width = len(`len(line_list)`) # number of chars in "number of lines of text"
 
     html = ''
+    commentmode = 0 # 0 no comment, 1 '--', 2 '/*'
     for line_number in range(len(line_list)):
         line  = escape(line_list[line_number])
         if line.strip()[0:2]=='--':
@@ -34,7 +35,8 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
             text = line
             prel = len(text) - len(text.lstrip())
             text = text[0:prel]
-            commentmode = 0 # 0 no comment, 1 '--', 2 '/*'
+            if commentmode==2:
+                text += '<SPAN CLASS="'+cssclass+'comment">'
             for elem in line.split():
                 if elem[len(elem)-1] in [',', ';', ')', '}', ']'] and len(elem)>1:
                     selem = elem[0:len(elem)-1]
@@ -53,6 +55,9 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
                     if selem[0:2]=='--':
                         text += schar + '<SPAN CLASS="'+cssclass+'comment">' + echar + selem
                         commentmode = 1
+                    elif selem[0:2]=='/*':
+                        text += schar + '<SPAN CLASS="'+cssclass+'comment">' + echar + selem
+                        commentmode = 2
                     elif selem in keywords:
                         text += schar + '<SPAN CLASS="'+cssclass+'keyword">' + selem + '</SPAN> ' + echar
                     elif selem in types:
@@ -61,9 +66,18 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
                         text += '<SPAN CLASS="'+cssclass+'brace">' + selem + echar + '</SPAN>'
                     else:
                         text += schar + selem + echar + ' '
+                elif commentmode==2:
+                    if selem[len(selem)-2:]=='*/':
+                        text += schar + selem + '</SPAN>' + echar
+                        commentmode = 0 # clear at comment end
+                    else:
+                        text += ' ' + schar + selem + echar
                 else: # 1 for now
                     text += ' ' + schar + selem + echar
             if commentmode==1:
+                text += '</SPAN>'
+                commentmode = 0 # clear at line end
+            elif commentmode==2:
                 text += '</SPAN>'
             if text[len(text)-1:] != '\n':
                 text += "\n"

@@ -43,11 +43,12 @@ from hyperconf import *
 
 def FindFilesAndBuildFileList(dir, fileInfoList):
     """
-    Recursively scans the source directory specified (1st param) for
-    relevant files according to the file extensions configured in metaInfo,
-    while excluding RCS directories (such as 'RCS', 'CVS', and '.svn' - see
-    configuration section FileNames). Information for matching files is
-    stored in fileInfoList (2nd param).
+    Recursively scans the source directory specified for relevant files according
+    to the file extensions configured in metaInfo, while excluding RCS
+    directories (see rcsnames in configuration section FileNames). Information
+    for matching files is stored in fileInfoList.
+    @param string dir directory to scan
+    @param list fileInfoList where to store results
     """
     printProgress("Creating file list")
 
@@ -293,9 +294,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     printProgress("Scanning source files for where views and packages are used")
     scan_instring = config.getBool('Process','whereused_scan_instring')
     if scan_instring:
-        logger.debug('Including strings in where_used scan')
+        logger.info('Including strings in where_used scan')
     else:
-        logger.debug('Excluding strings from where_used scan')
+        logger.info('Excluding strings from where_used scan')
         strpatt = re.compile("('[^']*')+")    # String-Regexp
 
     fileInfoList = metaInfo.fileInfoList
@@ -479,7 +480,6 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                         elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber) \
                          and config.getBool('Process','whereused_scan_shortrefs'):
                             # possibly a call without a package_name
-                            logger.debug('Scanning for where_used shortrefs')
                             if outer_file_info.fileName not in package_info.whereUsed.keys():
                                 package_info.whereUsed[outer_file_info.fileName] = []
                                 package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
@@ -534,7 +534,11 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
 
 def MakeNavBar(current_page):
-    """Generates HTML code for the general navigation links to all the index pages"""
+    """
+    Generates HTML code for the general navigation links to all the index pages
+    The current page will be handled separately (no link, highlight)
+    @param string current_page name of the current page
+    """
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar' WIDTH='600px'>\n"
@@ -559,7 +563,10 @@ def MakeNavBar(current_page):
     return s
 
 def MakeHTMLHeader(title_name):
-    """Generates common HTML header with menu for all pages"""
+    """
+    Generates common HTML header with menu for all pages
+    @param string title_name index key for the title of the current page
+    """
 
     if title_name in metaInfo.indexPageName:
         title_text = metaInfo.indexPageName[title_name]
@@ -578,7 +585,10 @@ def MakeHTMLHeader(title_name):
     return s
 
 def MakeHTMLFooter(title_name):
-    """Generates common HTML footer for all pages"""
+    """
+    Generates common HTML footer for all pages
+    @param string title_name index key for the title of the current page
+    """
 
     if title_name in metaInfo.indexPageName:
         title_text = metaInfo.indexPageName[title_name]
@@ -594,8 +604,8 @@ def MakeHTMLFooter(title_name):
     return s
 
 
-def CreateHTMLDirectory(metaInfo):
-    """Creates the html directory if needed"""
+def CreateHTMLDirectory():
+    """Creates the html (output) directory if needed"""
     printProgress("Creating html subdirectory")
     splitted = metaInfo.htmlDir.split(os.sep)
     temp = ""
@@ -639,6 +649,7 @@ def MakeFileIndex(objectType):
     """
     Generate HTML index page for all files, ordered by
     path names (filepath) or file names (file)
+    @param string objectType either 'file' or 'filepath'
     """
 
     if objectType not in ['file','filepath']: # unsupported type
@@ -691,7 +702,7 @@ def MakeFileIndex(objectType):
 def MakeElemIndex(objectType):
     """
     Generate HTML index page for all package elements of the specified objectType
-    objectType is one of 'function', 'procedure'
+    @param string objectType one of 'function', 'procedure'
     """
 
     if objectType not in ['function','procedure']: # not a valid/supported objectType
@@ -739,7 +750,7 @@ def MakeElemIndex(objectType):
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         else:
-            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + object_tuple[1].name.lower() + "</A>")
+            outfile.write("  <TR><TD>" + object_tuple[1].javadoc.getVisibility() + "<A HREF='" + HTMLjref + "'>" + object_tuple[1].name.lower() + "</A>")
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
@@ -997,7 +1008,7 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("    <TR><TD ALIGN='center'><B>Function</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
         for function_tuple in functiontuplelist:
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(function_tuple)
-            outfile.write("    <TR><TD>")
+            outfile.write("    <TR><TD>" + function_tuple[1].javadoc.getVisibility())
             if HTMLjref == '':
                 outfile.write(function_tuple[1].name.lower())
             else:
@@ -1028,7 +1039,7 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("    <TR><TD ALIGN='center'><B>Procedure</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
         for procedure_tuple in proceduretuplelist:
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(procedure_tuple)
-            outfile.write("    <TR><TD>")
+            outfile.write("    <TR><TD>" + procedure_tuple[1].javadoc.getVisibility())
             if HTMLjref == '':
                 outfile.write(procedure_tuple[1].name.lower())
             else:
@@ -1057,7 +1068,7 @@ def CreateHyperlinkedSourceFilePages():
     Generates pages with the complete source code of each file, including link
     targets (A NAME=) for each line. This way we can link directly to the line
     starting the definition of an object, or where it is called (used) from.
-    Very basic syntax highlighting is performed here as well.
+    Very basic syntax highlighting is performed here as well if code is included.
     """
     printProgress("Creating hyperlinked source file pages")
 
@@ -1151,13 +1162,7 @@ def CreateHyperlinkedSourceFilePages():
                     packagedetails += '<A NAME="procs"></A><H2>Procedures</H2>\n';
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Procedures</TH></TR>\n')
                     for item in file_info.packageInfoList[p].procedureInfoList:
-                        if not item.javadoc.isDefault():
-                            if item.javadoc.private:
-                                iname = 'private '
-                            else:
-                                iname = 'public '
-                        else:
-                            iname = ''
+                        iname = item.javadoc.getVisibility()
                         if item.javadoc.name != '':
                             iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
                             idesc = item.javadoc.getShortDesc()
@@ -1411,6 +1416,10 @@ def CreateWhereUsedPages():
 def confPage(page,filenameDefault,pagenameDefault,enableDefault):
     """
     Add the specified page to the list of pages to process if it is enabled
+    @param string page index key for the page to setup
+    @param string filenameDefault default for the file name (used if not found in config)
+    @param string pagenameDefault default for the page name (used if not found in config)
+    @param boolean enableDefault
     """
     if config.getBool('Pages',page,enableDefault):
         metaInfo.indexPage[page] = config.get('FileNames',page,filenameDefault)
@@ -1420,6 +1429,7 @@ def confPage(page,filenameDefault,pagenameDefault,enableDefault):
         metaInfo.indexPage[page] = ''
 
 def configRead():
+    """ Setup internal variables from config """
     # Section GENERAL
     metaInfo.title_prefix  = config.get('General','title_prefix','HyperSQL')
     metaInfo.projectInfo   = config.get('General','project_info','')
@@ -1464,6 +1474,7 @@ def configRead():
     metaInfo.includeSource = config.getBool('Process','include_source',True)
 
 def confLogger():
+    """ Setup logging """
     logging.addLevelName(99,'NONE')
     logger.setLevel(logging.DEBUG)
     fh = logging.FileHandler( config.get('Logging','logfile') )
@@ -1486,6 +1497,7 @@ def confLogger():
 def printProgress(msg):
     """
     If config(Logging.progress) evaluates to True, print which step we are performing
+    @param string msg what to print out
     """
     logger.debug(msg)
     if config.getBool('Logging','progress',True):
@@ -1495,6 +1507,7 @@ def dotProgress(dot_count):
     """
     If config(Logging.progress) evaluates to True, print a '.' for each processed object
     (usually for each processed file), plus a line break all 60 dots
+    @param int dot_count how many dots have been processed already (for line break)
     """
     if config.getBool('Logging','progress',True):
         sys.stdout.write(".")
@@ -1533,7 +1546,7 @@ if __name__ == "__main__":
       print 'No config file found, using defaults.'
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "1.11"
+    metaInfo.versionString = "2.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Initiate logging
@@ -1545,6 +1558,10 @@ if __name__ == "__main__":
       logger.info('Using config file(s) ' + ', '.join(confName))
     else:
       logger.info('No config file found, using defaults.')
+    if config.getBool('Process','whereused_scan_shortrefs'):
+      logger.info('where_used shortref scan enabled')
+    else:
+      logger.info('where_used shortref scan disabled')
 
     configRead()
     top_level_directory = metaInfo.topLevelDirectory
@@ -1566,7 +1583,7 @@ if __name__ == "__main__":
       for i in names:
         os.unlink(metaInfo.htmlDir + i)
 
-    CreateHTMLDirectory(metaInfo)
+    CreateHTMLDirectory()
 
     # Generating the index pages
     MakeFileIndex('filepath')
@@ -1586,4 +1603,4 @@ if __name__ == "__main__":
     MakeTaskList('todo')
 
     printProgress("done")
-    logger.info('HyperSQL v.'+metaInfo.versionString+' exiting normally')
+    logger.info('HyperSQL v'+metaInfo.versionString+' exiting normally')

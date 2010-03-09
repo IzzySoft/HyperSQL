@@ -83,6 +83,18 @@ class JavaDoc:
         """
         if self.lineNumber != -1: return False
         return True
+    def getVisibility(self):
+        """
+        Return the objects visibility ('private ', 'public ' or '')
+        @param self
+        @return string visibility ('private ', 'public ' or '')
+        """
+        if self.isDefault():
+            return ''
+        elif self.private:
+            return 'private '
+        else:
+            return 'public '
     def getHtml(self,unum):
         """
         Generates HTML block from JavaDoc Api Info for the element passed - or
@@ -111,7 +123,7 @@ class JavaDoc:
             html += ' <DT>Private</DT><DD>Just used internally.</DD>'
           html += '  <DT>Syntax:</DT><DD><DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.name + ' ('
           for p in range(len(self.params)):
-            html += self.params[p].name + ' ' + self.params[p].inout + ' ' + self.params[p].sqltype
+            html += self.params[p].name
             if p<len(self.params)-1:
               html += ', '
           html += ')</DIV></DD>\n'

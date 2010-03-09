@@ -5,7 +5,10 @@ v1.11
 ! function/procedure JavaDoc links missing in full package list
 * some more (internal) code documentation and reorganization
 + marking functions/procedures public/private in the overview of packages when
-  JavaDoc has been set up for them. This does not affect the general index pages.
+  JavaDoc has been set up for them.
++ code highlighter now handles block comments (/*..*/)
+* JavaDoc Syntax element was too verbose
+* shortref scan was logging too verbose
 
 v1.10.0 (06.03.2010)
 --------------------
