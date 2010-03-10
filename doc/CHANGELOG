@@ -1,5 +1,15 @@
 # History of Changes for HyperSQL
 
+v2.1.0
+-------------------
++ added basic JavaDoc verification stuff - now you can define mandatory tags!
+  * new config section [Verification] with keywords verify_javadoc = 0|1
+    and mandatory_tags = tag1 tag2...
+  * new page 'report' for the verification report
+  * failures are logged at WARNING level (if verify_javadoc = 1)
+  if enabled, this will also check for missing names and descriptions, plus
+  for missing return values of functions
+
 v2.0.0 (10.03.2010)
 -------------------
 ! function/procedure JavaDoc links missing in full package list

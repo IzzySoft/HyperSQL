@@ -60,7 +60,8 @@ class HyperConf(IniParser):
             function = 'FunctionIndex.html',
             procedure = 'ProcedureIndex.html',
             bug = 'BugIndex.html',
-            todo = 'TodoIndex.html'
+            todo = 'TodoIndex.html',
+            report = 'ReportIndex.html'
         )
         # Section PAGENAMES
         pagenames = dict (
@@ -72,7 +73,8 @@ class HyperConf(IniParser):
             function = 'Function Index',
             procedure = 'Procedure Index',
             bug = 'Bug List',
-            todo = 'Todo List'
+            todo = 'Todo List',
+            report = 'Validation Report'
         )
         # Section PAGES
         pages = dict (
@@ -85,6 +87,7 @@ class HyperConf(IniParser):
             procedure = '1',
             bug = '1',
             todo = '1',
+            report = '0'
         )
         # Section PROCESS
         process = dict (
@@ -101,6 +104,11 @@ class HyperConf(IniParser):
             logfile = 'HyperSQL.log',
             progress = '1'
         )
+        # Section VERIFICATION
+        verification = dict (
+            verify_javadoc = '0',
+            mandatory_tags = ''
+        )
         # Generate the final dict (dict() allows no nesting)
         vals = {}
         vals['General']   = general
@@ -109,4 +117,5 @@ class HyperConf(IniParser):
         vals['Pages']     = pages
         vals['Process']   = process
         vals['Logging']   = logg
+        vals['Verification'] = verification
         self.setVals( vals )

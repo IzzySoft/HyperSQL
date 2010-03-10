@@ -230,6 +230,9 @@ def ScanFilesForViewsAndPackages():
                             package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
                             package_info.todo.addItem(jdoc[j].name,jdoc[j].todo)
+                        mands = jdoc[j].verify_mandatory()
+                        for mand in mands:
+                            package_info.verification.addItem(jdoc[j].name,mand)
                     file_info.packageInfoList.append(package_info) # permanent storage
                     package_count += 1 # use this flag below
 
@@ -256,6 +259,9 @@ def ScanFilesForViewsAndPackages():
                             file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
                             file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo)
+                        mands = jdoc[j].verify_mandatory()
+                        for mand in mands:
+                            file_info.packageInfoList[package_count].verification.addFunc(jdoc[j].name,mand)
                     file_info.packageInfoList[package_count].functionInfoList.append(function_info)
 		    
                 # now find procedures
@@ -279,6 +285,9 @@ def ScanFilesForViewsAndPackages():
                             file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
                             file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo)
+                        mands = jdoc[j].verify_mandatory()
+                        for mand in mands:
+                            file_info.packageInfoList[package_count].verification.addProc(jdoc[j].name,mand)
                     file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
     # print carriage return after last dot
@@ -542,7 +551,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar' WIDTH='600px'>\n"
-    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo']:
+    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo','report']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -837,7 +846,7 @@ def MakeTaskList(taskType):
     @param string taskType Type of the task - one of 'bug', 'todo'
     """
 
-    if taskType not in ['bug','todo']:
+    if taskType not in ['bug','todo','report']:
         return
 
     if metaInfo.indexPage[taskType] == '':
@@ -863,16 +872,20 @@ def MakeTaskList(taskType):
     outfile.write(MakeHTMLHeader(taskType))
     if taskType == 'bug':
         outfile.write("<H1>List of open Bugs</H1>\n")
-    else:
+    elif taskType == 'todo':
         outfile.write("<H1>List of things ToDo</H1>\n")
+    else:
+        outfile.write("<H1>JavaDoc Validation Report</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
 
     # Walk the packages
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
         if taskType == 'bug':
             task = package_tuple[1].bugs
-        else:
+        elif taskType == 'todo':
             task = package_tuple[1].todo
+        else:
+            task = package_tuple[1].verification
         if task.allItemCount() < 1:
             continue
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
@@ -1444,6 +1457,7 @@ def configRead():
     JavaDocVars['wiki_url']     = config.get('General','wiki_url','')
     # Section FILENAMES
     metaInfo.topLevelDirectory  = config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned
+    JavaDocVars['top_level_dir_len'] = len(metaInfo.topLevelDirectory)
     metaInfo.rcsnames           = config.getList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
     metaInfo.sql_file_exts      = config.getList('FileNames','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
     metaInfo.cpp_file_exts      = config.getList('FileNames','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
@@ -1462,10 +1476,14 @@ def configRead():
     confPage('procedure','ProcedureIndex.html','Procedure Index',True)
     confPage('bug','BugIndex.html','Bug List',True)
     confPage('todo','TodoIndex.html','Todo List',True)
+    confPage('report','ReportIndex.html','Verification Report',True)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
     # Section PROCESS
     metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
     metaInfo.includeSource = config.getBool('Process','include_source',True)
+    # Section VERIFICATION
+    JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
+    JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
 
 def confLogger():
     """ Setup logging """
@@ -1540,7 +1558,7 @@ if __name__ == "__main__":
       print 'No config file found, using defaults.'
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.0"
+    metaInfo.versionString = "2.1"
     metaInfo.scriptName = sys.argv[0]
 
     # Initiate logging
@@ -1595,6 +1613,7 @@ if __name__ == "__main__":
     # Bug and Todo lists
     MakeTaskList('bug')
     MakeTaskList('todo')
+    MakeTaskList('report')
 
     printProgress("done")
     logger.info('HyperSQL v'+metaInfo.versionString+' exiting normally')

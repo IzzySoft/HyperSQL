@@ -28,6 +28,8 @@ class PackageInfo(ElemInfo):
         self.procedureInfoList = []
         self.bugs = PackageTaskList()
         self.todo = PackageTaskList()
+        self.verification = {}
+        self.verification = PackageTaskList()
 
 class FileInfo:
     """ Object to hold information about a file """

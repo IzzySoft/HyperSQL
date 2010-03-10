@@ -8,11 +8,19 @@ from sys import maxint
 import logging, re
 logger = logging.getLogger('main.jdoc')
 
-otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
-
 JavaDocVars = dict(
     wiki_url     = '',
-    ticket_url = ''
+    ticket_url = '',
+    top_level_dir_len = 0,
+    verification = False,
+    mandatory_tags = [],
+    otypes = ['function', 'procedure', 'view', 'pkg'], # supported object types
+    tags   = ['param', 'return', 'version', 'author', 'info', 'example',
+              'todo', 'bug', 'copyright', 'deprecated', 'private',
+              'see', 'webpage', 'license', 'ticket', 'wiki'], # other supported tags
+    txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
+               'copyright', 'deprecated', 'see', 'webpage', 'license',
+               'ticket', 'wiki', 'desc'] # values of these tags are plain text
 )
 
 def HyperScan(text):
@@ -52,6 +60,7 @@ class JavaDoc:
         """
         Initializes all properties with useful defaults.
         """
+        self.file = ''
         self.lineNumber = -1
         self.lines = 0
         self.name = ''
@@ -83,6 +92,37 @@ class JavaDoc:
         """
         if self.lineNumber != -1: return False
         return True
+    def verify_mandatory(self):
+        """
+        Verify the element according to configured parameters.
+        @param self
+        @return list
+        """
+        faillist = []
+        if self.isDefault() or not JavaDocVars['verification']:
+            return faillist
+        for tag in JavaDocVars['mandatory_tags']:
+            if tag in JavaDocVars['txttags'] and eval("self." + tag) == '':
+                if tag == 'desc':
+                    faillist.append('Missing description')
+                else:
+                    faillist.append('Missing mandatory tag: @'+tag)
+                logger.warn('Missing mandatory tag "%s" for %s %s in %s line %s', tag, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+        for param in self.params:
+            if param.name == '':
+                faillist.append('Missing name for '+param.sqltype+' parameter (#'+`self.params.index(param)`+')')
+                logger.warn('Missing name for parameter of type "%s" for %s %s in %s line %s', param.sqltype, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+            if param.desc == '':
+                if param.name == '':
+                    faillist.append('Missing description for '+param.sqltype+' parameter (#'+`self.params.index(param)`+')')
+                    logger.warn('Missing description for parameter of type "%s" for %s %s in %s line %s', param.sqltype, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+                else:
+                    faillist.append('Missing description for parameter '+param.name)
+                    logger.warn('Missing description for parameter "%s" for %s %s in %s line %s', param.name, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+        if self.objectType == 'function' and len(self.retVals)<1:
+            faillist.append('Missing return value')
+            logger.warn('Missing return value for function %s in %s line %s', self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+        return faillist
     def getVisibility(self):
         """
         Return the objects visibility ('private ', 'public ' or '')
@@ -105,7 +145,7 @@ class JavaDoc:
         """
         if self.isDefault():
             return ''
-        if self.objectType not in otypes:
+        if self.objectType not in JavaDocVars['otypes']:
             if self.name == '':
                 logger.warn('Unnamed object with ID %s (%s line %s has no object type set!', unum, self.file, self.lineNumber)
             else:
@@ -486,10 +526,8 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     elem = 'desc'
     res  = []
     opened = False
-    otypes = ['function', 'procedure', 'view', 'pkg'] # supported object types
-    tags   = ['param', 'return', 'version', 'author', 'info', 'example',
-              'todo', 'bug', 'copyright', 'deprecated', 'private',
-              'see', 'webpage', 'license', 'ticket', 'wiki'] # other supported tags
+    otypes = JavaDocVars['otypes'] # supported object types
+    tags   = JavaDocVars['tags']   # other supported tags
     for lineNumber in range(lineNo,len(text)):
       line = text[lineNumber].strip()
       if not opened and line[0:3] != '/**':
