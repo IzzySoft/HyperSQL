@@ -1133,13 +1133,7 @@ def CreateHyperlinkedSourceFilePages():
                     packagedetails += '<A NAME="funcs"></A><H2>Functions</H2>\n';
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Functions</TH></TR>\n')
                     for item in file_info.packageInfoList[p].functionInfoList:
-                        if not item.javadoc.isDefault():
-                            if item.javadoc.private:
-                                iname = 'private '
-                            else:
-                                iname = 'public '
-                        else:
-                            iname = ''
+                        iname = item.javadoc.getVisibility()
                         if item.javadoc.name != '':
                             iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
                             idesc = item.javadoc.getShortDesc()
@@ -1153,7 +1147,7 @@ def CreateHyperlinkedSourceFilePages():
                         if len(item.javadoc.params) > 0:
                             ph = ''
                             for par in item.javadoc.params:
-                                ph += ', '+par.sqltype+' '+par.name
+                                ph += ', ' + par.name
                             outfile.write(ph[2:])
                         outfile.write(')</DIV></TD><TD>'+idesc+'</TD></TR>\n')
                         packagedetails += item.javadoc.getHtml(item.uniqueNumber)
@@ -1176,7 +1170,7 @@ def CreateHyperlinkedSourceFilePages():
                         if len(item.javadoc.params) > 0:
                             ph = ''
                             for par in item.javadoc.params:
-                                ph += ', '+par.sqltype+' '+par.name
+                                ph += ', ' + par.name
                             outfile.write(ph[2:])
                         outfile.write(')</DIV></TD><TD>'+idesc+'</TD></TR>\n')
                         packagedetails += item.javadoc.getHtml(item.uniqueNumber)
