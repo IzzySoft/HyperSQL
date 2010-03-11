@@ -47,17 +47,15 @@ class MetaInfo:
     def __init__(self):
         """ Initialize the object with useful defaults """
         self.fileInfoList = []
-        self.fileWithPathnamesIndex_FileName = ""
-        self.fileNoPathnamesIndex_FileName = ""
-        self.viewIndex_FileName = ""
-        self.packageIndex_FileName = ""
-        self.functionIndex_FileName = ""
-        self.procedureIndex_FileName = ""
-        self.packageFuncProdIndex_FileName = ""
         self.scriptName = ""
         self.htmlDir = ""
         self.versionString = ""
         self.indexForWhereUsedFiles = 0
+        self.linesOfCode = {}
+        self.linesOfCode['totals'] = 0
+        self.linesOfCode['code'] = 0
+        self.linesOfCode['comment'] = 0
+        self.linesOfCode['empty'] = 0
         
     def NextIndex(self):
         """
@@ -66,6 +64,28 @@ class MetaInfo:
         """
         self.indexForWhereUsedFiles += 1
         return self.indexForWhereUsedFiles
+
+    def incLoc(self,what,incBy=1):
+        """
+        Increase the number of 'lines of code' for the given type
+        @param self
+        @param string type ('totals','code','comment','empty')
+        @param optional int incBy increment by this value (default: 1)
+        """
+        if what not in ['totals','code','comment','empty']:
+            return
+        self.linesOfCode[what] += incBy
+
+    def getLoc(self,what):
+        """
+        Return the number of 'lines of code' for the given type
+        @param self
+        @param string type ('totals','code','comment','empty')
+        @return int loc lines of code for the given type
+        """
+        if what not in ['totals','code','comment','empty']:
+            return
+        return self.linesOfCode[what]
 
 
 def TupleCompareFirstElements(a, b):

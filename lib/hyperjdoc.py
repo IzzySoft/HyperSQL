@@ -12,6 +12,7 @@ JavaDocVars = dict(
     wiki_url     = '',
     ticket_url = '',
     top_level_dir_len = 0,
+    javadoc_mandatory = False,
     verification = False,
     mandatory_tags = [],
     otypes = ['function', 'procedure', 'view', 'pkg'], # supported object types

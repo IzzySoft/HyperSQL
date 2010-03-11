@@ -106,6 +106,7 @@ class HyperConf(IniParser):
         )
         # Section VERIFICATION
         verification = dict (
+            javadoc_mandatory = '0',
             verify_javadoc = '0',
             mandatory_tags = ''
         )

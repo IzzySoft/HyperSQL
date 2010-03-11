@@ -3,12 +3,14 @@
 v2.1.0
 -------------------
 + added basic JavaDoc verification stuff - now you can define mandatory tags!
-  * new config section [Verification] with keywords verify_javadoc = 0|1
-    and mandatory_tags = tag1 tag2...
+  * new config section [Verification] with keywords verify_javadoc = 0|1,
+    mandatory_tags = tag1 tag2..., and javadoc_mandatory
   * new page 'report' for the verification report
   * failures are logged at WARNING level (if verify_javadoc = 1)
   if enabled, this will also check for missing names and descriptions, plus
   for missing return values of functions
++ calculating "lines of code" statistics. At the moment, results are only
+  printed to the log file (INFO)
 
 v2.0.0 (10.03.2010)
 -------------------

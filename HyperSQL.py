@@ -129,7 +129,11 @@ def ScanFilesForViewsAndPackages():
         in_block_comment = 0
         new_file = 1
 
+        metaInfo.incLoc('totals',len(fileLines))
         for lineNumber in range(len(fileLines)):
+            if len(fileLines[lineNumber].strip()) < 0:
+                metaInfo.incLoc('empty')
+                continue
             if new_file == 1:
                 token_list = fileLines[lineNumber].split()
             else:
@@ -140,14 +144,30 @@ def ScanFilesForViewsAndPackages():
             if len(fileLines)-1 > lineNumber:
                 # eat string contents
                 result = strpatt.search(fileLines[lineNumber+1])
+                matched_string = False
                 while result != None:
+                    matched_string = True
                     for g in range(len(result.groups())):
                         fileLines[lineNumber+1] = fileLines[lineNumber+1].replace(result.group(g) , "")
                     result = strpatt.search(fileLines[lineNumber+1])
                 
                 token_list1 = fileLines[lineNumber+1].split()
+                if matched_string and len(token_list1) < 1: # that line was completely eaten
+                    metaInfo.incLoc('code')
+                    metaInfo.incLoc('empty',-1)
             else:
-                token_list1 = [] 
+                token_list1 = []
+
+            if in_block_comment == 0 and fileLines[lineNumber].strip() != '' \
+              and fileLines[lineNumber].find('--') == -1 and fileLines[lineNumber].find('//') == -1 \
+              and fileLines[lineNumber].find('##') == -1 and fileLines[lineNumber].find('/*') == -1:
+                metaInfo.incLoc('code')
+
+            # ignore lines that begin with comments
+            if len(token_list) > 0 and len(token_list[0]) > 1:
+                if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
+                    metaInfo.incLoc('comment')
+                    continue
 
             # ignore very short lines
             if len(token_list)<2:
@@ -155,15 +175,12 @@ def ScanFilesForViewsAndPackages():
                     if token_list[0][:2] != "/*" and token_list[0][:2] != "*/":
                         continue
                 else:
+                    metaInfo.incLoc('empty')
                     continue
-
-            # ignore lines that begin with comments
-            if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
-                continue
 
             # ignore block comments
             if token_list[0][:2] == "/*" and token_list[0][len(token_list[0])-2:len(token_list[0])] == "*/":
-                # block comments like  "/***....*****/"
+                # block comments like  "/***....*****/": re."/(\*)+/"
                 token_list.pop(0)
             elif token_list[0][:2] == "/*" or in_block_comment == 1:
                 # 
@@ -185,6 +202,7 @@ def ScanFilesForViewsAndPackages():
                             token_list.pop(clean_list[clean_index])
             if  len(token_list) == 0:
                 # nothing more on line
+                metaInfo.incLoc('comment') # we had just comments in this line (???)
                 continue
 
             # find views.  Loop through looking for the different styles of view definition
@@ -207,6 +225,12 @@ def ScanFilesForViewsAndPackages():
                           ln = jdoc[j].lineNumber - lineNumber
                           if (CaseInsensitiveComparison(view_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='view') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                             view_info.javadoc = jdoc[j]
+                        mname = view_info.javadoc.name or package_info.name
+                        mands = view_info.javadoc.verify_mandatory()
+                        #for mand in mands: Need to setup report here as well! ###TODO###
+                        if JavaDocVars['javadoc_mandatory'] and view_info.javadoc.isDefault():
+                            logger.warn('View %s has no JavaDoc information attached', view_info.name)
+                            #view_info.verification.addItem(view_info.name,'No JavaDoc information available')
                         file_info.viewInfoList.append(view_info)
 
             # find package definitions - set flag if found
@@ -230,9 +254,13 @@ def ScanFilesForViewsAndPackages():
                             package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
                             package_info.todo.addItem(jdoc[j].name,jdoc[j].todo)
-                        mands = jdoc[j].verify_mandatory()
-                        for mand in mands:
-                            package_info.verification.addItem(jdoc[j].name,mand)
+                    mname = package_info.javadoc.name or package_info.name
+                    mands = package_info.javadoc.verify_mandatory()
+                    for mand in mands:
+                        package_info.verification.addItem(mname,mand)
+                    if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault():
+                        logger.warn('Package %s has no JavaDoc information attached', mname)
+                        package_info.verification.addItem(mname,'No JavaDoc information available')
                     file_info.packageInfoList.append(package_info) # permanent storage
                     package_count += 1 # use this flag below
 
@@ -259,9 +287,13 @@ def ScanFilesForViewsAndPackages():
                             file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
                             file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo)
-                        mands = jdoc[j].verify_mandatory()
-                        for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addFunc(jdoc[j].name,mand)
+                    mname = function_info.javadoc.name or function_info.name
+                    mands = function_info.javadoc.verify_mandatory()
+                    for mand in mands:
+                        file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
+                    if JavaDocVars['javadoc_mandatory'] and function_info.javadoc.isDefault():
+                        logger.warn('Function %s in package %s has no JavaDoc information attached', mname, file_info.packageInfoList[package_count].name)
+                        file_info.packageInfoList[package_count].verification.addFunc(mname,'No JavaDoc information available')
                     file_info.packageInfoList[package_count].functionInfoList.append(function_info)
 		    
                 # now find procedures
@@ -285,9 +317,13 @@ def ScanFilesForViewsAndPackages():
                             file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug)
                         if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
                             file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo)
-                        mands = jdoc[j].verify_mandatory()
-                        for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addProc(jdoc[j].name,mand)
+                    mname = procedure_info.javadoc.name or procedure_info.name
+                    mands = procedure_info.javadoc.verify_mandatory()
+                    for mand in mands:
+                        file_info.packageInfoList[package_count].verification.addProc(mname,mand)
+                    if JavaDocVars['javadoc_mandatory'] and procedure_info.javadoc.isDefault():
+                        logger.warn('Procedure %s in package %s has no JavaDoc information attached', mname, file_info.packageInfoList[package_count].name)
+                        file_info.packageInfoList[package_count].verification.addProc(mname,'No JavaDoc information available')
                     file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
     # print carriage return after last dot
@@ -1482,6 +1518,7 @@ def configRead():
     metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
     metaInfo.includeSource = config.getBool('Process','include_source',True)
     # Section VERIFICATION
+    JavaDocVars['javadoc_mandatory'] = config.getBool('Verification','javadoc_mandatory',False)
     JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
 
@@ -1616,4 +1653,7 @@ if __name__ == "__main__":
     MakeTaskList('report')
 
     printProgress("done")
+    logger.info('Processed %s total lines: %s empty, %s plain comments, %s plain code, %s mixed', \
+        metaInfo.getLoc('totals'), metaInfo.getLoc('empty'), metaInfo.getLoc('comment'), metaInfo.getLoc('code'), \
+        metaInfo.getLoc('totals') - metaInfo.getLoc('empty') - metaInfo.getLoc('comment') - metaInfo.getLoc('code'))
     logger.info('HyperSQL v'+metaInfo.versionString+' exiting normally')
