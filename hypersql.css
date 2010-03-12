@@ -84,6 +84,10 @@ table.apilist {
 table.apilist th { background: #ccf; }
 table.apilist th.sub { background: #eef; }
 
+table.stat { margin-bottom: 20px; }
+
+th.delim { height: 3px; font-size: 2px; }
+
 table#projectinfo {
   height: 300px;
   max-width: 600px;

@@ -118,6 +118,8 @@ def ScanFilesForViewsAndPackages():
         infile = open(file_info.fileName, "r")
         fileLines = infile.readlines()
         infile.close()
+        file_info.lines = len(fileLines)
+        file_info.bytes  = os.path.getsize(file_info.fileName)
 
         # scan this file for possible JavaDoc style comments
         jdoc = ScanJavaDoc(fileLines, file_info.fileName)
@@ -130,7 +132,7 @@ def ScanFilesForViewsAndPackages():
         new_file = 1
 
         metaInfo.incLoc('totals',len(fileLines))
-        for lineNumber in range(len(fileLines)):
+        for lineNumber in range(file_info.lines):
             if len(fileLines[lineNumber].strip()) < 0:
                 metaInfo.incLoc('empty')
                 continue
@@ -587,7 +589,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar' WIDTH='600px'>\n"
-    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo','report']:
+    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo','report','stat']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -688,6 +690,83 @@ def getDualCodeLink(otuple):
         HTMLpref  = ''
     HTMLref += "#" + `otuple[1].lineNumber`
     return HTMLref,HTMLjref,HTMLpref,HTMLpjref
+
+
+def MakeStatsPage():
+    """
+    Generate Statistics Page
+    """
+
+    if metaInfo.indexPage['stat'] == '': # statistics disabled
+        return
+
+    printProgress('Creating statistics page')
+
+    outfile = open(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w')
+    outfile.write(MakeHTMLHeader('stat'))
+    outfile.write('<H1>' + metaInfo.indexPageName['stat'] + '</H1>\n')
+
+    # LinesOfCode
+    outfile.write("<TABLE CLASS='apilist stat'>\n")
+    outfile.write('  <TR><TH COLSPAN="3">Lines of Code</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Lines</TH><TH CLASS="sub">Pct</TH></TR>\n')
+    for name in ['totals','code','comment','empty','mixed']:
+        outfile.write('  <TR><TH CLASS="sub">' + name.capitalize() \
+            + '</TH><TD ALIGN="right">' + num_format(metaInfo.getLoc(name)) \
+            + '</TD><TD ALIGN="right">' + num_format(metaInfo.getLocPct(name),2) + '%' \
+            + '</TD></TR>\n')
+    outfile.write("</TABLE>\n")
+
+    # FileStats
+    outfile.write("<TABLE CLASS='apilist stat'>\n")
+    outfile.write('  <TR><TH COLSPAN="3">File Statistics</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH></TR>\n')
+    totalFiles = metaInfo.getFileStat('files')
+    # Lines
+    outfile.write('  <TR><TH CLASS="sub">Total Files</TH><TD ALIGN="right">' + num_format(totalFiles) \
+        + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Avg Lines</TH><TD ALIGN="right">' + num_format(metaInfo.getFileStat('avg lines')) \
+        + '</TD><TD>&nbsp;</TD></TR>\n')
+    havestat = 0
+    stat = metaInfo.getFileLineStat([400,1000])
+    limits = stat.keys() # for some strange reason, sorting gets lost in the dict
+    limits.sort()
+    for limit in limits:
+        havestat += stat[limit]
+        outfile.write('  <TR><TH CLASS="sub">&lt; ' + num_format(limit,0) + '</TH>' \
+            + '<TD ALIGN="right">' + num_format(stat[limit]) + '</TD>' \
+            + '<TD ALIGN="right">' + num_format((float(stat[limit])/totalFiles)*100, 2) + '%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">&gt; '+num_format(1000)+'</TH><TD ALIGN="right">' + num_format(totalFiles - havestat) \
+        + '</TD><TD ALIGN="right">' + num_format((float(totalFiles - havestat)/totalFiles)*100, 2) + '%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Shortest</TH><TD ALIGN="right">' \
+        + num_format(metaInfo.getFileStat('min lines')) + '</TD><TD>&nbsp;</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Longest</TH><TD ALIGN="right">' \
+        + num_format(metaInfo.getFileStat('max lines')) + '</TD><TD>&nbsp;</TD></TR>\n')
+    outfile.write('  <TR><TH COLSPAN="3" CLASS="sub delim">&nbsp;</TH></TR>\n')
+    # Sizes
+    outfile.write('  <TR><TH CLASS="sub">Total Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
+        + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Avg Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('avg bytes')) \
+        + '</TD><TD>&nbsp;</TD></TR>\n')
+    havestat = 0
+    stat = metaInfo.getFileSizeStat([10240,25*1024,50*1024,102400])
+    limits = stat.keys() # for some strange reason, sorting gets lost in the dict
+    limits.sort()
+    for limit in limits:
+        havestat += stat[limit]
+        outfile.write('  <TR><TH CLASS="sub">&lt; ' + size_format(limit,0) + '</TH>' \
+            + '<TD ALIGN="right">' + num_format(stat[limit]) + '</TD>' \
+            + '<TD ALIGN="right">' + num_format((float(stat[limit])/totalFiles)*100, 2) + '%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">&gt; '+size_format(102400,0)+'</TH><TD ALIGN="right">' + num_format(totalFiles - havestat) \
+        + '</TD><TD ALIGN="right">' + num_format((float(totalFiles - havestat)/totalFiles)*100, 2) + '%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Smallest</TH><TD ALIGN="right">' \
+        + size_format(metaInfo.getFileStat('min bytes')) + '</TD><TD>&nbsp;</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Largest</TH><TD ALIGN="right">' \
+        + size_format(metaInfo.getFileStat('max bytes')) + '</TD><TD>&nbsp;</TD></TR>\n')
+    outfile.write("</TABLE>\n")
+
+    outfile.write(MakeHTMLFooter('stat'))
+    outfile.close()
 
 
 def MakeFileIndex(objectType):
@@ -1513,6 +1592,7 @@ def configRead():
     confPage('bug','BugIndex.html','Bug List',True)
     confPage('todo','TodoIndex.html','Todo List',True)
     confPage('report','ReportIndex.html','Verification Report',True)
+    confPage('stat','StatIndex.html','Code Statistics',True)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
     # Section PROCESS
     metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
@@ -1621,6 +1701,10 @@ if __name__ == "__main__":
     #
     # Start processing
     #
+    #print '====================='
+    #print dir(metaInfo)
+    #print '====================='
+    #sys.exit()
 
     FindFilesAndBuildFileList(metaInfo.topLevelDirectory, metaInfo.fileInfoList)
     ScanFilesForViewsAndPackages()
@@ -1651,9 +1735,13 @@ if __name__ == "__main__":
     MakeTaskList('bug')
     MakeTaskList('todo')
     MakeTaskList('report')
+    MakeStatsPage()
 
     printProgress("done")
     logger.info('Processed %s total lines: %s empty, %s plain comments, %s plain code, %s mixed', \
         metaInfo.getLoc('totals'), metaInfo.getLoc('empty'), metaInfo.getLoc('comment'), metaInfo.getLoc('code'), \
         metaInfo.getLoc('totals') - metaInfo.getLoc('empty') - metaInfo.getLoc('comment') - metaInfo.getLoc('code'))
+    logger.info('Percentage: %s%% empty, %s%% plain comments, %s%% plain code, %s%% mixed', \
+        metaInfo.getLocPct('empty'), metaInfo.getLocPct('comment'), metaInfo.getLocPct('code'), \
+        metaInfo.getLocPct('mixed'))
     logger.info('HyperSQL v'+metaInfo.versionString+' exiting normally')

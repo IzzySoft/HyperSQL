@@ -9,8 +9,9 @@ v2.1.0
   * failures are logged at WARNING level (if verify_javadoc = 1)
   if enabled, this will also check for missing names and descriptions, plus
   for missing return values of functions
-+ calculating "lines of code" statistics. At the moment, results are only
-  printed to the log file (INFO)
++ calculating "lines of code" and some more statistics. The former will at
+  least be logged (at INFO level) - but a statistics page can be enabled
+  via the config.
 
 v2.0.0 (10.03.2010)
 -------------------

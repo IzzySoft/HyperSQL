@@ -6,6 +6,11 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
 from hyperjdoc import JavaDoc, PackageTaskList
+from locale import format as loc_format, setlocale, LC_NUMERIC
+from sys import maxint
+
+setlocale(LC_NUMERIC, '')
+
 
 class ElemInfo(object):
     """ Object to hold information about a view, function, or procedure """
@@ -40,6 +45,8 @@ class FileInfo:
         self.viewInfoList = []
         self.packageInfoList = []
         self.uniqueNumber = 0 # used to create unique file name for where used list
+        self.lines = 0
+        self.bytes = 0
 
 
 class MetaInfo:
@@ -80,12 +87,113 @@ class MetaInfo:
         """
         Return the number of 'lines of code' for the given type
         @param self
-        @param string type ('totals','code','comment','empty')
+        @param string type ('totals','code','comment','empty','mixed')
         @return int loc lines of code for the given type
         """
-        if what not in ['totals','code','comment','empty']:
-            return
+        if what not in ['totals','code','comment','empty','mixed']:
+            return 0
+        if what == 'mixed':
+            return self.getLoc('totals') - self.getLoc('code') - self.getLoc('comment') - self.getLoc('empty')
         return self.linesOfCode[what]
+
+    def getLocPct(self,what,decs=2):
+        """
+        Return the percentage of 'lines of code' for the given type
+        @param self
+        @param string type ('totals','code','comment','empty','mixed')
+        @param optional int decs round the value to how many decimals? Default: 2
+        @return float loc percentage of lines of code for the given type
+        """
+        if what not in ['totals','code','comment','empty','mixed']:
+            return 0.0
+        return round( (float(self.getLoc(what)) / self.getLoc('totals')) * 100, decs)
+
+    def getFileStat(self,what):
+        """
+        Return some file statistics
+        @param self
+        @param string type ('files','avg lines','min lines','max lines',
+               'sum bytes','avg bytes','min bytes','max bytes')
+        @return number stat_value value for the requested stat. Depending on its
+                type, this may be either an integer or a float
+        """
+        if what not in ['files','avg lines','min lines','max lines','sum bytes','avg bytes','min bytes','max bytes']:
+            return 0
+        fileCount = len(self.fileInfoList)
+        if what in ['sum bytes','avg bytes','min bytes','max bytes']:
+            sumBytes = 0
+            minBytes = maxint
+            maxBytes = 0
+            for file in self.fileInfoList:
+                sumBytes += file.bytes
+                if file.bytes < minBytes:
+                    minBytes = file.bytes
+                elif file.bytes > maxBytes:
+                    maxBytes = file.bytes
+        if what in ['min lines','max lines']:
+            minLines = maxint
+            maxLines = 0
+            for file in self.fileInfoList:
+                if file.lines < minLines:
+                    minLines = file.lines
+                elif file.lines > maxLines:
+                    maxLines = file.lines
+        if what == 'files':
+            return fileCount
+        elif what == 'avg lines':
+            return self.getLoc('totals') / fileCount
+        elif what == 'min lines':
+            return minLines
+        elif what == 'max lines':
+            return maxLines
+        elif what == 'sum bytes':
+            return sumBytes
+        elif what == 'avg bytes':
+            return float(sumBytes/fileCount)
+        elif what == 'min bytes':
+            return minBytes
+        elif what == 'max bytes':
+            return maxBytes
+
+    def getFileSizeStat(self,boundary):
+        """
+        Obtain some size statistics
+        @param self
+        @param list boundary size groups you want to split the stats into
+        @return dict stats
+        """
+        sumBytes = self.getFileStat('sum bytes')
+        fileCount = len(self.fileInfoList)
+        boundary.sort()
+        stat = {}
+        for limit in boundary:
+            stat[limit] = 0
+        for file in self.fileInfoList:
+            for limit in boundary:
+                if file.bytes < limit:
+                    stat[limit] += 1
+                    break
+        return stat
+
+    def getFileLineStat(self,boundary):
+        """
+        Obtain some line statistics
+        @param self
+        @param list boundary size groups you want to split the stats into
+        @return dict stats
+        """
+        sumLines = self.getLoc('totals')
+        fileCount = len(self.fileInfoList)
+        boundary.sort()
+        stat = {}
+        for limit in boundary:
+            stat[limit] = 0
+        for file in self.fileInfoList:
+            for limit in boundary:
+                if file.lines < limit:
+                    stat[limit] += 1
+                    break
+        return stat
 
 
 def TupleCompareFirstElements(a, b):
@@ -115,4 +223,15 @@ def CaseInsensitiveComparison(a, b):
 	return 1
     return 0
 
+def num_format(num, places=0):
+    return loc_format("%.*f", (places, num), True)
+
+def size_format(size,decs=2):
+    suffixes = [("B",2**10), ("K",2**20), ("M",2**30), ("G",2**40), ("T",2**50)]
+    for suf, lim in suffixes:
+        if size > lim:
+            continue
+        else:
+            #return num_format( round(size/float(lim/2**10),decs), decs ).__str__()+suf
+            return num_format( round(size/float(lim/2**10),decs), decs )+suf
 

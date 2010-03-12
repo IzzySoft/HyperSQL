@@ -61,7 +61,8 @@ class HyperConf(IniParser):
             procedure = 'ProcedureIndex.html',
             bug = 'BugIndex.html',
             todo = 'TodoIndex.html',
-            report = 'ReportIndex.html'
+            report = 'ReportIndex.html',
+            stat = 'StatIndex.html'
         )
         # Section PAGENAMES
         pagenames = dict (
@@ -74,7 +75,8 @@ class HyperConf(IniParser):
             procedure = 'Procedure Index',
             bug = 'Bug List',
             todo = 'Todo List',
-            report = 'Validation Report'
+            report = 'Validation Report',
+            stat = 'Code Statistics'
         )
         # Section PAGES
         pages = dict (
@@ -87,7 +89,8 @@ class HyperConf(IniParser):
             procedure = '1',
             bug = '1',
             todo = '1',
-            report = '0'
+            report = '0',
+            stat = '0'
         )
         # Section PROCESS
         process = dict (
