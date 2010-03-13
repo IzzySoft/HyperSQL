@@ -7,7 +7,6 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 
 from hyperjdoc import JavaDoc, PackageTaskList
 from locale import format as loc_format, setlocale, LC_NUMERIC
-from sys import maxint
 
 setlocale(LC_NUMERIC, '')
 
@@ -122,8 +121,12 @@ class MetaInfo:
         fileCount = len(self.fileInfoList)
         if what in ['sum bytes','avg bytes','min bytes','max bytes']:
             sumBytes = 0
-            minBytes = maxint
-            maxBytes = 0
+            if len(self.fileInfoList) > 0:
+                minBytes = self.fileInfoList[0].bytes
+                maxBytes = self.fileInfoList[0].bytes
+            else:
+                minBytes = 0
+                maxBytes = 0
             for file in self.fileInfoList:
                 sumBytes += file.bytes
                 if file.bytes < minBytes:
@@ -131,8 +134,12 @@ class MetaInfo:
                 elif file.bytes > maxBytes:
                     maxBytes = file.bytes
         if what in ['min lines','max lines']:
-            minLines = maxint
-            maxLines = 0
+            if len(self.fileInfoList) > 0:
+                minLines = self.fileInfoList[0].lines
+                maxLines = self.fileInfoList[0].lines
+            else:
+                minLines = 0
+                maxLines = 0
             for file in self.fileInfoList:
                 if file.lines < minLines:
                     minLines = file.lines
