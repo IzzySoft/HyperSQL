@@ -12,6 +12,7 @@ v2.1.0
 + calculating "lines of code" and some more statistics. The former will at
   least be logged (at INFO level) - but a statistics page can be enabled
   via the config.
+! hopefully fixed "local where_used" stuff to be more precise
 
 v2.0.0 (10.03.2010)
 -------------------

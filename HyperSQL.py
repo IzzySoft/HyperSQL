@@ -523,19 +523,10 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                     if procedure_info.uniqueNumber == 0:
                                         procedure_info.uniqueNumber = metaInfo.NextIndex()
 
-                        ### File internal references
+                        ### File internal references - possible calls without a package_name
                         elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber) \
                          and config.getBool('Process','whereused_scan_shortrefs'):
-                            # possibly a call without a package_name
-                            if outer_file_info.fileName not in package_info.whereUsed.keys():
-                                package_info.whereUsed[outer_file_info.fileName] = []
-                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                            else:
-                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
 
-                            # generate a unique number for use in making where used file if needed
-                            if package_info.uniqueNumber == 0:
-                                package_info.uniqueNumber = metaInfo.NextIndex()
                             # check for inline comments to be excluded
                             if fileLines[lineNumber].find('--') == -1:
                               epos = sys.maxint
@@ -546,7 +537,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                             for function_info in package_info.functionInfoList:
                                 # perform case insensitive find
                                 if fileLines[lineNumber].upper().find(function_info.name.upper()) != -1 \
-                                 and (fileLines[lineNumber].upper().find(" " + function_info.name.upper(),0,epos) == -1 \
+                                 and (fileLines[lineNumber].upper().find(" " + function_info.name.upper(),0,epos) != -1 \
                                   or fileLines[lineNumber].upper().find(function_info.name.upper(),0,epos) == 0) \
                                  and (fileLines[lineNumber].upper().find(function_info.name.upper()+" ",0,epos) != -1 \
                                   or fileLines[lineNumber].upper().find(function_info.name.upper()+"(",0,epos) != -1):
@@ -555,6 +546,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                         function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
                                     else:
                                         function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+
                                     # generate a unique number for use in making where used file if needed
                                     if function_info.uniqueNumber == 0:
                                         function_info.uniqueNumber = metaInfo.NextIndex()
@@ -1414,42 +1406,41 @@ def CreateWhereUsedPages():
 
         for package_info in file_info.packageInfoList:
 
-            if len(package_info.whereUsed.keys()) == 0:
-                continue
+            if len(package_info.whereUsed.keys()) != 0:
             
-            #open a "where used" file
-            whereusedfilename = "where_used_" + `package_info.uniqueNumber` + ".html"
-            outfile = open(html_dir + whereusedfilename, "w")
+                #open a "where used" file
+                whereusedfilename = "where_used_" + `package_info.uniqueNumber` + ".html"
+                outfile = open(html_dir + whereusedfilename, "w")
             
-            # write our header
-            outfile.write(MakeHTMLHeader(package_info.name + " Where Used List"))
-            outfile.write("<H1>" + package_info.name + " Where Used List</H1>\n")
-            outfile.write("<TABLE CLASS='apilist'>\n")
-            outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
+                # write our header
+                outfile.write(MakeHTMLHeader(package_info.name + " Where Used List"))
+                outfile.write("<H1>" + package_info.name + " Where Used List</H1>\n")
+                outfile.write("<TABLE CLASS='apilist'>\n")
+                outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
 
-            # each where used
-            where_used_keys = package_info.whereUsed.keys()
-            where_used_keys.sort(CaseInsensitiveComparison)
-            for key in where_used_keys:
-                for whereusedtuple in package_info.whereUsed[key]:
-                    line_number = whereusedtuple[1]
-                    unique_number = whereusedtuple[0].uniqueNumber
-                    outfile.write("  <TR><TD>")
+                # each where used
+                where_used_keys = package_info.whereUsed.keys()
+                where_used_keys.sort(CaseInsensitiveComparison)
+                for key in where_used_keys:
+                    for whereusedtuple in package_info.whereUsed[key]:
+                        line_number = whereusedtuple[1]
+                        unique_number = whereusedtuple[0].uniqueNumber
+                        outfile.write("  <TR><TD>")
 
-                    # only make hypertext references for SQL files for now
-                    if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
-                        outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
-                        outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
-                        outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
-                        outfile.write(`line_number` + "</A>")
-                    else:
-                        outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>" + `line_number`)
-                    outfile.write("</TD></TR>\n")
+                        # only make hypertext references for SQL files for now
+                        if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
+                            outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
+                            outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
+                            outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
+                            outfile.write(`line_number` + "</A>")
+                        else:
+                            outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>" + `line_number`)
+                        outfile.write("</TD></TR>\n")
 
-            # footer and close
-            outfile.write("</TABLE>")
-            outfile.write(MakeHTMLFooter(package_info.name + " Where Used List"))
-            outfile.close()
+                # footer and close
+                outfile.write("</TABLE>")
+                outfile.write(MakeHTMLFooter(package_info.name + " Where Used List"))
+                outfile.close()
 
             #look for any of this packages' functions
             for function_info in package_info.functionInfoList:
