@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v2.1.0
+v2.1.0 (14.03.2010)
 -------------------
 + added basic JavaDoc verification stuff - now you can define mandatory tags!
   * new config section [Verification] with keywords verify_javadoc = 0|1,
