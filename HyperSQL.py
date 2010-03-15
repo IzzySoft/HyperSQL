@@ -132,6 +132,7 @@ def ScanFilesForViewsAndPackages():
         new_file = 1
 
         metaInfo.incLoc('totals',len(fileLines))
+        filetext = '\n'.join(fileLines) # complete file in one string
         for lineNumber in range(file_info.lines):
             if len(fileLines[lineNumber].strip()) < 0:
                 metaInfo.incLoc('empty')
@@ -296,6 +297,19 @@ def ScanFilesForViewsAndPackages():
                     if JavaDocVars['javadoc_mandatory'] and function_info.javadoc.isDefault():
                         logger.warn('Function %s in package %s has no JavaDoc information attached', mname, file_info.packageInfoList[package_count].name)
                         file_info.packageInfoList[package_count].verification.addFunc(mname,'No JavaDoc information available')
+                    if JavaDocVars['verification']:
+                        fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
+                        cparms = re.findall(fupatt,filetext)
+                        if len(cparms)==0:
+                            mands = function_info.javadoc.verify_params([])
+                        elif len(cparms)==1:
+                            cparms = cparms[0].split(',')
+                            mands = function_info.javadoc.verify_params(cparms)
+                        else:
+                            logger.debug('Multiple definitions for function %s.%s, parameters not verified', mname, file_info.packageInfoList[package_count].name)
+                        if len(cparms)<2:
+                            for mand in mands:
+                                file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
                     file_info.packageInfoList[package_count].functionInfoList.append(function_info)
 		    
                 # now find procedures
@@ -326,6 +340,19 @@ def ScanFilesForViewsAndPackages():
                     if JavaDocVars['javadoc_mandatory'] and procedure_info.javadoc.isDefault():
                         logger.warn('Procedure %s in package %s has no JavaDoc information attached', mname, file_info.packageInfoList[package_count].name)
                         file_info.packageInfoList[package_count].verification.addProc(mname,'No JavaDoc information available')
+                    if JavaDocVars['verification']:
+                        fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
+                        cparms = re.findall(fupatt,filetext)
+                        if len(cparms)==0:
+                            mands = procedure_info.javadoc.verify_params([])
+                        elif len(cparms)==1:
+                            cparms = cparms[0].split(',')
+                            mands = procedure_info.javadoc.verify_params(cparms)
+                        else:
+                            logger.debug('Multiple definitions for function %s.%s, parameters not verified', mname, file_info.packageInfoList[package_count].name)
+                        if len(cparms)<2:
+                            for mand in mands:
+                                file_info.packageInfoList[package_count].verification.addProc(mname,mand)
                     file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
     # print carriage return after last dot
@@ -601,10 +628,12 @@ def MakeNavBar(current_page):
     s += '</TR></TABLE>\n'
     return s
 
-def MakeHTMLHeader(title_name):
+def MakeHTMLHeader(title_name, charts=False, onload=''):
     """
     Generates common HTML header with menu for all pages
     @param string title_name index key for the title of the current page
+    @param optional boolean charts do we need the charts JavaScript? Default: False
+    @param optional string onload event for body.onload
     """
 
     if title_name in metaInfo.indexPageName:
@@ -617,7 +646,12 @@ def MakeHTMLHeader(title_name):
     s += '  <TITLE>' + metaInfo.title_prefix + ': ' + title_text + '</TITLE>\n'
     s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + metaInfo.css_file + '">\n'
     s += '  <META HTTP-EQUIV="Content-Type" CONTENT="text/html;charset='+metaInfo.encoding+'">\n'
-    s += '</head><body>\n'
+    if charts:
+        s += '  <SCRIPT Language="JavaScript" src="diagram.js" TYPE="text/javascript"></SCRIPT>\n'
+    if onload=='':
+        s += '</head><body>\n'
+    else:
+        s += '</head><body onload="'+onload+'">\n'
     s += '<A NAME="topOfPage"></A>\n'
     s += MakeNavBar(title_name)
     s += '<HR CLASS="topend">\n'
@@ -695,13 +729,42 @@ def MakeStatsPage():
     printProgress('Creating statistics page')
 
     outfile = open(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w')
-    outfile.write(MakeHTMLHeader('stat'))
+    outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
+    copy2(scriptpath + os.sep + 'diagram.js', metaInfo.htmlDir + 'diagram.js')
+
     outfile.write('<H1>' + metaInfo.indexPageName['stat'] + '</H1>\n')
 
     # LinesOfCode
     outfile.write("<TABLE CLASS='apilist stat'>\n")
-    outfile.write('  <TR><TH COLSPAN="3">Lines of Code</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Lines</TH><TH CLASS="sub">Pct</TH></TR>\n')
+    outfile.write('  <TR><TH COLSPAN="4">Lines of Code</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Lines</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="6" WIDTH="220px"><DIV CLASS="pie_chart">\n')
+
+    js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
+    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); if (i<3) MouseOutFL(i); } MouseOutFS(4); }\n'
+    js += 'rad = 55;\noffset = 5; // "margins" around the pie\n'
+    js += 'codecol = "#cc3333";\ncommcol = "#3366ff";\nemptcol = "#dddddd";\nmixcol  = "#ff9933";\nlastcol = "#33ff00"\n'
+    js += 'posx = rad + 2*offset;\nposy = 0\n'
+    js += 'var L = new Array();\ndocument.open();\n//Pie(x,y,offset,radius,angle0,angle1,color,tooltip)\n'
+    js += 'L[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`metaInfo.getLocPct('code')`+'*3.6,codecol);\n'
+    sum = metaInfo.getLocPct('code')+metaInfo.getLocPct('comment')
+    js += 'L[1]=new Pie(posx,posy,offset,rad,'+`metaInfo.getLocPct('code')`+'*3.6,'+`sum`+'*3.6,commcol);\n'
+    sum2 = sum + metaInfo.getLocPct('empty')
+    js += 'L[2]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,emptcol);\n'
+    js += 'L[3]=new Pie(posx,posy,offset,rad,'+`sum2`+'*3.6,100*3.6,mixcol);\n'
+    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3; // top-align\n'
+    js += 'wid = 80;     // bar width\nhei = 15;     // bar height\nmar =  5;     // space between bars\n'
+    js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
+    js += '//Bar(left,top,right,buttom,color,text,textcolor,tooltip)\n'
+    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"Code","#000000","", "void(0)","MouseOverL(0)","MouseOutL(0)");\n'
+    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"Comment","#000000","", "void(0)","MouseOverL(1)","MouseOutL(1)");\n'
+    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,emptcol,"Empty","#000000","", "void(0)","MouseOverL(2)","MouseOutL(2)");\n'
+    js += 'new Bar(posx,posy+3*(mar+hei),posx+wid,posy+3*(mar+hei)+hei,mixcol,"Mixed","#000000","", "void(0)","MouseOverL(3)","MouseOutL(3)");\n'
+    js += 'document.close();\n'
+    js += 'function MouseOverL(i) { L[i].MoveTo("","",10); }\n'
+    js += 'function MouseOutL(i) { L[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    outfile.write(js);
+    outfile.write('</DIV></TD></TR>\n')
+
     for name in ['totals','code','comment','empty','mixed']:
         outfile.write('  <TR><TH CLASS="sub">' + name.capitalize() \
             + '</TH><TD ALIGN="right">' + num_format(metaInfo.getLoc(name)) \
@@ -711,18 +774,36 @@ def MakeStatsPage():
 
     # FileStats
     outfile.write("<TABLE CLASS='apilist stat'>\n")
-    outfile.write('  <TR><TH COLSPAN="3">File Statistics</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH></TR>\n')
+    outfile.write('  <TR><TH COLSPAN="4">File Statistics</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px"><DIV CLASS="pie_chart">\n')
     totalFiles = metaInfo.getFileStat('files')
     # Lines
+    stat = metaInfo.getFileLineStat([400,1000])
+    limits = stat.keys() # for some strange reason, sorting gets lost in the dict
+    limits.sort()
+    js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
+    js += 'var FL = new Array();\ndocument.open();\n'
+    js += 'posx = rad + 2*offset;\nposy = 0\n'
+    sum  = (float(stat[400])/totalFiles)*100
+    sum2 = (float(stat[1000])/totalFiles)*100
+    js += 'FL[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`sum`+'*3.6,codecol);\n'
+    js += 'FL[1]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum+sum2`+'*3.6,commcol);\n'
+    js += 'FL[2]=new Pie(posx,posy,offset,rad,'+`sum+sum2`+'*3.6,100*3.6,mixcol);\n'
+    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 -mar; // top-align\n'
+    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"&lt; 400","#000000","", "void(0)","MouseOverFL(0)","MouseOutFL(0)");\n'
+    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"&lt; 1000","#000000","", "void(0)","MouseOverFL(1)","MouseOutFL(1)");\n'
+    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,mixcol,"&gt; 1000","#000000","", "void(0)","MouseOverFL(2)","MouseOutFL(2)");\n'
+    js += 'document.close();\n'
+    js += 'function MouseOverFL(i) { FL[i].MoveTo("","",10); }\n'
+    js += 'function MouseOutFL(i) { FL[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    outfile.write(js);
+    outfile.write('</DIV></TD></TR>\n')
+
     outfile.write('  <TR><TH CLASS="sub">Total Files</TH><TD ALIGN="right">' + num_format(totalFiles) \
         + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Avg Lines</TH><TD ALIGN="right">' + num_format(metaInfo.getFileStat('avg lines')) \
         + '</TD><TD>&nbsp;</TD></TR>\n')
     havestat = 0
-    stat = metaInfo.getFileLineStat([400,1000])
-    limits = stat.keys() # for some strange reason, sorting gets lost in the dict
-    limits.sort()
     for limit in limits:
         havestat += stat[limit]
         outfile.write('  <TR><TH CLASS="sub">&lt; ' + num_format(limit,0) + '</TH>' \
@@ -734,16 +815,41 @@ def MakeStatsPage():
         + num_format(metaInfo.getFileStat('min lines')) + '</TD><TD>&nbsp;</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Longest</TH><TD ALIGN="right">' \
         + num_format(metaInfo.getFileStat('max lines')) + '</TD><TD>&nbsp;</TD></TR>\n')
-    outfile.write('  <TR><TH COLSPAN="3" CLASS="sub delim">&nbsp;</TH></TR>\n')
+    outfile.write('  <TR><TH COLSPAN="4" CLASS="sub delim">&nbsp;</TH></TR>\n')
     # Sizes
-    outfile.write('  <TR><TH CLASS="sub">Total Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
-        + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Avg Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('avg bytes')) \
-        + '</TD><TD>&nbsp;</TD></TR>\n')
-    havestat = 0
     stat = metaInfo.getFileSizeStat([10240,25*1024,50*1024,102400])
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
     limits.sort()
+    outfile.write('  <TR><TH CLASS="sub">Total Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
+        + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD><TD COLSPAN="9" WIDTH="220px"><DIV CLASS="pie_chart">\n')
+
+    js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
+    js += 'var FS = new Array();\ndocument.open();\n'
+    js += 'posx = rad + 2*offset;\nposy = rad + (hei + mar)\n'
+    sum  = 0
+    i = 0
+    cols = ['codecol','commcol','mixcol','emptcol','lastcol']
+    for limit in limits:
+        sum2 = sum + (float(stat[limit])/totalFiles)*100
+        js += 'FS['+`i`+']=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,'+cols[i]+');\n'
+        i += 1
+        sum = sum2
+    js += 'FS[4]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,100*3.6,'+cols[4]+');\n'
+    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 + 2*mar; // top-align\n'
+    i = 0
+    for limit in limits:
+        js += 'new Bar(posx,posy+'+`i`+'*(mar+hei),posx+wid,posy+'+`i`+'*(mar+hei)+hei,'+cols[i]+',"&lt; '+size_format(limit,0)+'","#000000","", "void(0)","MouseOverFS('+`i`+')","MouseOutFS('+`i`+')");\n'
+        i += 1
+    js += 'new Bar(posx,posy+'+`i`+'*(mar+hei),posx+wid,posy+'+`i`+'*(mar+hei)+hei,'+cols[i]+',"&gt; '+size_format(102400,0)+'","#000000","", "void(0)","MouseOverFS('+`i`+')","MouseOutFS('+`i`+')");\n'
+    js += 'document.close();\n'
+    js += 'function MouseOverFS(i) { FS[i].MoveTo("","",10); }\n'
+    js += 'function MouseOutFS(i) { FS[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    outfile.write(js);
+    outfile.write('</DIV></TD></TR>\n')
+
+    outfile.write('  <TR><TH CLASS="sub">Avg Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('avg bytes')) \
+        + '</TD><TD>&nbsp;</TD></TR>\n')
+    havestat = 0
     for limit in limits:
         havestat += stat[limit]
         outfile.write('  <TR><TH CLASS="sub">&lt; ' + size_format(limit,0) + '</TH>' \
@@ -1666,7 +1772,7 @@ if __name__ == "__main__":
       print 'No config file found, using defaults.'
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.1"
+    metaInfo.versionString = "2.2"
     metaInfo.scriptName = sys.argv[0]
 
     # Initiate logging

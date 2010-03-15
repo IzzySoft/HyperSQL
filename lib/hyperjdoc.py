@@ -124,6 +124,20 @@ class JavaDoc:
             faillist.append('Missing return value')
             logger.warn('Missing return value for function %s in %s line %s', self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
         return faillist
+    def verify_params(self,cparms):
+        """
+        Compare the parameters passed in code with those defined by JavaDoc comments
+        @param self
+        @param list cparms code parameters
+        @return list
+        """
+        faillist = []
+        if self.isDefault() or not JavaDocVars['verification']:
+            return faillist
+        if len(cparms) != len(self.params):
+            faillist.append('Parameter count mismatch: Code has '+`len(cparms)`+' parameters, Javadoc '+`len(self.params)`)
+            logger.warn('Parameter count mismatch for %s %s in %s line %s', self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+        return faillist
     def getVisibility(self):
         """
         Return the objects visibility ('private ', 'public ' or '')

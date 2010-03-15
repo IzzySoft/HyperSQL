@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v2.2.0
+-------------------
++ basic verification of function/procedure parameters against JavaDoc
+  (parameter count)
++ added pie charts to the stats page
+
+
 v2.1.0 (14.03.2010)
 -------------------
 + added basic JavaDoc verification stuff - now you can define mandatory tags!
