@@ -5,6 +5,7 @@ v2.2.0
 + basic verification of function/procedure parameters against JavaDoc
   (parameter count)
 + added pie charts to the stats page
++ added object and javadoc statistics to stats page
 
 
 v2.1.0 (14.03.2010)

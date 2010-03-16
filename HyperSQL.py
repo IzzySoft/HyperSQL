@@ -740,7 +740,7 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Lines</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="6" WIDTH="220px"><DIV CLASS="pie_chart">\n')
 
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); if (i<3) MouseOutFL(i); } MouseOutFS(4); }\n'
+    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); if (i<3) { MouseOutFL(i); MouseOutO(i); MouseOutJ(i); } } MouseOutFS(4); }\n'
     js += 'rad = 55;\noffset = 5; // "margins" around the pie\n'
     js += 'codecol = "#cc3333";\ncommcol = "#3366ff";\nemptcol = "#dddddd";\nmixcol  = "#ff9933";\nlastcol = "#33ff00"\n'
     js += 'posx = rad + 2*offset;\nposy = 0\n'
@@ -772,6 +772,41 @@ def MakeStatsPage():
             + '</TD></TR>\n')
     outfile.write("</TABLE>\n")
 
+    # Object Stats
+    views = 0
+    funcs = 0
+    procs = 0
+    for file_info in metaInfo.fileInfoList:
+        views += len(file_info.viewInfoList)
+        for package_info in file_info.packageInfoList:
+            funcs += len(package_info.functionInfoList)
+            procs += len(package_info.procedureInfoList)
+    totalObj = views + funcs + procs
+    outfile.write("<TABLE CLASS='apilist stat'>\n")
+    outfile.write('  <TR><TH COLSPAN="4">Object Statistics</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
+    js += 'var O = new Array();\ndocument.open();\n'
+    js += 'posx = rad + 2*offset;\nposy = 0;\n'
+    sum  = (float(views)/totalObj) * 100
+    sum2 = sum + (float(funcs)/totalObj) * 100
+    js += 'O[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`sum`+'*3.6,codecol);\n'
+    js += 'O[1]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,commcol);\n'
+    js += 'O[2]=new Pie(posx,posy,offset,rad,'+`sum2`+'*3.6,100*3.6,mixcol);\n'
+    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 -mar; // top-align\n'
+    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"Views","#000000","", "void(0)","MouseOverO(0)","MouseOutO(0)");\n'
+    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"Functions","#000000","", "void(0)","MouseOverO(1)","MouseOutO(1)");\n'
+    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,mixcol,"Procedures","#000000","", "void(0)","MouseOverO(2)","MouseOutO(2)");\n'
+    js += 'document.close();\n'
+    js += 'function MouseOverO(i) { O[i].MoveTo("","",10); }\n'
+    js += 'function MouseOutO(i) { O[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    outfile.write(js);
+    outfile.write('</DIV></TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Views</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+num_format((float(views)/totalObj) * 100, 2)+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Functions</TH><TD ALIGN="right">'+num_format(funcs)+'</TD><TD ALIGN="right">'+num_format((float(funcs)/totalObj) * 100, 2)+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Procedures</TH><TD ALIGN="right">'+num_format(procs)+'</TD><TD ALIGN="right">'+num_format((float(procs)/totalObj) * 100, 2)+'%</TD></TR>\n')
+    outfile.write("</TABLE>\n")
+
     # FileStats
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">File Statistics</TH></TR>\n')
@@ -783,7 +818,7 @@ def MakeStatsPage():
     limits.sort()
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += 'var FL = new Array();\ndocument.open();\n'
-    js += 'posx = rad + 2*offset;\nposy = 0\n'
+    js += 'posx = rad + 2*offset;\nposy = 0;\n'
     sum  = (float(stat[400])/totalFiles)*100
     sum2 = (float(stat[1000])/totalFiles)*100
     js += 'FL[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`sum`+'*3.6,codecol);\n'
@@ -798,7 +833,6 @@ def MakeStatsPage():
     js += 'function MouseOutFL(i) { FL[i].MoveTo("","",0); }\n</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-
     outfile.write('  <TR><TH CLASS="sub">Total Files</TH><TD ALIGN="right">' + num_format(totalFiles) \
         + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Avg Lines</TH><TD ALIGN="right">' + num_format(metaInfo.getFileStat('avg lines')) \
@@ -822,7 +856,6 @@ def MakeStatsPage():
     limits.sort()
     outfile.write('  <TR><TH CLASS="sub">Total Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
         + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD><TD COLSPAN="9" WIDTH="220px"><DIV CLASS="pie_chart">\n')
-
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += 'var FS = new Array();\ndocument.open();\n'
     js += 'posx = rad + 2*offset;\nposy = rad + (hei + mar)\n'
@@ -846,7 +879,6 @@ def MakeStatsPage():
     js += 'function MouseOutFS(i) { FS[i].MoveTo("","",0); }\n</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-
     outfile.write('  <TR><TH CLASS="sub">Avg Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('avg bytes')) \
         + '</TD><TD>&nbsp;</TD></TR>\n')
     havestat = 0
@@ -861,6 +893,43 @@ def MakeStatsPage():
         + size_format(metaInfo.getFileStat('min bytes')) + '</TD><TD>&nbsp;</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Largest</TH><TD ALIGN="right">' \
         + size_format(metaInfo.getFileStat('max bytes')) + '</TD><TD>&nbsp;</TD></TR>\n')
+    outfile.write("</TABLE>\n")
+
+    # JavaDoc
+    jwarns = 0
+    jbugs  = 0
+    jtodo  = 0
+    for file_info in metaInfo.fileInfoList:
+        for package_info in file_info.packageInfoList:
+            jwarns += package_info.verification.taskCount() + package_info.verification.funcCount() + package_info.verification.procCount()
+            jbugs += package_info.bugs.taskCount() + package_info.bugs.funcCount() + package_info.bugs.procCount()
+            jtodo += package_info.todo.taskCount() + package_info.todo.funcCount() + package_info.todo.procCount()
+        #for view_info in file_info.viewInfoList: ###TODO: view_info.verification is not yet set up###
+        #    jwarns += view_info.verification.taskCount() + view_info.verification.funcCount() + view_info.verification.procCount()
+    totalObj = jwarns + jbugs + jtodo
+    outfile.write("<TABLE CLASS='apilist stat'>\n")
+    outfile.write('  <TR><TH COLSPAN="4">JavaDoc Statistics</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
+    js += 'var J = new Array();\ndocument.open();\n'
+    js += 'posx = rad + 2*offset;\nposy = 0;\n'
+    sum  = (float(jwarns)/totalObj) * 100
+    sum2 = sum + (float(jbugs)/totalObj) * 100
+    js += 'J[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`sum`+'*3.6,codecol);\n'
+    js += 'J[1]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,commcol);\n'
+    js += 'J[2]=new Pie(posx,posy,offset,rad,'+`sum2`+'*3.6,100*3.6,mixcol);\n'
+    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 -mar; // top-align\n'
+    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"Warnings","#000000","", "void(0)","MouseOverJ(0)","MouseOutJ(0)");\n'
+    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"Bugs","#000000","", "void(0)","MouseOverJ(1)","MouseOutJ(1)");\n'
+    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,mixcol,"Todos","#000000","", "void(0)","MouseOverJ(2)","MouseOutJ(2)");\n'
+    js += 'document.close();\n'
+    js += 'function MouseOverJ(i) { J[i].MoveTo("","",10); }\n'
+    js += 'function MouseOutJ(i) { J[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    outfile.write(js);
+    outfile.write('</DIV></TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">JavaDoc Warnings</TH><TD ALIGN="right">'+num_format(jwarns)+'</TD><TD ALIGN="right">'+num_format((float(jwarns)/totalObj) * 100, 2)+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">Known Bugs</TH><TD ALIGN="right">'+num_format(jbugs)+'</TD><TD ALIGN="right">'+num_format((float(jbugs)/totalObj) * 100, 2)+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">Todo Items</TH><TD ALIGN="right">'+num_format(jtodo)+'</TD><TD ALIGN="right">'+num_format((float(jtodo)/totalObj) * 100, 2)+'%</TD></TR>')
     outfile.write("</TABLE>\n")
 
     outfile.write(MakeHTMLFooter('stat'))
