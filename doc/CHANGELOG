@@ -1,13 +1,12 @@
 # History of Changes for HyperSQL
 
-v2.2.0
+v2.2.0 (17.03.2010)
 -------------------
 + basic verification of function/procedure parameters against JavaDoc
   (parameter count)
 + added pie charts to the stats page
 + added object and javadoc statistics to stats page
 + row colors are now alternating to make long lists better readable
-
 
 v2.1.0 (14.03.2010)
 -------------------
