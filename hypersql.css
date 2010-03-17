@@ -15,6 +15,8 @@ body, table, td, th {
   font-family: Verdana, Arial, Helvetica, sans-serif
 }
 
+a:visited { color: #990000; }
+
 dt {
   font-weight: bold;
   font-style: italic;
@@ -92,6 +94,9 @@ table#projectinfo {
   height: 300px;
   max-width: 600px;
 }
+
+.tr0 { background-color: transparent; }
+.tr1 { background-color: #eeeeff; }
 
 /*
  * Header

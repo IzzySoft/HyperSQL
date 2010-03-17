@@ -39,9 +39,9 @@ from hypercore import *
 from hyperjdoc import *
 from hypercode import *
 from hyperconf import *
+from hypercharts import *
 
-
-def FindFilesAndBuildFileList(dir, fileInfoList):
+def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     """
     Recursively scans the source directory specified for relevant files according
     to the file extensions configured in metaInfo, while excluding RCS
@@ -50,7 +50,8 @@ def FindFilesAndBuildFileList(dir, fileInfoList):
     @param string dir directory to scan
     @param list fileInfoList where to store results
     """
-    printProgress("Creating file list")
+    if init: # do not print this on recursive calls
+        printProgress("Creating file list")
 
     # get a list of this directory's contents
     # these items are relative and not absolute
@@ -68,7 +69,7 @@ def FindFilesAndBuildFileList(dir, fileInfoList):
 
       # if this item is also a directory, recurse it too
       if os.path.isdir(f1):
-        FindFilesAndBuildFileList(f1, fileInfoList)
+        FindFilesAndBuildFileList(f1, fileInfoList, False)
 	    
       else:  # file found, only add specific file extensions to the list
         fspl = f1.split('.')
@@ -732,6 +733,11 @@ def MakeStatsPage():
     outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
     copy2(scriptpath + os.sep + 'diagram.js', metaInfo.htmlDir + 'diagram.js')
 
+    pie_rad = 55
+    pie_offset = 5
+    bar_wid = 80
+    bar_hei = 15
+
     outfile.write('<H1>' + metaInfo.indexPageName['stat'] + '</H1>\n')
 
     # LinesOfCode
@@ -740,31 +746,33 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Lines</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="6" WIDTH="220px"><DIV CLASS="pie_chart">\n')
 
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); if (i<3) { MouseOutFL(i); MouseOutO(i); MouseOutJ(i); } } MouseOutFS(4); }\n'
-    js += 'rad = 55;\noffset = 5; // "margins" around the pie\n'
-    js += 'codecol = "#cc3333";\ncommcol = "#3366ff";\nemptcol = "#dddddd";\nmixcol  = "#ff9933";\nlastcol = "#33ff00"\n'
-    js += 'posx = rad + 2*offset;\nposy = 0\n'
-    js += 'var L = new Array();\ndocument.open();\n//Pie(x,y,offset,radius,angle0,angle1,color,tooltip)\n'
-    js += 'L[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`metaInfo.getLocPct('code')`+'*3.6,codecol);\n'
-    sum = metaInfo.getLocPct('code')+metaInfo.getLocPct('comment')
-    js += 'L[1]=new Pie(posx,posy,offset,rad,'+`metaInfo.getLocPct('code')`+'*3.6,'+`sum`+'*3.6,commcol);\n'
-    sum2 = sum + metaInfo.getLocPct('empty')
-    js += 'L[2]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,emptcol);\n'
-    js += 'L[3]=new Pie(posx,posy,offset,rad,'+`sum2`+'*3.6,100*3.6,mixcol);\n'
-    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3; // top-align\n'
-    js += 'wid = 80;     // bar width\nhei = 15;     // bar height\nmar =  5;     // space between bars\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
-    js += '//Bar(left,top,right,buttom,color,text,textcolor,tooltip)\n'
-    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"Code","#000000","", "void(0)","MouseOverL(0)","MouseOutL(0)");\n'
-    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"Comment","#000000","", "void(0)","MouseOverL(1)","MouseOutL(1)");\n'
-    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,emptcol,"Empty","#000000","", "void(0)","MouseOverL(2)","MouseOutL(2)");\n'
-    js += 'new Bar(posx,posy+3*(mar+hei),posx+wid,posy+3*(mar+hei)+hei,mixcol,"Mixed","#000000","", "void(0)","MouseOverL(3)","MouseOutL(3)");\n'
-    js += 'document.close();\n'
-    js += 'function MouseOverL(i) { L[i].MoveTo("","",10); }\n'
-    js += 'function MouseOutL(i) { L[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); if (i<3) { MouseOutFL(i); MouseOutO(i); MouseOutJ(i); } } MouseOutFS(4); }\n'
+    colors = ['#cc3333','#3366ff','#dddddd','#ff9933','#33ff00']
+    tcols  = ['#ffffff','#ffffff','#000000','#000000','#000000']
+    pieposx = pie_rad + 2*pie_offset
+    pieposy = 0
+    # pie = PieChart(name,x,y,offset,rad[,colors[]])
+    pie = PieChart('L',pieposx,pieposy,pie_offset,pie_rad,colors)
+    # pie.addPiece(pct[,tooltip])
+    pie.addPiece(metaInfo.getLocPct('code'))
+    pie.addPiece(metaInfo.getLocPct('comment'))
+    pie.addPiece(metaInfo.getLocPct('empty'))
+    pie.addPiece(metaInfo.getLocPct('mixed'))
+    js += pie.generate();
+    # bar = new ChartLegend(name,x,y,wid,hei,offset[,cols[,tcols]])
+    barposx = pieposx + pie_rad + 3*pie_offset
+    barposy = pieposy - 2*pie_rad/3
+    bar = ChartLegend('L',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+    # bar.addBar(text[,tooltip])
+    bar.addBar('Code','Plain Code')
+    bar.addBar('Comment','Plain Comments')
+    bar.addBar('Empty','Empty Lines')
+    bar.addBar('Mixed','Lines with Code and Comments')
+    js += bar.generate()
+    js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-
     for name in ['totals','code','comment','empty','mixed']:
         outfile.write('  <TR><TH CLASS="sub">' + name.capitalize() \
             + '</TH><TD ALIGN="right">' + num_format(metaInfo.getLoc(name)) \
@@ -773,6 +781,8 @@ def MakeStatsPage():
     outfile.write("</TABLE>\n")
 
     # Object Stats
+    colors = ['#cc3333','#3366ff','#ff9933','#33ff00','#dddddd']
+    posy = 0
     views = 0
     funcs = 0
     procs = 0
@@ -786,20 +796,17 @@ def MakeStatsPage():
     outfile.write('  <TR><TH COLSPAN="4">Object Statistics</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    js += 'var O = new Array();\ndocument.open();\n'
-    js += 'posx = rad + 2*offset;\nposy = 0;\n'
-    sum  = (float(views)/totalObj) * 100
-    sum2 = sum + (float(funcs)/totalObj) * 100
-    js += 'O[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`sum`+'*3.6,codecol);\n'
-    js += 'O[1]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,commcol);\n'
-    js += 'O[2]=new Pie(posx,posy,offset,rad,'+`sum2`+'*3.6,100*3.6,mixcol);\n'
-    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 -mar; // top-align\n'
-    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"Views","#000000","", "void(0)","MouseOverO(0)","MouseOutO(0)");\n'
-    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"Functions","#000000","", "void(0)","MouseOverO(1)","MouseOutO(1)");\n'
-    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,mixcol,"Procedures","#000000","", "void(0)","MouseOverO(2)","MouseOutO(2)");\n'
-    js += 'document.close();\n'
-    js += 'function MouseOverO(i) { O[i].MoveTo("","",10); }\n'
-    js += 'function MouseOutO(i) { O[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    pie = PieChart('O',pieposx,pieposy,pie_offset,pie_rad,colors)
+    pie.addPiece((float(views)/totalObj) * 100)
+    pie.addPiece((float(funcs)/totalObj) * 100)
+    pie.addPiece((float(procs)/totalObj) * 100)
+    js += pie.generate();
+    bar = ChartLegend('O',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+    bar.addBar('Views')
+    bar.addBar('Functions')
+    bar.addBar('Procedures')
+    js += bar.generate()
+    js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Views</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+num_format((float(views)/totalObj) * 100, 2)+'%</TD></TR>\n')
@@ -817,20 +824,20 @@ def MakeStatsPage():
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
     limits.sort()
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    js += 'var FL = new Array();\ndocument.open();\n'
-    js += 'posx = rad + 2*offset;\nposy = 0;\n'
+    pie = PieChart('FL',pieposx,pieposy,pie_offset,pie_rad,colors)
     sum  = (float(stat[400])/totalFiles)*100
     sum2 = (float(stat[1000])/totalFiles)*100
-    js += 'FL[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`sum`+'*3.6,codecol);\n'
-    js += 'FL[1]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum+sum2`+'*3.6,commcol);\n'
-    js += 'FL[2]=new Pie(posx,posy,offset,rad,'+`sum+sum2`+'*3.6,100*3.6,mixcol);\n'
-    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 -mar; // top-align\n'
-    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"&lt; 400","#000000","", "void(0)","MouseOverFL(0)","MouseOutFL(0)");\n'
-    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"&lt; 1000","#000000","", "void(0)","MouseOverFL(1)","MouseOutFL(1)");\n'
-    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,mixcol,"&gt; 1000","#000000","", "void(0)","MouseOverFL(2)","MouseOutFL(2)");\n'
-    js += 'document.close();\n'
-    js += 'function MouseOverFL(i) { FL[i].MoveTo("","",10); }\n'
-    js += 'function MouseOutFL(i) { FL[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    pie.addPiece(sum)
+    pie.addPiece(sum2)
+    pie.addPiece(100-(sum+sum2))
+    js += pie.generate();
+    barposy -= pie_offset
+    bar = ChartLegend('FL',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+    bar.addBar('&lt; 400','less than 400 lines')
+    bar.addBar('&lt; '+num_format(1000,0),'400 to '+num_format(1000,0)+' lines')
+    bar.addBar('&gt; '+num_format(1000,0),num_format(1000,0)+' lines and more')
+    js += bar.generate()
+    js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Total Files</TH><TD ALIGN="right">' + num_format(totalFiles) \
@@ -857,26 +864,24 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">Total Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
         + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD><TD COLSPAN="9" WIDTH="220px"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    js += 'var FS = new Array();\ndocument.open();\n'
-    js += 'posx = rad + 2*offset;\nposy = rad + (hei + mar)\n'
+    pieposy = pie_rad + pie_offset + bar_hei
     sum  = 0
-    i = 0
     cols = ['codecol','commcol','mixcol','emptcol','lastcol']
+    pie = PieChart('FS',pieposx,pieposy,pie_offset,pie_rad,colors)
     for limit in limits:
-        sum2 = sum + (float(stat[limit])/totalFiles)*100
-        js += 'FS['+`i`+']=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,'+cols[i]+');\n'
-        i += 1
-        sum = sum2
-    js += 'FS[4]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,100*3.6,'+cols[4]+');\n'
-    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 + 2*mar; // top-align\n'
-    i = 0
+        pie.addPiece((float(stat[limit])/totalFiles)*100)
+        sum += (float(stat[limit])/totalFiles)*100
+    pie.addPiece(100-sum)
+    js += pie.generate();
+    barposy = pieposy - 2*pie_rad/3 -2*pie_offset
+    bar = ChartLegend('FS',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+    oldlim = '0K'
     for limit in limits:
-        js += 'new Bar(posx,posy+'+`i`+'*(mar+hei),posx+wid,posy+'+`i`+'*(mar+hei)+hei,'+cols[i]+',"&lt; '+size_format(limit,0)+'","#000000","", "void(0)","MouseOverFS('+`i`+')","MouseOutFS('+`i`+')");\n'
-        i += 1
-    js += 'new Bar(posx,posy+'+`i`+'*(mar+hei),posx+wid,posy+'+`i`+'*(mar+hei)+hei,'+cols[i]+',"&gt; '+size_format(102400,0)+'","#000000","", "void(0)","MouseOverFS('+`i`+')","MouseOutFS('+`i`+')");\n'
-    js += 'document.close();\n'
-    js += 'function MouseOverFS(i) { FS[i].MoveTo("","",10); }\n'
-    js += 'function MouseOutFS(i) { FS[i].MoveTo("","",0); }\n</SCRIPT>\n'
+        bar.addBar('&lt; '+size_format(limit,0),'Files between '+oldlim+' and '+size_format(limit,0))
+        oldlim = size_format(limit,0)
+    bar.addBar('&gt; '+size_format(102400,0),'Files larger than '+size_format(102400,0))
+    js += bar.generate()
+    js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Avg Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('avg bytes')) \
@@ -911,20 +916,21 @@ def MakeStatsPage():
     outfile.write('  <TR><TH COLSPAN="4">JavaDoc Statistics</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    js += 'var J = new Array();\ndocument.open();\n'
-    js += 'posx = rad + 2*offset;\nposy = 0;\n'
+    pieposy = 0
+    pie = PieChart('J',pieposx,pieposy,pie_offset,pie_rad,colors)
     sum  = (float(jwarns)/totalObj) * 100
-    sum2 = sum + (float(jbugs)/totalObj) * 100
-    js += 'J[0]=new Pie(posx,posy,offset,rad,0*3.6,'+`sum`+'*3.6,codecol);\n'
-    js += 'J[1]=new Pie(posx,posy,offset,rad,'+`sum`+'*3.6,'+`sum2`+'*3.6,commcol);\n'
-    js += 'J[2]=new Pie(posx,posy,offset,rad,'+`sum2`+'*3.6,100*3.6,mixcol);\n'
-    js += 'posx += rad + 3*offset; // add the pie radius\nposy -= 2*rad/3 -mar; // top-align\n'
-    js += 'new Bar(posx,posy,posx+wid,posy+hei,codecol,"Warnings","#000000","", "void(0)","MouseOverJ(0)","MouseOutJ(0)");\n'
-    js += 'new Bar(posx,posy+mar+hei,posx+wid,posy+mar+2*hei,commcol,"Bugs","#000000","", "void(0)","MouseOverJ(1)","MouseOutJ(1)");\n'
-    js += 'new Bar(posx,posy+2*(mar+hei),posx+wid,posy+2*(mar+hei)+hei,mixcol,"Todos","#000000","", "void(0)","MouseOverJ(2)","MouseOutJ(2)");\n'
-    js += 'document.close();\n'
-    js += 'function MouseOverJ(i) { J[i].MoveTo("","",10); }\n'
-    js += 'function MouseOutJ(i) { J[i].MoveTo("","",0); }\n</SCRIPT>\n'
+    sum2 = (float(jbugs)/totalObj) * 100
+    pie.addPiece(sum)
+    pie.addPiece(sum2)
+    pie.addPiece(100-(sum+sum2))
+    js += pie.generate();
+    barposy = pieposy - 2*pie_rad/3 - pie_offset
+    bar = ChartLegend('J',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+    bar.addBar('Warnings','JavaDoc validation warnings')
+    bar.addBar('Bugs','Known Bugs (from your @bug tags)')
+    bar.addBar('Todos','Todo items (from your @todo tags)')
+    js += bar.generate()
+    js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">JavaDoc Warnings</TH><TD ALIGN="right">'+num_format(jwarns)+'</TD><TD ALIGN="right">'+num_format((float(jwarns)/totalObj) * 100, 2)+'%</TD></TR>')
@@ -973,19 +979,21 @@ def MakeFileIndex(objectType):
     outfile = open(html_dir + outfilename, "w")
     outfile.write(MakeHTMLHeader(objectType))
     outfile.write("<H1>"+html_title+"</H1>\n")
-    outfile.write("<TABLE CLASS='apilist'><TR><TD>\n")
+    outfile.write("<TABLE CLASS='apilist'>\n")
+    i = 0
 
     for filenametuple in filenametuplelist:
         file_name = filenametuple[1].fileName
         temp = os.path.split(file_name)[1].replace(".", "_")
         temp += "_" + `filenametuple[1].uniqueNumber` + ".html"
         if objectType == 'file':
-            outfile.write("  <A href=\"" + temp + "\">" + os.path.split(file_name)[1])
+            outfile.write("  <TR CLASS='tr"+`i % 2`+"'><TD><A href=\"" + temp + "\">" + os.path.split(file_name)[1])
         else:
-            outfile.write("  <A href=\"" + temp + "\">" + file_name[len(metaInfo.topLevelDirectory)+1:])
-        outfile.write("</A><BR>\n")
+            outfile.write("  <TR CLASS='tr"+`i % 2`+"'><TD><A href=\"" + temp + "\">" + file_name[len(metaInfo.topLevelDirectory)+1:])
+        outfile.write("</A></TD></TR>\n")
+        i += 1
 
-    outfile.write("</TD></TR></TABLE>\n")
+    outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter(objectType))
     outfile.close()
 	
@@ -1031,17 +1039,19 @@ def MakeElemIndex(objectType):
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
     outfile.write("  <TR><TH>"+object_name+"</TH><TH>from Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
+    i = 0
 
     for object_tuple in objectTupleList: # list of tuples describing every object
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(object_tuple)
+        trclass = ' CLASS="tr'+`i % 2`+'"'
         # Write column 1: Object name w/ links
         if HTMLjref == '':
-            outfile.write("  <TR><TD>" + object_tuple[1].name.lower())
+            outfile.write("  <TR"+trclass+"><TD>" + object_tuple[1].name.lower())
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         else:
-            outfile.write("  <TR><TD>" + object_tuple[1].javadoc.getVisibility() + "<A HREF='" + HTMLjref + "'>" + object_tuple[1].name.lower() + "</A>")
+            outfile.write("  <TR"+trclass+"><TD>" + object_tuple[1].javadoc.getVisibility() + "<A HREF='" + HTMLjref + "'>" + object_tuple[1].name.lower() + "</A>")
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
@@ -1065,6 +1075,7 @@ def MakeElemIndex(objectType):
         else:
             outfile.write("<TD>no use found by HyperSQL</TD>")
         outfile.write("</TR>\n")
+        i += 1
 
     outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter(objectType))
@@ -1098,16 +1109,18 @@ def MakeViewIndex():
     outfile.write("<H1>Index Of All Views</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
     outfile.write("  <TR><TH>View</TH><TH>Details</TH><TH>Used</TH></TR>\n")
+    i = 0
 
     for view_tuple in viewtuplelist: # list of tuples describing every view
         # file name and line number as an HTML reference
+        trclass = ' CLASS="tr'+`i % 2`+'"'
         if metaInfo.includeSource:
             HTMLref = os.path.split(view_tuple[2].fileName)[1].replace(".", "_")
             HTMLref += "_" + `view_tuple[2].uniqueNumber` + ".html"
             HTMLref += "#" + `view_tuple[1].lineNumber`
-            outfile.write("  <TR><TD><A href=\"" + HTMLref + "\">" + view_tuple[1].name.lower() + "</A></TD>")
+            outfile.write("  <TR"+trclass+"><TD><A href=\"" + HTMLref + "\">" + view_tuple[1].name.lower() + "</A></TD>")
         else:
-            outfile.write("  <TR><TD>" + view_tuple[1].name.lower() + "</TD>")
+            outfile.write("  <TR"+trclass+"><TD>" + view_tuple[1].name.lower() + "</TD>")
         outfile.write("<TD>" + view_tuple[1].javadoc.getShortDesc() + "</TD>")
 
         if len(view_tuple[1].whereUsed.keys()) > 0:
@@ -1116,6 +1129,7 @@ def MakeViewIndex():
         else:
             outfile.write("<TD>no use found by HyperSQL</TD>")
         outfile.write("</TR>\n")
+        i += 1
 
     outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter('view'))
@@ -1218,16 +1232,18 @@ def MakePackageIndex():
     outfile.write("<H1>Index Of All Packages</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
     outfile.write("  <TR><TH>Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
+    i = 0
 
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
+        trclass = ' CLASS="tr'+`i % 2`+'"'
         if HTMLjref == '':
-            outfile.write("  <TR><TD>" + package_tuple[1].name.lower())
+            outfile.write("  <TR"+trclass+"><TD>" + package_tuple[1].name.lower())
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
         else:
-            outfile.write("  <TR><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].name.lower() + "</A>")
+            outfile.write("  <TR"+trclass+"><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].name.lower() + "</A>")
             if metaInfo.includeSource:
                 outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
             outfile.write("</TD>")
@@ -1237,6 +1253,7 @@ def MakePackageIndex():
             outfile.write("<TD><A href=\"" + HTMLwhereusedref + "\">where used list</A></TD></TR>\n")
         else:
             outfile.write("<TD>no use found by HyperSQL</TD></TR>\n")
+        i += 1
 
     outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter('package'))
@@ -1301,9 +1318,10 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("  <TR><TH class='sub' COLSPAN='3'>Functions</TH></TR>\n  <TR><TD COLSPAN='3'>")
             outfile.write("<TABLE ALIGN='center'>\n")
             outfile.write("    <TR><TD ALIGN='center'><B>Function</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
+        i = 0
         for function_tuple in functiontuplelist:
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(function_tuple)
-            outfile.write("    <TR><TD>" + function_tuple[1].javadoc.getVisibility())
+            outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + function_tuple[1].javadoc.getVisibility())
             if HTMLjref == '':
                 outfile.write(function_tuple[1].name.lower())
             else:
@@ -1319,6 +1337,7 @@ def MakePackagesWithFuncsAndProcsIndex():
             else:
                 outfile.write("no use found by HyperSQL")
             outfile.write("</TD></TR>\n")
+            i += 1
         if len(functiontuplelist) != 0:
             outfile.write("</TABLE></TD></TR>\n")
 	    
@@ -1332,9 +1351,10 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("  <TR><TH class='sub' COLSPAN='3'>Procedures</TH></TR>\n  <TR><TD COLSPAN='3'>")
             outfile.write("<TABLE ALIGN='center'>\n")
             outfile.write("    <TR><TD ALIGN='center'><B>Procedure</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
+        i = 0
         for procedure_tuple in proceduretuplelist:
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(procedure_tuple)
-            outfile.write("    <TR><TD>" + procedure_tuple[1].javadoc.getVisibility())
+            outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + procedure_tuple[1].javadoc.getVisibility())
             if HTMLjref == '':
                 outfile.write(procedure_tuple[1].name.lower())
             else:
@@ -1350,6 +1370,7 @@ def MakePackagesWithFuncsAndProcsIndex():
             else:
                 outfile.write("no use found by HyperSQL")
             outfile.write("</TD></TR>\n")
+            i += 1
         if len(proceduretuplelist) != 0:
             outfile.write("</TABLE></TD></TR>\n")
         outfile.write("</TABLE>\n")

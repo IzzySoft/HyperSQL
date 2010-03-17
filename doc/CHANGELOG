@@ -6,6 +6,7 @@ v2.2.0
   (parameter count)
 + added pie charts to the stats page
 + added object and javadoc statistics to stats page
++ row colors are now alternating to make long lists better readable
 
 
 v2.1.0 (14.03.2010)
