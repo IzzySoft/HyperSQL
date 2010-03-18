@@ -1,7 +1,5 @@
 Known issues and limitations
 ============================
 
-- all javadoc keywords can only be used once (no multiple declarations of e.g.
-  author, todo, ...) - except for the @param of course
 - syntax highlighter does not recognize keywords containing parenthesis, e.g. VARCHAR2(255)
 - stand-alone procedures/functions (i.e. those not part of any package) are not dealt with
