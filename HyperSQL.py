@@ -254,10 +254,12 @@ def ScanFilesForViewsAndPackages():
                       ln = jdoc[j].lineNumber - lineNumber
                       if (CaseInsensitiveComparison(package_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                         package_info.javadoc = jdoc[j]
-                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
-                            package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug)
-                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
-                            package_info.todo.addItem(jdoc[j].name,jdoc[j].todo)
+                        if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
+                            for ib in range(len(jdoc[j].bug)):
+                                package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug[ib])
+                        if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
+                            for ib in range(len(jdoc[j].todo)):
+                                package_info.todo.addItem(jdoc[j].name,jdoc[j].todo[ib])
                     mname = package_info.javadoc.name or package_info.name
                     mands = package_info.javadoc.verify_mandatory()
                     for mand in mands:
@@ -287,10 +289,12 @@ def ScanFilesForViewsAndPackages():
                           if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
                             function_info.javadoc = jdoc[j]
                             function_info.javadoc.lndiff = abs(ln)
-                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
-                            file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug)
-                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
-                            file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo)
+                        if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
+                            for ib in range(len(jdoc[j].bug)):
+                                file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug[ib])
+                        if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
+                            for ib in range(len(jdoc[j].todo)):
+                                file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo[ib])
                     mname = function_info.javadoc.name or function_info.name
                     mands = function_info.javadoc.verify_mandatory()
                     for mand in mands:
@@ -330,10 +334,12 @@ def ScanFilesForViewsAndPackages():
                           if abs(ln) < procedure_info.javadoc.lndiff: # this desc is closer to the object
                             procedure_info.javadoc = jdoc[j]
                             procedure_info.javadoc.lndiff = abs(ln)
-                        if jdoc[j].bug != '' and metaInfo.indexPage['bug'] != '':
-                            file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug)
-                        if jdoc[j].todo != '' and metaInfo.indexPage['todo'] != '':
-                            file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo)
+                        if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
+                            for ib in range(len(jdoc[j].bug)):
+                                file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug[ib])
+                        if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
+                            for ib in range(len(jdoc[j].todo)):
+                                file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo[ib])
                     mname = procedure_info.javadoc.name or procedure_info.name
                     mands = procedure_info.javadoc.verify_mandatory()
                     for mand in mands:
@@ -1386,6 +1392,37 @@ def CreateHyperlinkedSourceFilePages():
     starting the definition of an object, or where it is called (used) from.
     Very basic syntax highlighting is performed here as well if code is included.
     """
+    def ObjectDetailsListItem(item,i):
+        """
+        Write the row for the overview
+        @param object item procedure/function item
+        @param int i counter for odd/even row alternation
+        """
+        iname = item.javadoc.getVisibility()
+        if item.javadoc.name != '':
+            iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
+            idesc = item.javadoc.getShortDesc()
+        else:
+            iname += item.name
+            idesc = ''
+        outfile.write(' <TR CLASS="tr'+`i % 2`+'"><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
+        if metaInfo.includeSource:
+            outfile.write(' <SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
+        outfile.write(' (')
+        if len(item.javadoc.params) > 0:
+            ph = ''
+            for par in item.javadoc.params:
+                ph += ', ' + par.name
+            outfile.write(ph[2:])
+        outfile.write(')</DIV></TD><TD>'+idesc+'</TD>')
+        if len(item.whereUsed.keys()) > 0:
+            HTMLwhereusedref = "where_used_" + `item.uniqueNumber` + ".html"
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD>")
+        else:
+            outfile.write("<TD CLASS='whereused'>no use found</TD>")
+        outfile.write('</TR>\n')
+
+
     printProgress("Creating hyperlinked source file pages")
 
     fileInfoList = metaInfo.fileInfoList
@@ -1431,7 +1468,7 @@ def CreateHyperlinkedSourceFilePages():
         viewdetails = '\n\n'
         #if len(file_info.viewInfoList) > 0:
             #print 'We have views here'
-            # Do we have to introduce JavaDoc here as well? # *!*
+            ###TODO Do we have to introduce JavaDoc here as well? # *!*
 
         # Do we have packages in this file?
         packagedetails = '\n\n'
@@ -1440,56 +1477,28 @@ def CreateHyperlinkedSourceFilePages():
             outfile.write('<TABLE CLASS="apilist">\n')
             for p in range(len(file_info.packageInfoList)):
                 jdoc = file_info.packageInfoList[p].javadoc
-                outfile.write(' <TR><TH COLSPAN="2">' + file_info.packageInfoList[p].name + '</TH></TR>\n')
-                outfile.write(' <TR><TD COLSPAN="2">')
+                outfile.write(' <TR><TH COLSPAN="3">' + file_info.packageInfoList[p].name + '</TH></TR>\n')
+                outfile.write(' <TR><TD COLSPAN="3">')
                 outfile.write( jdoc.getHtml(0) )
                 outfile.write('</TD></TR>\n')
                 # Check the packages for functions
                 if len(file_info.packageInfoList[p].functionInfoList) > 0:
                     packagedetails += '<A NAME="funcs"></A><H2>Functions</H2>\n';
-                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Functions</TH></TR>\n')
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">Functions</TH></TR>\n')
+                    i = 0
                     for item in file_info.packageInfoList[p].functionInfoList:
-                        iname = item.javadoc.getVisibility()
-                        if item.javadoc.name != '':
-                            iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
-                            idesc = item.javadoc.getShortDesc()
-                        else:
-                            iname += item.name
-                            idesc = ''
-                        outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
-                        if metaInfo.includeSource:
-                            outfile.write(' <SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
-                        outfile.write(' (')
-                        if len(item.javadoc.params) > 0:
-                            ph = ''
-                            for par in item.javadoc.params:
-                                ph += ', ' + par.name
-                            outfile.write(ph[2:])
-                        outfile.write(')</DIV></TD><TD>'+idesc+'</TD></TR>\n')
+                        ObjectDetailsListItem(item,i)
                         packagedetails += item.javadoc.getHtml(item.uniqueNumber)
+                        i += 1
                 # Check the packages for procedures
                 if len(file_info.packageInfoList[p].procedureInfoList) > 0:
                     packagedetails += '<A NAME="procs"></A><H2>Procedures</H2>\n';
-                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="2">Procedures</TH></TR>\n')
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">Procedures</TH></TR>\n')
+                    i = 0
                     for item in file_info.packageInfoList[p].procedureInfoList:
-                        iname = item.javadoc.getVisibility()
-                        if item.javadoc.name != '':
-                            iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
-                            idesc = item.javadoc.getShortDesc()
-                        else:
-                            iname += item.name
-                            idesc = ''
-                        outfile.write(' <TR><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
-                        if metaInfo.includeSource:
-                            outfile.write(' <SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
-                        outfile.write(' (')
-                        if len(item.javadoc.params) > 0:
-                            ph = ''
-                            for par in item.javadoc.params:
-                                ph += ', ' + par.name
-                            outfile.write(ph[2:])
-                        outfile.write(')</DIV></TD><TD>'+idesc+'</TD></TR>\n')
+                        ObjectDetailsListItem(item,i)
                         packagedetails += item.javadoc.getHtml(item.uniqueNumber)
+                        i += 1
             outfile.write('</TABLE>\n\n')
 
         outfile.write(viewdetails)
@@ -1862,7 +1871,7 @@ if __name__ == "__main__":
       print 'No config file found, using defaults.'
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.2"
+    metaInfo.versionString = "2.3"
     metaInfo.scriptName = sys.argv[0]
 
     # Initiate logging

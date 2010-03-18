@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v2.3.0
+-------------------
++ where_used links and alternating row colors in file pages
++ "describing" JavaDoc elements (with just one "text" option) can now be
+  used repeatedly for the same object (e.g. multiple todo items)
+
 v2.2.0 (17.03.2010)
 -------------------
 + basic verification of function/procedure parameters against JavaDoc

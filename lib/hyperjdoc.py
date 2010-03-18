@@ -63,28 +63,28 @@ class JavaDoc:
         """
         self.file = ''
         self.lineNumber = -1
+        self.lndiff = maxint # needed for function/procedure overloading
         self.lines = 0
+        # tags extracted
         self.name = ''
         self.objectType = ''
         self.params = []
         self.retVals = []
-        self.desc = ''
-        self.version = ''
-        self.author = ''
-        self.info = ''
-        self.example = ''
-        self.todo = ''
-        self.bug = ''
-        self.copyright = ''
-        self.deprecated = ''
+        self.desc = []
+        self.version = []
+        self.author = []
+        self.info = []
+        self.example = []
+        self.todo = []
+        self.bug = []
+        self.copyright = []
+        self.deprecated = []
         self.private = False
-        self.see = ''
-        self.webpage = ''
-        self.license = ''
-        self.file = ''
-        self.ticket = ''
-        self.wiki = ''
-        self.lndiff = maxint # needed for function/procedure overloading
+        self.see = []
+        self.webpage = []
+        self.license = []
+        self.ticket = []
+        self.wiki = []
     def isDefault(self):
         """
         Check if this is just an empty dummy, or if any real data have been assigned
@@ -103,7 +103,7 @@ class JavaDoc:
         if self.isDefault() or not JavaDocVars['verification']:
             return faillist
         for tag in JavaDocVars['mandatory_tags']:
-            if tag in JavaDocVars['txttags'] and eval("self." + tag) == '':
+            if tag in JavaDocVars['txttags'] and len(eval("self." + tag)) == 0:
                 if tag == 'desc':
                     faillist.append('Missing description')
                 else:
@@ -136,7 +136,7 @@ class JavaDoc:
             return faillist
         if len(cparms) != len(self.params):
             faillist.append('Parameter count mismatch: Code has '+`len(cparms)`+' parameters, Javadoc '+`len(self.params)`)
-            logger.warn('Parameter count mismatch for %s %s in %s line %s', self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+            logger.warn('Parameter count mismatch for %s %s in %s line %s (%s / %s)', self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber, len(cparms), len(self.params))
         return faillist
     def getVisibility(self):
         """
@@ -158,6 +158,24 @@ class JavaDoc:
         @param int unique number
         @return string html code block
         """
+        def listItemHtml(item):
+            """
+            If some txttag has multiple entries, we want an unordered list,
+            otherwise just a simple line
+            @param list item
+            @return string html
+            """
+            entries = len(item)
+            if entries < 1:
+                return ''
+            elif entries < 2:
+                return item[0]
+            else:
+                txt = '<UL>'
+                for i in range(entries):
+                    txt += '<LI>'+item[i]+'</LI>'
+                txt += '</UL>'
+                return txt
         if self.isDefault():
             return ''
         if self.objectType not in JavaDocVars['otypes']:
@@ -170,8 +188,11 @@ class JavaDoc:
         if self.objectType != 'pkg':
           html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
-        if self.desc != '':
-          html += '  <DIV CLASS="jd_desc">' + HyperScan(self.desc) + '</DIV>\n'
+        if len(self.desc) > 0:
+          html += '  <DIV CLASS="jd_desc">'
+          for i in range(len(self.desc)):
+            html += HyperScan(self.desc[i]) 
+          html += '</DIV>\n'
         html += '  <DL>'
         if self.objectType in ['function', 'procedure']:
           if self.private:
@@ -198,48 +219,56 @@ class JavaDoc:
                 html += ': ' + self.retVals[p].desc
               html += '</LI>'
             html += '</UL></DD>\n'
-          if self.example != '':
-            html += '<DT>Example Usage:</DT><DD>' + self.example + '</DD>'
-        if self.author != '':
-          html += '<DT>Author:</DT><DD>' + self.author + '</DD>'
-        if self.copyright != '':
-          html += '<DT>Copyright:</DT><DD>' + self.copyright + '</DD>'
-        if self.license != '':
-          html += '<DT>License:</DT><DD>' + self.license + '</DD>'
-        if self.webpage != '':
-          html += '<DT>Webpage:</DT><DD><A HREF="' + self.webpage + '">' + self.webpage + '</A></DD>'
-        if self.bug != '':
-          html += '<DT>BUG:</DT><DD>' + HyperScan(self.bug) + '</DD>'
-        if self.deprecated != '':
-          html += '<DT>DEPRECATED:</DT><DD>' + HyperScan(self.deprecated) + '</DD>'
-        if self.version != '':
-          html += '<DT>Version Info:</DT><DD>' + HyperScan(self.version) + '</DD>'
-        if self.info != '':
-          html += '<DT>Additional Info:</DT><DD>' + HyperScan(self.info) + '</DD>'
-        if self.ticket != '':
-          html += '<DT>Ticket:</DT><DD>'
-          if JavaDocVars['ticket_url'] != '':
-            doc = self.ticket.split(' ');
-            if doc[0].isdigit():
-              html += '<A HREF="'+JavaDocVars['ticket_url'].replace('%{id}',doc[0])+'">#'+doc[0]+'</A>'
-              html += self.ticket[len(doc[0]):]
+          if len(self.example) > 0:
+            html += '<DT>Example Usage:</DT>'
+            for i in range(len(self.example)):
+              html += '<DD>' + self.example[i] + '</DD>'
+        if len(self.author) > 0:
+          html += '<DT>Author:</DT><DD>' + listItemHtml(self.author) + '</DD>'
+        if len(self.copyright) > 0:
+          html += '<DT>Copyright:</DT><DD>' + listItemHtml(self.copyright[i]) + '</DD>'
+        if len(self.license) > 0:
+          html += '<DT>License:</DT><DD>' + listItemHtml(self.license) + '</DD>'
+        if len(self.webpage) > 0:
+          html += '<DT>Webpage:</DT>'
+          for i in range(len(self.webpage)):
+            html += '<DD><A HREF="' + self.webpage[i] + '">' + self.webpage[i] + '</A></DD>'
+        if len(self.bug) > 0:
+          html += '<DT>BUG:</DT><DD>' + HyperScan(listItemHtml(self.bug)) + '</DD>'
+        if len(self.deprecated) > 0:
+          html += '<DT>DEPRECATED:</DT><DD>' + HyperScan(listItemHtml(self.deprecated)) + '</DD>'
+        if len(self.version) > 0:
+          html += '<DT>Version Info:</DT><DD>' + HyperScan(listItemHtml(self.version)) + '</DD>'
+        if len(self.info) > 0:
+          html += '<DT>Additional Info:</DT><DD>' + HyperScan(listItemHtml(self.info)) + '</DD>'
+        if len(self.ticket) > 0:
+          html += '<DT>Ticket:</DT>'
+          for i in range(len(self.ticket)):
+            html += '<DD>'
+            if JavaDocVars['ticket_url'] != '':
+              doc = self.ticket[i].split(' ');
+              if doc[0].isdigit():
+                html += '<A HREF="'+JavaDocVars['ticket_url'].replace('%{id}',doc[0])+'">#'+doc[0]+'</A>'
+                html += self.ticket[i][len(doc[0]):]
+              else:
+                html += self.ticket[i]
             else:
-              html += self.ticket
-          else:
-            html += self.ticket
-          html += '</DD>'
-        if self.wiki != '':
-          html += '<DT>Wiki:</DT><DD>'
-          if JavaDocVars['wiki_url'] != '':
-            doc = self.wiki.split(' ')
-            html += '<A HREF="'+JavaDocVars['wiki_url'].replace('%{page}',doc[0])+'">'+doc[0]+'</A>'+self.wiki[len(doc[0]):]
-          else:
-            html += self.wiki
-          html += '</DD>'
-        if self.see != '':
-          html += '<DT>See also:</DT><DD>' + HyperScan(self.see) + '</DD>'
-        if self.todo != '':
-          html += '<DT>TODO:</DT><DD>' + HyperScan(self.todo) + '</DD>'
+              html += self.ticket[i]
+            html += '</DD>'
+        if len(self.wiki) > 0:
+          html += '<DT>Wiki:</DT>'
+          for i in range(len(self.wiki)):
+            html += '<DD>'
+            if JavaDocVars['wiki_url'] != '':
+              doc = self.wiki[i].split(' ')
+              html += '<A HREF="'+JavaDocVars['wiki_url'].replace('%{page}',doc[0])+'">'+doc[0]+'</A>'+self.wiki[i][len(doc[0]):]
+            else:
+              html += self.wiki[i]
+            html += '</DD>'
+        if len(self.see) > 0:
+          html += '<DT>See also:</DT><DD>' + HyperScan(listItemHtml(self.see)) + '</DD>'
+        if len(self.todo) > 0:
+          html += '<DT>TODO:</DT><DD>' + HyperScan(listItemHtml(self.todo)) + '</DD>'
         html += '\n</DL>\n'
         if self.objectType != 'pkg':
           html += '<DIV CLASS="toppagelink"><A HREF="#topOfPage">^ Top</A></DIV>\n'
@@ -253,22 +282,24 @@ class JavaDoc:
         @param self
         @return string short_desc
         """
+        if len(self.desc) < 1:
+          return ''
         dot = []
-        if self.desc.find('?')>0:
-          dot.append( self.desc.find('?') )
-        if self.desc.find('!')>0:
-          dot.append( self.desc.find('!') )
-        if self.desc.find('.')>0:
-          dot.append( self.desc.find('.') )
-        if self.desc.find(';')>0:
-          dot.append( self.desc.find(';') )
-        if self.desc.find('\n')>0:
-          dot.append( self.desc.find('\n') )
+        if self.desc[0].find('?')>0:
+          dot.append( self.desc[0].find('?') )
+        if self.desc[0].find('!')>0:
+          dot.append( self.desc[0].find('!') )
+        if self.desc[0].find('.')>0:
+          dot.append( self.desc[0].find('.') )
+        if self.desc[0].find(';')>0:
+          dot.append( self.desc[0].find(';') )
+        if self.desc[0].find('\n')>0:
+          dot.append( self.desc[0].find('\n') )
         if len(dot)>0:
           cut = min(dot)
-          return self.desc[0:cut]
+          return self.desc[0][0:cut]
         else:
-          return self.desc
+          return self.desc[0]
 
 
 class JavaDocParam:
@@ -539,6 +570,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     @return list of JavaDoc instances
     """
     elem = 'desc'
+    content = ''
     res  = []
     opened = False
     otypes = JavaDocVars['otypes'] # supported object types
@@ -549,7 +581,10 @@ def ScanJavaDoc(text,fileName,lineNo=0):
         continue
       if line[0:1] == '*' and line[0:2] != '*/':
         line = line[1:].strip()
-      if line == '*/':
+      if line == '*/': # end of JavaDoc block
+        if elem in JavaDocVars['txttags']:
+            exec('item.'+elem+'.append(content)')
+        content = ''
         res.append(item)
         elem = 'desc'
         opened = False
@@ -560,28 +595,38 @@ def ScanJavaDoc(text,fileName,lineNo=0):
           item = JavaDoc()
           item.lineNumber = lineNumber
           item.file = fileName
-          item.desc += line[3:].strip()
+          content = line[3:].strip().replace('"','&quot;')
           continue
         if line[0:1] != '@':
-          if line[len(line)-2:] == '*/':
-            item.desc += line[0:len(line)-2]
+          if line[len(line)-2:] == '*/': # end of JavaDoc block
+            content += ' ' + line[0:len(line)-2].replace('"','&quot;')
+            item.desc.append(content)
+            content = ''
             res.append(item)
             opened = False
             elem = 'desc'
             continue
           else:
-            if item.desc == '':
-              item.desc = line
+            if content == '':
+              content = line.replace('"','&quot;')
             else:
-              item.desc += '\n' + line
+              content += ' ' + line
+            item.desc.append(content)
+            content = ''
             continue
         else:
+          item.desc.append(content)
+          content = ''
           elem = ''
       if elem != 'desc':
         if line[0:1] != '@': # 2nd+ line of a tag
           if elem in tags and elem not in ['param','return','private']: # maybe...
-            exec('item.'+elem+' += " '+line.replace('"','&quot;')+'"')
+            content += ' ' + line.replace('"','&quot;')
           continue
+        # new tag starts here
+        if elem != '' and content != '' and elem in JavaDocVars['txttags']: # there is something in the buffer
+            exec('item.'+elem+'.append(content)')
+            content = ''
         doc = line.split()
         tag = doc[0][1:]
         elem = tag
@@ -626,34 +671,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
           else: # tags with only one <text> parameter
             if len(doc) < 2:
               logger.warn('@%s requires <text> parameter, none given in %s line %s', tag, fileName, lineNumber)
-            elif tag == 'version':
-              item.version = line[len(tag)+1:].strip()
-            elif tag == 'author':
-              item.author = line[len(tag)+1:].strip()
-            elif tag == 'info':
-              item.info = line[len(tag)+1:].strip()
-            elif tag == 'example':
-              item.example = line[len(tag)+1:].strip()
-            elif tag == 'todo':
-              item.todo = line[len(tag)+1:].strip()
-            elif tag == 'bug':
-              item.bug = line[len(tag)+1:].strip()
-            elif tag == 'copyright':
-              item.copyright = line[len(tag)+1:].strip()
-            elif tag == 'deprecated':
-              item.deprecated = line[len(tag)+1:].strip()
-            elif tag == 'see':
-              item.see = line[len(tag)+1:].strip()
-            elif tag == 'webpage':
-              item.webpage = line[len(tag)+1:].strip()
-            elif tag == 'license':
-              item.license = line[len(tag)+1:].strip()
-            elif tag == 'ticket':
-              item.ticket = line[len(tag)+1:].strip()
-            elif tag == 'wiki':
-              item.wiki = line[len(tag)+1:].strip()
-            else:
-              logger.debug('Ooops - tag %s not handled?', tag)
+            content = line[len(tag)+1:].strip()
         else:             # unsupported tag, ignore
           logger.warn('unsupported JavaDoc tag "%s" in %s line %s', tag, fileName, lineNumber)
           continue
