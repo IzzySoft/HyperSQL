@@ -372,6 +372,24 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     with metaInfo.<object>list for calls to those objects. If it finds any, it
     updates <object>list where_used property accordingly.
     """
+
+    def addWhereUsed(objectInfo,fileInfo,lineNumber):
+        """
+        Add where_used info to an object (view, procedure, function, ...)
+        @param object objectInfo the view_info/function_info/... object used there
+        @param object fileInfo object of the file where the usage was found
+        @param int lineNumber file line number where the usage was found
+        """
+        if fileInfo.fileName not in objectInfo.whereUsed.keys():
+            objectInfo.whereUsed[fileInfo.fileName] = []
+            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber))
+        else:
+            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber))
+        # generate a unique number for use in making where used file if needed
+        if objectInfo.uniqueNumber == 0:
+            objectInfo.uniqueNumber = metaInfo.NextIndex()
+
+
     printProgress("Scanning source files for where views and packages are used")
     scan_instring = config.getBool('Process','whereused_scan_instring')
     if scan_instring:
@@ -504,14 +522,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     for view_info in inner_file_info.viewInfoList:
                         # perform case insensitive find
                         if fileLines[lineNumber].upper().find(view_info.name.upper()) != -1:
-                            if outer_file_info.fileName not in view_info.whereUsed.keys():
-                                view_info.whereUsed[outer_file_info.fileName] = []
-                                view_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                            else:
-                                view_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                            # generate a unique number for use in making where used file if needed
-                            if view_info.uniqueNumber == 0:
-                                view_info.uniqueNumber = metaInfo.NextIndex()
+                            addWhereUsed(view_info, outer_file_info, lineNumber)
 
 
                 # if this FileInfo instance has packages
@@ -521,41 +532,21 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                         # perform case insensitive find, this is "package name"."function or procedure name"
                         if fileLines[lineNumber].upper().find(package_info.name.upper() + ".") != -1:
 
-                            if outer_file_info.fileName not in package_info.whereUsed.keys():
-                                package_info.whereUsed[outer_file_info.fileName] = []
-                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                            else:
-                                package_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                            # generate a unique number for use in making where used file if needed
-                            if package_info.uniqueNumber == 0:
-                                package_info.uniqueNumber = metaInfo.NextIndex()
+                            addWhereUsed(package_info, outer_file_info, lineNumber)
 
                             #look for any of this packages' functions
                             for function_info in package_info.functionInfoList:
                                 # perform case insensitive find
                                 if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
                                   + function_info.name.upper()) != -1:
-                                    if outer_file_info.fileName not in function_info.whereUsed.keys():
-                                        function_info.whereUsed[outer_file_info.fileName] = []
-                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                                    else:
-                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                                    # generate a unique number for use in making where used file if needed
-                                    if function_info.uniqueNumber == 0:
-                                        function_info.uniqueNumber = metaInfo.NextIndex()
+                                    addWhereUsed(function_info, outer_file_info, lineNumber)
+
                             #look for any of this packages procedures
                             for procedure_info in package_info.procedureInfoList:
                                 # perform case insensitive find
                                 if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
                                   + procedure_info.name.upper()) != -1:
-                                    if outer_file_info.fileName not in procedure_info.whereUsed.keys():
-                                        procedure_info.whereUsed[outer_file_info.fileName] = []
-                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                                    else:
-                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                                    # generate a unique number for use in making where used file if needed
-                                    if procedure_info.uniqueNumber == 0:
-                                        procedure_info.uniqueNumber = metaInfo.NextIndex()
+                                    addWhereUsed(procedure_info, outer_file_info, lineNumber)
 
                         ### File internal references - possible calls without a package_name
                         elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber) \
@@ -575,15 +566,8 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                   or fileLines[lineNumber].upper().find(function_info.name.upper(),0,epos) == 0) \
                                  and (fileLines[lineNumber].upper().find(function_info.name.upper()+" ",0,epos) != -1 \
                                   or fileLines[lineNumber].upper().find(function_info.name.upper()+"(",0,epos) != -1):
-                                    if outer_file_info.fileName not in function_info.whereUsed.keys():
-                                        function_info.whereUsed[outer_file_info.fileName] = []
-                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                                    else:
-                                        function_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
+                                    addWhereUsed(function_info, outer_file_info, lineNumber)
 
-                                    # generate a unique number for use in making where used file if needed
-                                    if function_info.uniqueNumber == 0:
-                                        function_info.uniqueNumber = metaInfo.NextIndex()
                             #look for any of this packages procedures
                             for procedure_info in package_info.procedureInfoList:
                                 # perform case insensitive find
@@ -592,14 +576,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                   or fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) == 0) \
                                  and (fileLines[lineNumber].upper().find(procedure_info.name.upper()+" ",0,epos) != -1 \
                                   or fileLines[lineNumber].upper().find(procedure_info.name.upper()+"(",0,epos) != -1):
-                                    if outer_file_info.fileName not in procedure_info.whereUsed.keys():
-                                        procedure_info.whereUsed[outer_file_info.fileName] = []
-                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                                    else:
-                                        procedure_info.whereUsed[outer_file_info.fileName].append((outer_file_info, lineNumber))
-                                    # generate a unique number for use in making where used file if needed
-                                    if procedure_info.uniqueNumber == 0:
-                                        procedure_info.uniqueNumber = metaInfo.NextIndex()
+                                    addWhereUsed(procedure_info, outer_file_info, lineNumber)
 
 
     # print carriage return after last dot
@@ -1077,9 +1054,9 @@ def MakeElemIndex(objectType):
         # Write column 4: where_used
         if len(object_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `object_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<TD><A href=\"" + HTMLwhereusedref + "\">where used list</A></TD>\n")
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD>\n")
         else:
-            outfile.write("<TD>no use found by HyperSQL</TD>")
+            outfile.write("<TD>no use found</TD>")
         outfile.write("</TR>\n")
         i += 1
 
@@ -1131,9 +1108,9 @@ def MakeViewIndex():
 
         if len(view_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `view_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<TD><A href=\"" + HTMLwhereusedref + "\">where used list</A></TD>")
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD>")
         else:
-            outfile.write("<TD>no use found by HyperSQL</TD>")
+            outfile.write("<TD>no use found</TD>")
         outfile.write("</TR>\n")
         i += 1
 
@@ -1256,9 +1233,9 @@ def MakePackageIndex():
         outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<TD><A href=\"" + HTMLwhereusedref + "\">where used list</A></TD></TR>\n")
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD></TR>\n")
         else:
-            outfile.write("<TD>no use found by HyperSQL</TD></TR>\n")
+            outfile.write("<TD CLASS='whereused'>no use found</TD></TR>\n")
         i += 1
 
     outfile.write("</TABLE>\n")
@@ -1271,6 +1248,36 @@ def MakePackagesWithFuncsAndProcsIndex():
 
     if metaInfo.indexPage['package_full'] == '':
         return
+
+    def WriteObjectList(oTupleList, listName, objectName):
+        oTupleList.sort(TupleCompareFirstElements)
+        if len(oTupleList) != 0:
+            outfile.write("  <TR><TH class='sub' COLSPAN='3'>" + listName + "</TH></TR>\n  <TR><TD COLSPAN='3'>")
+            outfile.write("<TABLE ALIGN='center'>\n")
+            outfile.write("    <TR><TD ALIGN='center'><B>" + objectName + "</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
+        i = 0
+        for oTuple in oTupleList:
+            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
+            outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + oTuple[1].javadoc.getVisibility())
+            if HTMLjref == '':
+                outfile.write(oTuple[1].name.lower())
+            else:
+                outfile.write('<A HREF="' + HTMLjref + '">' + oTuple[1].name.lower() + '</A>')
+            if metaInfo.includeSource:
+                outfile.write(' <SUP><A HREF="' + HTMLref + '">#</A></SUP>')
+            outfile.write('</TD>\n')
+            outfile.write("<TD>" + oTuple[1].javadoc.getShortDesc() + "</TD>")
+            outfile.write("        <TD CLASS='whereused'>")
+            if len(oTuple[1].whereUsed.keys()) > 0:
+                HTMLwhereusedref = "where_used_" + `oTuple[1].uniqueNumber` + ".html"
+                outfile.write("<A href=\"" + HTMLwhereusedref + "\">where used</A>")
+            else:
+                outfile.write("no use found")
+            outfile.write("</TD></TR>\n")
+            i += 1
+        if len(oTupleList) != 0:
+            outfile.write("</TABLE></TD></TR>\n")
+	    
 
     printProgress("Creating 'package with functions and procedures' index")
 
@@ -1306,79 +1313,26 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("&nbsp;")
         else:
             outfile.write("<A HREF='" + HTMLjref + "'>ApiDoc</A>")
-        outfile.write("</TD><TD ALIGN='center' WIDTH='33.33%'>")
+        outfile.write("</TD><TD CLASS='whereused' WIDTH='33.33%'>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
             outfile.write("<A href=\"" + HTMLwhereusedref + "\">Where Used</A>")
         else:
-            outfile.write("no use found by HyperSQL")
+            outfile.write("no use found")
         outfile.write("</TD></TR>\n")
 
         # functions in this package
         functiontuplelist = []
         for function_info in package_tuple[1].functionInfoList:
             functiontuplelist.append((function_info.name.upper(), function_info, package_tuple[2])) # append as tuple for case insensitive sort
+        WriteObjectList(functiontuplelist, 'Functions', 'Function')
 
-        functiontuplelist.sort(TupleCompareFirstElements)
-        if len(functiontuplelist) != 0:
-            outfile.write("  <TR><TH class='sub' COLSPAN='3'>Functions</TH></TR>\n  <TR><TD COLSPAN='3'>")
-            outfile.write("<TABLE ALIGN='center'>\n")
-            outfile.write("    <TR><TD ALIGN='center'><B>Function</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
-        i = 0
-        for function_tuple in functiontuplelist:
-            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(function_tuple)
-            outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + function_tuple[1].javadoc.getVisibility())
-            if HTMLjref == '':
-                outfile.write(function_tuple[1].name.lower())
-            else:
-                outfile.write('<A HREF="' + HTMLjref + '">' + function_tuple[1].name.lower() + '</A>')
-            if metaInfo.includeSource:
-                outfile.write(' <SUP><A HREF="' + HTMLref + '">#</A></SUP>')
-            outfile.write('</TD>\n')
-            outfile.write("<TD>" + function_tuple[1].javadoc.getShortDesc() + "</TD>")
-            outfile.write("        <TD>")
-            if len(function_tuple[1].whereUsed.keys()) > 0:
-                HTMLwhereusedref = "where_used_" + `function_tuple[1].uniqueNumber` + ".html"
-                outfile.write("<A href=\"" + HTMLwhereusedref + "\">where used list</A>")
-            else:
-                outfile.write("no use found by HyperSQL")
-            outfile.write("</TD></TR>\n")
-            i += 1
-        if len(functiontuplelist) != 0:
-            outfile.write("</TABLE></TD></TR>\n")
-	    
         # procedures in this package
         proceduretuplelist = []
         for procedure_info in package_tuple[1].procedureInfoList:
             proceduretuplelist.append((procedure_info.name.upper(), procedure_info, package_tuple[2])) # append as tuple for case insensitive sort
+        WriteObjectList(proceduretuplelist, 'Procedures', 'Procedure')
 
-        proceduretuplelist.sort(TupleCompareFirstElements)
-        if len(proceduretuplelist) != 0:
-            outfile.write("  <TR><TH class='sub' COLSPAN='3'>Procedures</TH></TR>\n  <TR><TD COLSPAN='3'>")
-            outfile.write("<TABLE ALIGN='center'>\n")
-            outfile.write("    <TR><TD ALIGN='center'><B>Procedure</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
-        i = 0
-        for procedure_tuple in proceduretuplelist:
-            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(procedure_tuple)
-            outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + procedure_tuple[1].javadoc.getVisibility())
-            if HTMLjref == '':
-                outfile.write(procedure_tuple[1].name.lower())
-            else:
-                outfile.write('<A HREF="' + HTMLjref + '">' + procedure_tuple[1].name.lower() + '</A>')
-            if metaInfo.includeSource:
-                outfile.write(' <SUP><A HREF="' + HTMLref + '">#</A></SUP>')
-            outfile.write('</TD>\n')
-            outfile.write("<TD>" + procedure_tuple[1].javadoc.getShortDesc() + "</TD>")
-            outfile.write("        <TD>")
-            if len(procedure_tuple[1].whereUsed.keys()) > 0:
-                HTMLwhereusedref = "where_used_" + `procedure_tuple[1].uniqueNumber` + ".html"
-                outfile.write("<A href=\"" + HTMLwhereusedref + "\">where used list</A>")
-            else:
-                outfile.write("no use found by HyperSQL")
-            outfile.write("</TD></TR>\n")
-            i += 1
-        if len(proceduretuplelist) != 0:
-            outfile.write("</TABLE></TD></TR>\n")
         outfile.write("</TABLE>\n")
 
     outfile.write(MakeHTMLFooter('package_full'))

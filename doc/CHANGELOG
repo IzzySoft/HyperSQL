@@ -5,6 +5,7 @@ v2.3.0
 + where_used links and alternating row colors in file pages
 + "describing" JavaDoc elements (with just one "text" option) can now be
   used repeatedly for the same object (e.g. multiple todo items)
+* optimized where_used scan and full package list creation (less code now)
 
 v2.2.0 (17.03.2010)
 -------------------
