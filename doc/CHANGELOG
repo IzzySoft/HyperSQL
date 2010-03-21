@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v2.3.0
+v2.3.0 (21.03.2010)
 -------------------
 + where_used links and alternating row colors in file pages
 + "describing" JavaDoc elements (with just one "text" option) can now be
