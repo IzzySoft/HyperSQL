@@ -39,6 +39,7 @@ from hypercore import *
 from hyperjdoc import *
 from hypercode import *
 from hyperconf import *
+from hyperconf import _ # needs explicit call
 from hypercharts import *
 
 def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
@@ -1822,25 +1823,10 @@ if __name__ == "__main__":
     if len(confName) > 0:
       config.read(confName)
     else:
-      print 'No config file found, using defaults.'
-
-    # Setup gettext
-    langs = []
-    lc, encoding = locale.getdefaultlocale()
-    if (lc):
-        langs = [lc]
-    language = os.environ.get('LANGUAGE', None)
-    if (language):
-        langs += language.split(":")
-    langs += ['en_US', 'en_EN']
-    gettext.bindtextdomain('hypersql', scriptpath + os.sep + 'lang')
-    gettext.textdomain('hypersql')
-    lang = gettext.translation('hypersql', scriptpath + os.sep + 'lang', languages=langs, fallback=True)
-    _ = lang.gettext
-
+      print _('No config file found, using defaults.')
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.3"
+    metaInfo.versionString = "2.4"
     metaInfo.scriptName = sys.argv[0]
 
     # Initiate logging

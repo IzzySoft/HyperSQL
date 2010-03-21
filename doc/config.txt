@@ -55,7 +55,12 @@ PageNames
 ---------
 
 Here you do not call the pages names - but you can specify their description for
-the URLs, i.e. what is displayed in the Index pages navigation. The options are
+the URLs, i.e. what is displayed in the Index pages navigation. Usually, this
+part is handled by localization - so your config file should not contain this
+section: Keep in mind, the link names will no longer be translated if you define
+them here!
+
+In some cases, this might still be useful - handle it with care. The options are
 named similar to their corresponding file names options, so: 
 
  * filepath: the HTML file for the File Index With Pathnames

@@ -1,0 +1,185 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: hyperjdoc\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-03-21 14:08+0100\n"
+"PO-Revision-Date: 2010-03-21 14:09+0100\n"
+"Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: UNITED STATES\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ../../../lib\n"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:126
+msgid "Missing description"
+msgstr "Missing description"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:128
+#, python-format
+msgid "Missing mandatory tag: @%s"
+msgstr "Missing mandatory tag: @%s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:129
+#, python-format
+msgid "Missing mandatory tag \"%(tag)s\" for %(otype)s %(name)s in %(file)s line %(line)s"
+msgstr "Missing mandatory tag \"%(tag)s\" for %(otype)s %(name)s in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:132
+#, python-format
+msgid "Missing name for %(type)s parameter (#%(index)s)"
+msgstr "Missing name for %(type)s parameter (#%(index)s)"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:133
+#, python-format
+msgid "Missing name for parameter of type \"%(type)s\" for %(otype)s %(name)s in %(file)s line %(line)s"
+msgstr "Missing name for parameter of type \"%(type)s\" for %(otype)s %(name)s in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:136
+#, python-format
+msgid "Missing description for %(type)s parameter (#%(index)s)"
+msgstr "Missing description for %(type)s parameter (#%(index)s)"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:137
+#, python-format
+msgid "Missing description for parameter of type \"%(type)s\" for %(otype)s %(name)s in %(file)s line %(line)s"
+msgstr "Missing description for parameter of type \"%(type)s\" for %(otype)s %(name)s in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:139
+#, python-format
+msgid "Missing description for parameter %s"
+msgstr "Missing description for parameter %s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:140
+#, python-format
+msgid "Missing description for parameter \"%(pname)s\" for %(otype)s %(oname)s in %(file)s line %(line)s"
+msgstr "Missing description for parameter \"%(pname)s\" for %(otype)s %(oname)s in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:142
+msgid "Missing return value"
+msgstr "Missing return value"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:143
+#, python-format
+msgid "Missing return value for function %(name)s in %(file)s line %(line)s"
+msgstr "Missing return value for function %(name)s in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:156
+#, python-format
+msgid "Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s"
+msgstr "Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:157
+#, python-format
+msgid "Parameter count mismatch for %(otype)s %(name)s in %(file)s line %(line)s (%(lc)s / %(lj)s)"
+msgstr "Parameter count mismatch for %(otype)s %(name)s in %(file)s line %(line)s (%(lc)s / %(lj)s)"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:201
+#, python-format
+msgid "Unnamed object with ID %(id)s (%(file)s line %(line)s has no object type set!"
+msgstr "Unnamed object with ID %(id)s (%(file)s line %(line)s has no object type set!"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:203
+#, python-format
+msgid "No object type specified for object id %(name)s, ID %(id)s in %(file)s line %(line)s"
+msgstr "No object type specified for object id %(name)s, ID %(id)s in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:217
+msgid "Private"
+msgstr "Private"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:217
+msgid "Just used internally."
+msgstr "Just used internally."
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:218
+msgid "Syntax"
+msgstr "Syntax"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:225
+msgid "Parameters"
+msgstr "Parameters"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:233
+msgid "Return values"
+msgstr "Return values"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:241
+msgid "Example Usage"
+msgstr "Example Usage"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:245
+msgid "Author"
+msgstr "Author"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:247
+msgid "Copyright"
+msgstr "Copyright"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:249
+msgid "License"
+msgstr "License"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:251
+msgid "Webpage"
+msgstr "Webpage"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:255
+msgid "BUG"
+msgstr "BUG"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:257
+msgid "DEPRECATED"
+msgstr "DEPRECATED"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:259
+msgid "Version Info"
+msgstr "Version Info"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:261
+msgid "Additional Info"
+msgstr "Additional Info"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:263
+msgid "Ticket"
+msgstr "Ticket"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:277
+msgid "Wiki"
+msgstr "Wiki"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:287
+msgid "See also"
+msgstr "See also"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:289
+msgid "TODO"
+msgstr "TODO"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:292
+msgid "^ Top"
+msgstr "^ Top"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:657
+#, python-format
+msgid "@param requires at least one parameter, none given in %(file)s line %(line)s"
+msgstr "@param requires at least one parameter, none given in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:678
+#, python-format
+msgid "@return requires at least one parameter, none given in %(file)s line %(line)s"
+msgstr "@return requires at least one parameter, none given in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:691
+#, python-format
+msgid "@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s"
+msgstr "@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s"
+
+#: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:694
+#, python-format
+msgid "unsupported JavaDoc tag \"%(tag)s\" in %(file)s line %(line)s"
+msgstr "unsupported JavaDoc tag \"%(tag)s\" in %(file)s line %(line)s"
+

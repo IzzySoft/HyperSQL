@@ -5,6 +5,27 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
 from IniParser import IniParser
+from locale import getdefaultlocale
+from os import environ, path as ospath, sep as ossep
+from sys import argv as sysargv
+import gettext
+
+# Setup gettext
+langs = []
+lc, encoding = getdefaultlocale()
+if (lc):
+    langs = [lc]
+language = environ.get('LANGUAGE', None)
+if (language):
+    langs += language.split(":")
+langs += ['en_US', 'en_EN']
+langpath = ospath.split(sysargv[0])[0] + ossep + 'lang'
+gettext.bindtextdomain('hypersql', langpath)
+gettext.textdomain('hypersql')
+lang = gettext.translation('hypersql', langpath, languages=langs, fallback=True)
+_ = lang.gettext
+
+
 
 class HyperConf(IniParser):
     """
@@ -66,17 +87,17 @@ class HyperConf(IniParser):
         )
         # Section PAGENAMES
         pagenames = dict (
-            file = 'File Name Index',
-            filepath = 'File Names by Path Index',
-            view = 'View Index',
-            package = 'Package Index',
-            package_full = 'Full Package Listing',
-            function = 'Function Index',
-            procedure = 'Procedure Index',
-            bug = 'Bug List',
-            todo = 'Todo List',
-            report = 'Validation Report',
-            stat = 'Code Statistics'
+            file = _('File Name Index'),
+            filepath = _('File Names by Path Index'),
+            view = _('View Index'),
+            package = _('Package Index'),
+            package_full = _('Full Package Listing'),
+            function = _('Function Index'),
+            procedure = _('Procedure Index'),
+            bug = _('Bug List'),
+            todo = _('Todo List'),
+            report = _('Validation Report'),
+            stat = _('Code Statistics')
         )
         # Section PAGES
         pages = dict (
