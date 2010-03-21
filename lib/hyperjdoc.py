@@ -12,11 +12,11 @@ logger = logging.getLogger('main.jdoc')
 langs = []
 lc, encoding = locale.getdefaultlocale()
 if (lc):
-    langs = [lc]
+    langs = [lc,lc[:2]]
 language = os.environ.get('LANGUAGE', None)
 if (language):
     langs += language.split(":")
-langs += ['en_US', 'en_EN']
+langs += ['en_US']
 langpath = os.path.split(pargs[0])[0] + os.sep + 'lang'
 gettext.bindtextdomain('hyperjdoc', langpath)
 gettext.textdomain('hyperjdoc')

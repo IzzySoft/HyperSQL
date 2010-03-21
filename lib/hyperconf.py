@@ -14,11 +14,11 @@ import gettext
 langs = []
 lc, encoding = getdefaultlocale()
 if (lc):
-    langs = [lc]
+    langs = [lc,lc[:2]]
 language = environ.get('LANGUAGE', None)
 if (language):
     langs += language.split(":")
-langs += ['en_US', 'en_EN']
+langs += ['en_US']
 langpath = ospath.split(sysargv[0])[0] + ossep + 'lang'
 gettext.bindtextdomain('hypersql', langpath)
 gettext.textdomain('hypersql')
