@@ -226,7 +226,7 @@ class JavaDoc:
         if len(self.author) > 0:
           html += '<DT>Author:</DT><DD>' + listItemHtml(self.author) + '</DD>'
         if len(self.copyright) > 0:
-          html += '<DT>Copyright:</DT><DD>' + listItemHtml(self.copyright[i]) + '</DD>'
+          html += '<DT>Copyright:</DT><DD>' + listItemHtml(self.copyright) + '</DD>'
         if len(self.license) > 0:
           html += '<DT>License:</DT><DD>' + listItemHtml(self.license) + '</DD>'
         if len(self.webpage) > 0:
