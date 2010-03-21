@@ -30,7 +30,7 @@
 """
 
 # first import standard modules we use
-import os, sys, string, time, ConfigParser, fileinput, logging, re
+import os, sys, string, time, ConfigParser, fileinput, logging, re, gettext, locale
 from shutil import copy2
 
 # now import our own modules
@@ -51,7 +51,7 @@ def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     @param list fileInfoList where to store results
     """
     if init: # do not print this on recursive calls
-        printProgress("Creating file list")
+        printProgress(_("Creating file list"))
 
     # get a list of this directory's contents
     # these items are relative and not absolute
@@ -99,7 +99,7 @@ def ScanFilesForViewsAndPackages():
     and children) - for functions and procedures contained in packages, a link
     to their parent is stored along.
     """
-    printProgress("Scanning source files for views and packages")
+    printProgress(_("Scanning source files for views and packages"))
 
     fileInfoList = metaInfo.fileInfoList
     strpatt = re.compile("('[^']*')+")    # String-Regexp
@@ -233,7 +233,7 @@ def ScanFilesForViewsAndPackages():
                         mands = view_info.javadoc.verify_mandatory()
                         #for mand in mands: Need to setup report here as well! ###TODO###
                         if JavaDocVars['javadoc_mandatory'] and view_info.javadoc.isDefault():
-                            logger.warn('View %s has no JavaDoc information attached', view_info.name)
+                            logger.warn(_('View %s has no JavaDoc information attached'), view_info.name)
                             #view_info.verification.addItem(view_info.name,'No JavaDoc information available')
                         file_info.viewInfoList.append(view_info)
 
@@ -265,7 +265,7 @@ def ScanFilesForViewsAndPackages():
                     for mand in mands:
                         package_info.verification.addItem(mname,mand)
                     if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault():
-                        logger.warn('Package %s has no JavaDoc information attached', mname)
+                        logger.warn(_('Package %s has no JavaDoc information attached'), mname)
                         package_info.verification.addItem(mname,'No JavaDoc information available')
                     file_info.packageInfoList.append(package_info) # permanent storage
                     package_count += 1 # use this flag below
@@ -300,8 +300,8 @@ def ScanFilesForViewsAndPackages():
                     for mand in mands:
                         file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
                     if JavaDocVars['javadoc_mandatory'] and function_info.javadoc.isDefault():
-                        logger.warn('Function %s in package %s has no JavaDoc information attached', mname, file_info.packageInfoList[package_count].name)
-                        file_info.packageInfoList[package_count].verification.addFunc(mname,'No JavaDoc information available')
+                        logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
+                        file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'))
                     if JavaDocVars['verification']:
                         fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
                         cparms = re.findall(fupatt,filetext)
@@ -311,7 +311,7 @@ def ScanFilesForViewsAndPackages():
                             cparms = cparms[0].split(',')
                             mands = function_info.javadoc.verify_params(cparms)
                         else:
-                            logger.debug('Multiple definitions for function %s.%s, parameters not verified', mname, file_info.packageInfoList[package_count].name)
+                            logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'package': file_info.packageInfoList[package_count].name, 'function': mname})
                         if len(cparms)<2:
                             for mand in mands:
                                 file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
@@ -345,8 +345,8 @@ def ScanFilesForViewsAndPackages():
                     for mand in mands:
                         file_info.packageInfoList[package_count].verification.addProc(mname,mand)
                     if JavaDocVars['javadoc_mandatory'] and procedure_info.javadoc.isDefault():
-                        logger.warn('Procedure %s in package %s has no JavaDoc information attached', mname, file_info.packageInfoList[package_count].name)
-                        file_info.packageInfoList[package_count].verification.addProc(mname,'No JavaDoc information available')
+                        logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
+                        file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'))
                     if JavaDocVars['verification']:
                         fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
                         cparms = re.findall(fupatt,filetext)
@@ -356,7 +356,7 @@ def ScanFilesForViewsAndPackages():
                             cparms = cparms[0].split(',')
                             mands = procedure_info.javadoc.verify_params(cparms)
                         else:
-                            logger.debug('Multiple definitions for function %s.%s, parameters not verified', mname, file_info.packageInfoList[package_count].name)
+                            logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
                         if len(cparms)<2:
                             for mand in mands:
                                 file_info.packageInfoList[package_count].verification.addProc(mname,mand)
@@ -390,12 +390,12 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             objectInfo.uniqueNumber = metaInfo.NextIndex()
 
 
-    printProgress("Scanning source files for where views and packages are used")
+    printProgress(_("Scanning source files for where views and packages are used"))
     scan_instring = config.getBool('Process','whereused_scan_instring')
     if scan_instring:
-        logger.info('Including strings in where_used scan')
+        logger.info(_('Including strings in where_used scan'))
     else:
-        logger.info('Excluding strings from where_used scan')
+        logger.info(_('Excluding strings from where_used scan'))
         strpatt = re.compile("('[^']*')+")    # String-Regexp
 
     fileInfoList = metaInfo.fileInfoList
@@ -603,9 +603,9 @@ def MakeNavBar(current_page):
         if itemCount %4 == 0:
             s += '    <BR>\n'
     if current_page == 'Index':
-        s += '    <B><I>Main Index</I></B>\n'
+        s += '    <B><I>'+_('Main Index')+'</I></B>\n'
     else:
-        s += '    <A href="index.html">Main Index</A>\n'
+        s += '    <A href="index.html">'+_('Main Index')+'</A>\n'
     s += "  </TD><TD CLASS='title'>\n"
     s += '    ' + metaInfo.title_prefix + '\n'
     s += '  </TD>\n'
@@ -663,7 +663,7 @@ def MakeHTMLFooter(title_name):
 
 def CreateHTMLDirectory():
     """Creates the html (output) directory if needed"""
-    printProgress("Creating html subdirectory")
+    printProgress(_("Creating html subdirectory"))
     splitted = metaInfo.htmlDir.split(os.sep)
     temp = ""
     for path_element in splitted: # loop through path components, making directories as needed
@@ -710,7 +710,7 @@ def MakeStatsPage():
     if metaInfo.indexPage['stat'] == '': # statistics disabled
         return
 
-    printProgress('Creating statistics page')
+    printProgress(_('Creating statistics page'))
 
     outfile = open(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w')
     outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
@@ -725,8 +725,8 @@ def MakeStatsPage():
 
     # LinesOfCode
     outfile.write("<TABLE CLASS='apilist stat'>\n")
-    outfile.write('  <TR><TH COLSPAN="4">Lines of Code</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Lines</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="6" WIDTH="220px"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH COLSPAN="4">'+_('Lines of Code')+'</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Lines')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="6" WIDTH="220px"><DIV CLASS="pie_chart">\n')
 
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
@@ -748,16 +748,16 @@ def MakeStatsPage():
     barposy = pieposy - 2*pie_rad/3
     bar = ChartLegend('L',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
     # bar.addBar(text[,tooltip])
-    bar.addBar('Code','Plain Code')
-    bar.addBar('Comment','Plain Comments')
-    bar.addBar('Empty','Empty Lines')
-    bar.addBar('Mixed','Lines with Code and Comments')
+    bar.addBar(_('Code'),_('Plain Code'))
+    bar.addBar(_('Comment'),_('Plain Comments'))
+    bar.addBar(_('Empty'),_('Empty Lines'))
+    bar.addBar(_('Mixed'),_('Lines with Code and Comments'))
     js += bar.generate()
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
     for name in ['totals','code','comment','empty','mixed']:
-        outfile.write('  <TR><TH CLASS="sub">' + name.capitalize() \
+        outfile.write('  <TR><TH CLASS="sub">' + _(name.capitalize()) \
             + '</TH><TD ALIGN="right">' + num_format(metaInfo.getLoc(name)) \
             + '</TD><TD ALIGN="right">' + num_format(metaInfo.getLocPct(name),2) + '%' \
             + '</TD></TR>\n')
@@ -776,8 +776,8 @@ def MakeStatsPage():
             procs += len(package_info.procedureInfoList)
     totalObj = views + funcs + procs
     outfile.write("<TABLE CLASS='apilist stat'>\n")
-    outfile.write('  <TR><TH COLSPAN="4">Object Statistics</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH COLSPAN="4">'+_('Object Statistics')+'</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     pie = PieChart('O',pieposx,pieposy,pie_offset,pie_rad,colors)
     pie.addPiece((float(views)/totalObj) * 100)
@@ -785,22 +785,22 @@ def MakeStatsPage():
     pie.addPiece((float(procs)/totalObj) * 100)
     js += pie.generate();
     bar = ChartLegend('O',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
-    bar.addBar('Views')
-    bar.addBar('Functions')
-    bar.addBar('Procedures')
+    bar.addBar(_('Views'))
+    bar.addBar(_('Functions'))
+    bar.addBar(_('Procedures'))
     js += bar.generate()
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Views</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+num_format((float(views)/totalObj) * 100, 2)+'%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Functions</TH><TD ALIGN="right">'+num_format(funcs)+'</TD><TD ALIGN="right">'+num_format((float(funcs)/totalObj) * 100, 2)+'%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Procedures</TH><TD ALIGN="right">'+num_format(procs)+'</TD><TD ALIGN="right">'+num_format((float(procs)/totalObj) * 100, 2)+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Views')+'</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+num_format((float(views)/totalObj) * 100, 2)+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Functions')+'</TH><TD ALIGN="right">'+num_format(funcs)+'</TD><TD ALIGN="right">'+num_format((float(funcs)/totalObj) * 100, 2)+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Procedures')+'</TH><TD ALIGN="right">'+num_format(procs)+'</TD><TD ALIGN="right">'+num_format((float(procs)/totalObj) * 100, 2)+'%</TD></TR>\n')
     outfile.write("</TABLE>\n")
 
     # FileStats
     outfile.write("<TABLE CLASS='apilist stat'>\n")
-    outfile.write('  <TR><TH COLSPAN="4">File Statistics</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH COLSPAN="4">'+_('File Statistics')+'</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" WIDTH="220px"><DIV CLASS="pie_chart">\n')
     totalFiles = metaInfo.getFileStat('files')
     # Lines
     stat = metaInfo.getFileLineStat([400,1000])
@@ -816,16 +816,16 @@ def MakeStatsPage():
     js += pie.generate();
     barposy -= pie_offset
     bar = ChartLegend('FL',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
-    bar.addBar('&lt; 400','less than 400 lines')
-    bar.addBar('&lt; '+num_format(1000,0),'400 to '+num_format(1000,0)+' lines')
-    bar.addBar('&gt; '+num_format(1000,0),num_format(1000,0)+' lines and more')
+    bar.addBar('&lt; 400',_('less than %s lines') % '400')
+    bar.addBar('&lt; '+num_format(1000,0),_('%(from)s to %(to)s'' lines') % {'from': '400', 'to': num_format(1000,0)})
+    bar.addBar('&gt; '+num_format(1000,0),_('%s lines and more') % num_format(1000,0))
     js += bar.generate()
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Total Files</TH><TD ALIGN="right">' + num_format(totalFiles) \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Total Files')+'</TH><TD ALIGN="right">' + num_format(totalFiles) \
         + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Avg Lines</TH><TD ALIGN="right">' + num_format(metaInfo.getFileStat('avg lines')) \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Avg Lines')+'</TH><TD ALIGN="right">' + num_format(metaInfo.getFileStat('avg lines')) \
         + '</TD><TD>&nbsp;</TD></TR>\n')
     havestat = 0
     for limit in limits:
@@ -835,16 +835,16 @@ def MakeStatsPage():
             + '<TD ALIGN="right">' + num_format((float(stat[limit])/totalFiles)*100, 2) + '%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">&gt; '+num_format(1000)+'</TH><TD ALIGN="right">' + num_format(totalFiles - havestat) \
         + '</TD><TD ALIGN="right">' + num_format((float(totalFiles - havestat)/totalFiles)*100, 2) + '%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Shortest</TH><TD ALIGN="right">' \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Shortest')+'</TH><TD ALIGN="right">' \
         + num_format(metaInfo.getFileStat('min lines')) + '</TD><TD>&nbsp;</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Longest</TH><TD ALIGN="right">' \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Longest')+'</TH><TD ALIGN="right">' \
         + num_format(metaInfo.getFileStat('max lines')) + '</TD><TD>&nbsp;</TD></TR>\n')
     outfile.write('  <TR><TH COLSPAN="4" CLASS="sub delim">&nbsp;</TH></TR>\n')
     # Sizes
     stat = metaInfo.getFileSizeStat([10240,25*1024,50*1024,102400])
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
     limits.sort()
-    outfile.write('  <TR><TH CLASS="sub">Total Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Total Bytes')+'</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
         + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD><TD COLSPAN="9" WIDTH="220px"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     pieposy = pie_rad + pie_offset + bar_hei
@@ -860,14 +860,14 @@ def MakeStatsPage():
     bar = ChartLegend('FS',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
     oldlim = '0K'
     for limit in limits:
-        bar.addBar('&lt; '+size_format(limit,0),'Files between '+oldlim+' and '+size_format(limit,0))
+        bar.addBar('&lt; '+size_format(limit,0),_('Files between %(from)s and %(to)s') % {'from': oldlim, 'to': size_format(limit,0)})
         oldlim = size_format(limit,0)
-    bar.addBar('&gt; '+size_format(102400,0),'Files larger than '+size_format(102400,0))
+    bar.addBar('&gt; '+size_format(102400,0),_('Files larger than %s') % size_format(102400,0))
     js += bar.generate()
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Avg Bytes</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('avg bytes')) \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Avg Bytes')+'</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('avg bytes')) \
         + '</TD><TD>&nbsp;</TD></TR>\n')
     havestat = 0
     for limit in limits:
@@ -877,9 +877,9 @@ def MakeStatsPage():
             + '<TD ALIGN="right">' + num_format((float(stat[limit])/totalFiles)*100, 2) + '%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">&gt; '+size_format(102400,0)+'</TH><TD ALIGN="right">' + num_format(totalFiles - havestat) \
         + '</TD><TD ALIGN="right">' + num_format((float(totalFiles - havestat)/totalFiles)*100, 2) + '%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Smallest</TH><TD ALIGN="right">' \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Smallest')+'</TH><TD ALIGN="right">' \
         + size_format(metaInfo.getFileStat('min bytes')) + '</TD><TD>&nbsp;</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Largest</TH><TD ALIGN="right">' \
+    outfile.write('  <TR><TH CLASS="sub">'+_('Largest')+'</TH><TD ALIGN="right">' \
         + size_format(metaInfo.getFileStat('max bytes')) + '</TD><TD>&nbsp;</TD></TR>\n')
     outfile.write("</TABLE>\n")
 
@@ -896,8 +896,8 @@ def MakeStatsPage():
         #    jwarns += view_info.verification.taskCount() + view_info.verification.funcCount() + view_info.verification.procCount()
     totalObj = jwarns + jbugs + jtodo
     outfile.write("<TABLE CLASS='apilist stat'>\n")
-    outfile.write('  <TR><TH COLSPAN="4">JavaDoc Statistics</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">Name</TH><TH CLASS="sub">Value</TH><TH CLASS="sub">Pct</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH COLSPAN="4">'+_('JavaDoc Statistics')+'</TH></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     pieposy = 0
     pie = PieChart('J',pieposx,pieposy,pie_offset,pie_rad,colors)
@@ -909,16 +909,16 @@ def MakeStatsPage():
     js += pie.generate();
     barposy = pieposy - 2*pie_rad/3 - pie_offset
     bar = ChartLegend('J',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
-    bar.addBar('Warnings','JavaDoc validation warnings')
-    bar.addBar('Bugs','Known Bugs (from your @bug tags)')
-    bar.addBar('Todos','Todo items (from your @todo tags)')
+    bar.addBar(_('Warnings'),_('JavaDoc validation warnings'))
+    bar.addBar(_('Bugs'),_('Known Bugs (from your @bug tags)'))
+    bar.addBar(_('Todos'),_('Todo items (from your @todo tags)'))
     js += bar.generate()
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">JavaDoc Warnings</TH><TD ALIGN="right">'+num_format(jwarns)+'</TD><TD ALIGN="right">'+num_format((float(jwarns)/totalObj) * 100, 2)+'%</TD></TR>')
-    outfile.write('  <TR><TH CLASS="sub">Known Bugs</TH><TD ALIGN="right">'+num_format(jbugs)+'</TD><TD ALIGN="right">'+num_format((float(jbugs)/totalObj) * 100, 2)+'%</TD></TR>')
-    outfile.write('  <TR><TH CLASS="sub">Todo Items</TH><TD ALIGN="right">'+num_format(jtodo)+'</TD><TD ALIGN="right">'+num_format((float(jtodo)/totalObj) * 100, 2)+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">'+_('JavaDoc Warnings')+'</TH><TD ALIGN="right">'+num_format(jwarns)+'</TD><TD ALIGN="right">'+num_format((float(jwarns)/totalObj) * 100, 2)+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Known Bugs')+'</TH><TD ALIGN="right">'+num_format(jbugs)+'</TD><TD ALIGN="right">'+num_format((float(jbugs)/totalObj) * 100, 2)+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Todo Items')+'</TH><TD ALIGN="right">'+num_format(jtodo)+'</TD><TD ALIGN="right">'+num_format((float(jtodo)/totalObj) * 100, 2)+'%</TD></TR>')
     outfile.write("</TABLE>\n")
 
     outfile.write(MakeHTMLFooter('stat'))
@@ -938,11 +938,11 @@ def MakeFileIndex(objectType):
         return
 
     if objectType == 'file':
-        printProgress("Creating filename no path index")
-        html_title = 'Index Of All Files By File Name'
+        printProgress(_("Creating filename no path index"))
+        html_title = _('Index Of All Files By File Name')
     else:
-        printProgress("Creating filename by path index")
-        html_title = 'Index Of All Files By Path Name'
+        printProgress(_("Creating filename by path index"))
+        html_title = _('Index Of All Files By Path Name')
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -992,7 +992,7 @@ def MakeElemIndex(objectType):
     if metaInfo.indexPage[objectType] == '':       # index for this objectType is turned off
         return
 
-    printProgress('Creating '+objectType+' index')
+    printProgress(_('Creating %s index') % _(objectType))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1003,11 +1003,11 @@ def MakeElemIndex(objectType):
         if file_info.fileType != "sql": # skip all non-sql files
             continue
         if objectType == 'function':
-            html_title   = 'Index Of All Functions'
-            object_name  = 'Function'
+            html_title   = _('Index Of All Functions')
+            object_name  = _('Function')
         else:
-            html_title   = 'Index Of All Procedures'
-            object_name  = 'Procedure'
+            html_title   = _('Index Of All Procedures')
+            object_name  = _('Procedure')
         for package_info in file_info.packageInfoList:
             if objectType == 'function':
                 elemInfoList = package_info.functionInfoList
@@ -1021,7 +1021,7 @@ def MakeElemIndex(objectType):
     outfile.write(MakeHTMLHeader(objectType))
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
-    outfile.write("  <TR><TH>"+object_name+"</TH><TH>from Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
+    outfile.write("  <TR><TH>"+_(object_name)+"</TH><TH>"+_('from Package')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Used')+"</TH></TR>\n")
     i = 0
 
     for object_tuple in objectTupleList: # list of tuples describing every object
@@ -1054,9 +1054,9 @@ def MakeElemIndex(objectType):
         # Write column 4: where_used
         if len(object_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `object_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD>\n")
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A></TD>\n")
         else:
-            outfile.write("<TD>no use found</TD>")
+            outfile.write("<TD>"+_('no use found')+"</TD>")
         outfile.write("</TR>\n")
         i += 1
 
@@ -1071,7 +1071,7 @@ def MakeViewIndex():
     if metaInfo.indexPage['view'] == '':
         return
 
-    printProgress("Creating view index")
+    printProgress(_("Creating view index"))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1089,9 +1089,9 @@ def MakeViewIndex():
 
     outfile = open(html_dir + outfilename, "w")
     outfile.write(MakeHTMLHeader('view'))
-    outfile.write("<H1>Index Of All Views</H1>\n")
+    outfile.write("<H1>"+_('Index Of All Views')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
-    outfile.write("  <TR><TH>View</TH><TH>Details</TH><TH>Used</TH></TR>\n")
+    outfile.write("  <TR><TH>"+_('View')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Used')+"</TH></TR>\n")
     i = 0
 
     for view_tuple in viewtuplelist: # list of tuples describing every view
@@ -1108,9 +1108,9 @@ def MakeViewIndex():
 
         if len(view_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `view_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD>")
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A></TD>")
         else:
-            outfile.write("<TD>no use found</TD>")
+            outfile.write("<TD>"+_('no use found')+"</TD>")
         outfile.write("</TR>\n")
         i += 1
 
@@ -1131,7 +1131,7 @@ def MakeTaskList(taskType):
     if metaInfo.indexPage[taskType] == '':
         return
 
-    printProgress("Creating "+taskType+" list")
+    printProgress(_("Creating %s list") % _(taskType))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1150,11 +1150,11 @@ def MakeTaskList(taskType):
     outfile = open(html_dir + outfilename, "w")
     outfile.write(MakeHTMLHeader(taskType))
     if taskType == 'bug':
-        outfile.write("<H1>List of open Bugs</H1>\n")
+        outfile.write("<H1>"+_('List of open Bugs')+"</H1>\n")
     elif taskType == 'todo':
-        outfile.write("<H1>List of things ToDo</H1>\n")
+        outfile.write("<H1>"+_('List of things ToDo')+"</H1>\n")
     else:
-        outfile.write("<H1>JavaDoc Validation Report</H1>\n")
+        outfile.write("<H1>"+_('JavaDoc Validation Report')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
 
     # Walk the packages
@@ -1173,15 +1173,15 @@ def MakeTaskList(taskType):
             outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
         outfile.write("</TH></TR>\n");
         if task.taskCount() > 0:
-            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Package General</I></B></TD></TR>\n")
+            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>"+_('Package General')+"</I></B></TD></TR>\n")
             outfile.write("  <TR><TD COLSPAN='2'>" + task.getHtml() + "</TD></TR>\n")
         if task.funcCount() > 0:
-            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Functions</I></B></TD></TR>\n")
+            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>"+_('Functions')+"</I></B></TD></TR>\n")
             outfile.write( task.getFuncHtml() )
         if task.procCount() > 0:
-            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>Procedures</I></B></TD></TR>\n")
+            outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>"+_('Procedures')+"</I></B></TD></TR>\n")
             outfile.write( task.getProcHtml() )
-        outfile.write("  <TR><TD COLSPAN='2'><DIV CLASS='toppagelink'><A HREF='#topOfPage'>^ Top</A></DIV></TD></TR>\n")
+        outfile.write("  <TR><TD COLSPAN='2'><DIV CLASS='toppagelink'><A HREF='#topOfPage'>"+_('^ Top')+"</A></DIV></TD></TR>\n")
 
     outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter(taskType))
@@ -1194,7 +1194,7 @@ def MakePackageIndex():
     if metaInfo.indexPage['package'] == '':
         return
 
-    printProgress("Creating package index")
+    printProgress(_("Creating package index"))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1212,9 +1212,9 @@ def MakePackageIndex():
 
     outfile = open(html_dir + outfilename, "w")
     outfile.write(MakeHTMLHeader('package'))
-    outfile.write("<H1>Index Of All Packages</H1>\n")
+    outfile.write("<H1>"+_('Index Of All Packages')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
-    outfile.write("  <TR><TH>Package</TH><TH>Details</TH><TH>Used</TH></TR>\n")
+    outfile.write("  <TR><TH>"+_('Package')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Used')+"</TH></TR>\n")
     i = 0
 
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
@@ -1233,9 +1233,9 @@ def MakePackageIndex():
         outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD></TR>\n")
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A></TD></TR>\n")
         else:
-            outfile.write("<TD CLASS='whereused'>no use found</TD></TR>\n")
+            outfile.write("<TD CLASS='whereused'>"+_('no use found')+"</TD></TR>\n")
         i += 1
 
     outfile.write("</TABLE>\n")
@@ -1270,16 +1270,16 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("        <TD CLASS='whereused'>")
             if len(oTuple[1].whereUsed.keys()) > 0:
                 HTMLwhereusedref = "where_used_" + `oTuple[1].uniqueNumber` + ".html"
-                outfile.write("<A href=\"" + HTMLwhereusedref + "\">where used</A>")
+                outfile.write("<A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A>")
             else:
-                outfile.write("no use found")
+                outfile.write(_("no use found"))
             outfile.write("</TD></TR>\n")
             i += 1
         if len(oTupleList) != 0:
             outfile.write("</TABLE></TD></TR>\n")
 	    
 
-    printProgress("Creating 'package with functions and procedures' index")
+    printProgress(_("Creating 'package with functions and procedures' index"))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1297,7 +1297,7 @@ def MakePackagesWithFuncsAndProcsIndex():
 
     outfile = open(html_dir + outfilename, "w")
     outfile.write(MakeHTMLHeader('package_full'))
-    outfile.write("<H1>Index Of All Packages, Their Functions And Procedures</H1>\n")
+    outfile.write("<H1>"+_('Index Of All Packages, Their Functions And Procedures')+"</H1>\n")
 
     for package_tuple in packagetuplelist:
         # file name and line number as an HTML reference
@@ -1305,33 +1305,33 @@ def MakePackagesWithFuncsAndProcsIndex():
         outfile.write("<TABLE CLASS='apilist' WIDTH='98%'>\n  <TR><TH COLSPAN='3'>" + package_tuple[1].name.lower() + "</TH></TR>\n")
         outfile.write("  <TR><TD ALIGN='center' WIDTH='33.33%'>")
         if metaInfo.includeSource:
-            outfile.write("<A href=\"" + HTMLref + "\">Code</A>")
+            outfile.write("<A href=\"" + HTMLref + "\">"+_('Code')+"</A>")
         else:
             outfile.write("&nbsp;")
         outfile.write("</TD><TD ALIGN='center' WIDTH='33.34%'>")
         if HTMLjref == '':
             outfile.write("&nbsp;")
         else:
-            outfile.write("<A HREF='" + HTMLjref + "'>ApiDoc</A>")
+            outfile.write("<A HREF='" + HTMLjref + "'>"+_('ApiDoc')+"</A>")
         outfile.write("</TD><TD CLASS='whereused' WIDTH='33.33%'>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<A href=\"" + HTMLwhereusedref + "\">Where Used</A>")
+            outfile.write("<A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A>")
         else:
-            outfile.write("no use found")
+            outfile.write(_("no use found"))
         outfile.write("</TD></TR>\n")
 
         # functions in this package
         functiontuplelist = []
         for function_info in package_tuple[1].functionInfoList:
             functiontuplelist.append((function_info.name.upper(), function_info, package_tuple[2])) # append as tuple for case insensitive sort
-        WriteObjectList(functiontuplelist, 'Functions', 'Function')
+        WriteObjectList(functiontuplelist, _('Functions'), _('Function'))
 
         # procedures in this package
         proceduretuplelist = []
         for procedure_info in package_tuple[1].procedureInfoList:
             proceduretuplelist.append((procedure_info.name.upper(), procedure_info, package_tuple[2])) # append as tuple for case insensitive sort
-        WriteObjectList(proceduretuplelist, 'Procedures', 'Procedure')
+        WriteObjectList(proceduretuplelist, _('Procedures'), _('Procedure'))
 
         outfile.write("</TABLE>\n")
 
@@ -1371,13 +1371,13 @@ def CreateHyperlinkedSourceFilePages():
         outfile.write(')</DIV></TD><TD>'+idesc+'</TD>')
         if len(item.whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `item.uniqueNumber` + ".html"
-            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">where used</A></TD>")
+            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A></TD>")
         else:
-            outfile.write("<TD CLASS='whereused'>no use found</TD>")
+            outfile.write("<TD CLASS='whereused'>"+_('no use found')+"</TD>")
         outfile.write('</TR>\n')
 
 
-    printProgress("Creating hyperlinked source file pages")
+    printProgress(_("Creating hyperlinked source file pages"))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1427,7 +1427,7 @@ def CreateHyperlinkedSourceFilePages():
         # Do we have packages in this file?
         packagedetails = '\n\n'
         if len(file_info.packageInfoList) > 0:
-            outfile.write('<H2 CLASS="api">Package Overview</H2>\n')
+            outfile.write('<H2 CLASS="api">'+_('Package Overview')+'</H2>\n')
             outfile.write('<TABLE CLASS="apilist">\n')
             for p in range(len(file_info.packageInfoList)):
                 jdoc = file_info.packageInfoList[p].javadoc
@@ -1437,8 +1437,8 @@ def CreateHyperlinkedSourceFilePages():
                 outfile.write('</TD></TR>\n')
                 # Check the packages for functions
                 if len(file_info.packageInfoList[p].functionInfoList) > 0:
-                    packagedetails += '<A NAME="funcs"></A><H2>Functions</H2>\n';
-                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">Functions</TH></TR>\n')
+                    packagedetails += '<A NAME="funcs"></A><H2>'+_('Functions')+'</H2>\n';
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">'+_('Functions')+'</TH></TR>\n')
                     i = 0
                     for item in file_info.packageInfoList[p].functionInfoList:
                         ObjectDetailsListItem(item,i)
@@ -1446,8 +1446,8 @@ def CreateHyperlinkedSourceFilePages():
                         i += 1
                 # Check the packages for procedures
                 if len(file_info.packageInfoList[p].procedureInfoList) > 0:
-                    packagedetails += '<A NAME="procs"></A><H2>Procedures</H2>\n';
-                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">Procedures</TH></TR>\n')
+                    packagedetails += '<A NAME="procs"></A><H2>'+_('Procedures')+'</H2>\n';
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">'+_('Procedures')+'</TH></TR>\n')
                     i = 0
                     for item in file_info.packageInfoList[p].procedureInfoList:
                         ObjectDetailsListItem(item,i)
@@ -1461,11 +1461,11 @@ def CreateHyperlinkedSourceFilePages():
 
         # include the source itself
         if metaInfo.includeSource:
-            outfile.write('\n<H2>Source</H2>\n')
+            outfile.write('\n<H2>'+_('Source')+'</H2>\n')
             outfile.write('<code><pre>')
             outfile.write( hypercode(infile_line_list, sqlkeywords, sqltypes) )
             outfile.write("</pre></code>\n")
-            outfile.write('<DIV CLASS="toppagelink"><A HREF="#topOfPage">^ Top</A></DIV><BR>\n')
+            outfile.write('<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV><BR>\n')
             outfile.write(MakeHTMLFooter(file_info.fileName[len(top_level_directory)+1:]))
 
         outfile.close()
@@ -1476,7 +1476,7 @@ def CreateHyperlinkedSourceFilePages():
 
 def CreateIndexPage():
     """Generates the main index page"""
-    printProgress("Creating site index page")
+    printProgress(_("Creating site index page"))
 
     html_dir = metaInfo.htmlDir
     script_name = metaInfo.scriptName
@@ -1488,7 +1488,7 @@ def CreateIndexPage():
     if os.path.exists(metaInfo.css_file):
       copy2(metaInfo.css_file,html_dir + os.path.split(metaInfo.css_file)[1])
 
-    outfile.write("<H1 STYLE='margin-top:100px'>" + metaInfo.title_prefix + " HyperSQL Reference</H1>\n")
+    outfile.write("<H1 STYLE='margin-top:100px'>" + metaInfo.title_prefix + " "+_('HyperSQL Reference')+"</H1>\n")
 
     outfile.write("<BR><BR>\n")
     outfile.write("<TABLE ID='projectinfo' ALIGN='center'><TR><TD VALIGN='middle' ALIGN='center'>\n")
@@ -1506,7 +1506,7 @@ def CreateIndexPage():
 
 def CreateWhereUsedPages():
     """Generate a where-used-page for each object"""
-    printProgress("Creating 'where used' pages")
+    printProgress(_("Creating 'where used' pages"))
 
     html_dir = metaInfo.htmlDir
     fileInfoList = metaInfo.fileInfoList
@@ -1535,9 +1535,9 @@ def CreateWhereUsedPages():
             
             # write our header
             outfile.write(MakeHTMLHeader('Index'))
-            outfile.write("<H1>" + view_info.name + " Where Used List</H1>\n")
+            outfile.write("<H1>" + view_info.name + " "+_('Where Used List')+"</H1>\n")
             outfile.write("<TABLE CLASS='apilist'>\n")
-            outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
+            outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
 
             # each where used
             where_used_keys = view_info.whereUsed.keys()
@@ -1560,7 +1560,7 @@ def CreateWhereUsedPages():
 
             # footer and close
             outfile.write("</TABLE>")
-            outfile.write(MakeHTMLFooter(view_info.name + " Where Used List"))
+            outfile.write(MakeHTMLFooter(view_info.name + " "+_('Where Used List')))
             outfile.close()
 
         for package_info in file_info.packageInfoList:
@@ -1572,10 +1572,10 @@ def CreateWhereUsedPages():
                 outfile = open(html_dir + whereusedfilename, "w")
             
                 # write our header
-                outfile.write(MakeHTMLHeader(package_info.name + " Where Used List"))
+                outfile.write(MakeHTMLHeader(package_info.name + " "+_("Where Used List")))
                 outfile.write("<H1>" + package_info.name + " Where Used List</H1>\n")
                 outfile.write("<TABLE CLASS='apilist'>\n")
-                outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
+                outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
 
                 # each where used
                 where_used_keys = package_info.whereUsed.keys()
@@ -1598,7 +1598,7 @@ def CreateWhereUsedPages():
 
                 # footer and close
                 outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(package_info.name + " Where Used List"))
+                outfile.write(MakeHTMLFooter(package_info.name + " "+_("Where Used List")))
                 outfile.close()
 
             #look for any of this packages' functions
@@ -1611,11 +1611,11 @@ def CreateWhereUsedPages():
                 outfile = open(html_dir + whereusedfilename, "w")
                 
                 # write our header
-                outfile.write(MakeHTMLHeader(function_info.name.lower() + ' from ' + package_info.name))
-                outfile.write("<H1>" + function_info.name.lower() + " <I>from " + package_info.name)
-                outfile.write(" </I>Where Used List</H1>\n")
+                outfile.write(MakeHTMLHeader(function_info.name.lower() + ' '+_('from Package')+' ' + package_info.name))
+                outfile.write("<H1>" + function_info.name.lower() + " <I>"+_('from package')+" " + package_info.name)
+                outfile.write(" </I>"+_('Where Used List')+"</H1>\n")
                 outfile.write("<TABLE CLASS='apilist'>\n")
-                outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
+                outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
 
                 # each where used
                 where_used_keys = function_info.whereUsed.keys()
@@ -1638,7 +1638,7 @@ def CreateWhereUsedPages():
 
                 # footer and close
                 outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(function_info.name.lower() + ' from ' + package_info.name))
+                outfile.write(MakeHTMLFooter(function_info.name.lower() + ' '+_('from package')+' ' + package_info.name))
                 outfile.close()
 
             #look for any of this packages procedures
@@ -1651,11 +1651,11 @@ def CreateWhereUsedPages():
                 outfile = open(html_dir + whereusedfilename, "w")
                 
                 # write our header
-                outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' from ' + package_info.name.lower()))
-                outfile.write("<H1>" + procedure_info.name.lower() + " <I>from " + package_info.name.lower())
-                outfile.write(" </I>Where Used List</H1>\n")
+                outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' '+('from package')+' ' + package_info.name.lower()))
+                outfile.write("<H1>" + procedure_info.name.lower() + " <I>"+_('from package')+" " + package_info.name.lower())
+                outfile.write(" </I>"+_('Where Used List')+"</H1>\n")
                 outfile.write("<TABLE CLASS='apilist'>\n")
-                outfile.write("  <TR><TH>File</TH><TH>Line</TH></TR>\n")
+                outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
                 
                 # each where used
                 where_used_keys = procedure_info.whereUsed.keys()
@@ -1678,7 +1678,7 @@ def CreateWhereUsedPages():
 
                 # footer and close
                 outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(procedure_info.name.lower() + ' from ' + package_info.name.lower()))
+                outfile.write(MakeHTMLFooter(procedure_info.name.lower() + ' '+_('from package')+' ' + package_info.name.lower()))
                 outfile.close()
 
     # print carriage return after last dot
@@ -1824,6 +1824,21 @@ if __name__ == "__main__":
     else:
       print 'No config file found, using defaults.'
 
+    # Setup gettext
+    langs = []
+    lc, encoding = locale.getdefaultlocale()
+    if (lc):
+        langs = [lc]
+    language = os.environ.get('LANGUAGE', None)
+    if (language):
+        langs += language.split(":")
+    langs += ['en_US', 'en_EN']
+    gettext.bindtextdomain('hypersql', scriptpath + os.sep + 'lang')
+    gettext.textdomain('hypersql')
+    lang = gettext.translation('hypersql', scriptpath + os.sep + 'lang', languages=langs, fallback=True)
+    _ = lang.gettext
+
+
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
     metaInfo.versionString = "2.3"
     metaInfo.scriptName = sys.argv[0]
@@ -1831,21 +1846,21 @@ if __name__ == "__main__":
     # Initiate logging
     logger = logging.getLogger('main')
     confLogger()
-    logger.info('HyperSQL v.'+metaInfo.versionString+' initialized')
+    logger.info(_('HyperSQL v%s initialized') % metaInfo.versionString)
     logger.debug('ScriptName: '+metaInfo.scriptName)
     if len(confName) > 0:
-      logger.info('Using config file(s) ' + ', '.join(confName))
+      logger.info(_('Using config file(s) ') + ', '.join(confName))
     else:
-      logger.info('No config file found, using defaults.')
+      logger.info(_('No config file found, using defaults.'))
     if config.getBool('Process','whereused_scan_shortrefs'):
-      logger.info('where_used shortref scan enabled')
+      logger.info(_('where_used shortref scan enabled'))
     else:
-      logger.info('where_used shortref scan disabled')
+      logger.info(_('where_used shortref scan disabled'))
 
     configRead()
     top_level_directory = metaInfo.topLevelDirectory
     if not os.path.exists(top_level_directory):
-        logger.critical('top_level_directory "'+top_level_directory+'" does not exist - terminating.')
+        logger.critical(_('top_level_directory "%s" does not exist - terminating.') % top_level_directory)
         sys.exit(os.EX_OSFILE)
 
     #
@@ -1861,7 +1876,7 @@ if __name__ == "__main__":
     ScanFilesForWhereViewsAndPackagesAreUsed()
 
     if config.getBool('Process','purge_on_start',False) and os.path.exists(metaInfo.htmlDir):
-      print "Removing html files from previous run"
+      printProgress(_("Removing html files from previous run"))
       names=os.listdir(metaInfo.htmlDir)
       for i in names:
         os.unlink(metaInfo.htmlDir + i)
@@ -1887,11 +1902,11 @@ if __name__ == "__main__":
     MakeTaskList('report')
     MakeStatsPage()
 
-    printProgress("done")
+    printProgress(_("done"))
     logger.info('Processed %s total lines: %s empty, %s plain comments, %s plain code, %s mixed', \
         metaInfo.getLoc('totals'), metaInfo.getLoc('empty'), metaInfo.getLoc('comment'), metaInfo.getLoc('code'), \
         metaInfo.getLoc('totals') - metaInfo.getLoc('empty') - metaInfo.getLoc('comment') - metaInfo.getLoc('code'))
     logger.info('Percentage: %s%% empty, %s%% plain comments, %s%% plain code, %s%% mixed', \
         metaInfo.getLocPct('empty'), metaInfo.getLocPct('comment'), metaInfo.getLocPct('code'), \
         metaInfo.getLocPct('mixed'))
-    logger.info('HyperSQL v'+metaInfo.versionString+' exiting normally')
+    logger.info(_('HyperSQL v%s exiting normally') % metaInfo.versionString)

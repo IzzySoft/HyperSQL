@@ -1,5 +1,10 @@
 # History of Changes for HyperSQL
 
+v2.4.0
+-------------------
++ added gettext support
++ added German locales (currently only de_DE - all other de_* simply link here)
+
 v2.3.0 (21.03.2010)
 -------------------
 + where_used links and alternating row colors in file pages

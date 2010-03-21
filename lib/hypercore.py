@@ -8,7 +8,10 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 from hyperjdoc import JavaDoc, PackageTaskList
 from locale import format as loc_format, setlocale, LC_NUMERIC
 
-setlocale(LC_NUMERIC, '')
+try:
+    setlocale(LC_NUMERIC, '')
+except:
+    None
 
 
 class ElemInfo(object):

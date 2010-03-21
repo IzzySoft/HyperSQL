@@ -4,10 +4,26 @@ HyperSQL Javadoc support
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
-from sys import maxint
-import logging, re
+from sys import maxint, argv as pargs
+import logging, re, gettext, locale, os
 logger = logging.getLogger('main.jdoc')
 
+# Setup gettext support
+langs = []
+lc, encoding = locale.getdefaultlocale()
+if (lc):
+    langs = [lc]
+language = os.environ.get('LANGUAGE', None)
+if (language):
+    langs += language.split(":")
+langs += ['en_US', 'en_EN']
+langpath = os.path.split(pargs[0])[0] + os.sep + 'lang'
+gettext.bindtextdomain('hyperjdoc', langpath)
+gettext.textdomain('hyperjdoc')
+lang = gettext.translation('hyperjdoc', langpath, languages=langs, fallback=True)
+_ = lang.gettext
+
+# Define some more settings
 JavaDocVars = dict(
     wiki_url     = '',
     ticket_url = '',
@@ -23,6 +39,7 @@ JavaDocVars = dict(
                'copyright', 'deprecated', 'see', 'webpage', 'license',
                'ticket', 'wiki', 'desc'] # values of these tags are plain text
 )
+
 
 def HyperScan(text):
     """
@@ -53,7 +70,7 @@ def HyperScan(text):
             result = tickpat.search(text)
     return text
 
-class JavaDoc:
+class JavaDoc(object):
     """
     Object to hold details from javadoc style comments
     """
@@ -85,6 +102,7 @@ class JavaDoc:
         self.license = []
         self.ticket = []
         self.wiki = []
+
     def isDefault(self):
         """
         Check if this is just an empty dummy, or if any real data have been assigned
@@ -105,24 +123,24 @@ class JavaDoc:
         for tag in JavaDocVars['mandatory_tags']:
             if tag in JavaDocVars['txttags'] and len(eval("self." + tag)) == 0:
                 if tag == 'desc':
-                    faillist.append('Missing description')
+                    faillist.append(_('Missing description'))
                 else:
-                    faillist.append('Missing mandatory tag: @'+tag)
-                logger.warn('Missing mandatory tag "%s" for %s %s in %s line %s', tag, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+                    faillist.append(_('Missing mandatory tag: @%s') % tag)
+                logger.warn(_('Missing mandatory tag "%(tag)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'tag':tag, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         for param in self.params:
             if param.name == '':
-                faillist.append('Missing name for '+param.sqltype+' parameter (#'+`self.params.index(param)`+')')
-                logger.warn('Missing name for parameter of type "%s" for %s %s in %s line %s', param.sqltype, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+                faillist.append(_('Missing name for %(type)s parameter (#%(index)s)') % {'type': param.sqltype, 'index': `self.params.index(param)`})
+                logger.warn(_('Missing name for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
             if param.desc == '':
                 if param.name == '':
-                    faillist.append('Missing description for '+param.sqltype+' parameter (#'+`self.params.index(param)`+')')
-                    logger.warn('Missing description for parameter of type "%s" for %s %s in %s line %s', param.sqltype, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+                    faillist.append(_('Missing description for %(type)s parameter (#%(index)s)') % {'type':param.sqltype, 'index':`self.params.index(param)`})
+                    logger.warn(_('Missing description for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
                 else:
-                    faillist.append('Missing description for parameter '+param.name)
-                    logger.warn('Missing description for parameter "%s" for %s %s in %s line %s', param.name, self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+                    faillist.append(_('Missing description for parameter %s') % param.name)
+                    logger.warn(_('Missing description for parameter "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s'), {'pname':param.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         if self.objectType == 'function' and len(self.retVals)<1:
-            faillist.append('Missing return value')
-            logger.warn('Missing return value for function %s in %s line %s', self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber)
+            faillist.append(_('Missing return value'))
+            logger.warn(_('Missing return value for function %(name)s in %(file)s line %(line)s'), {'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         return faillist
     def verify_params(self,cparms):
         """
@@ -135,8 +153,8 @@ class JavaDoc:
         if self.isDefault() or not JavaDocVars['verification']:
             return faillist
         if len(cparms) != len(self.params):
-            faillist.append('Parameter count mismatch: Code has '+`len(cparms)`+' parameters, Javadoc '+`len(self.params)`)
-            logger.warn('Parameter count mismatch for %s %s in %s line %s (%s / %s)', self.objectType, self.name, self.file[JavaDocVars['top_level_dir_len']+1:], self.lineNumber, len(cparms), len(self.params))
+            faillist.append(_('Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s') % { 'cparms':`len(cparms)`, 'jparms':`len(self.params)`})
+            logger.warn(_('Parameter count mismatch for %(otype)s %(name)s in %(file)s line %(line)s (%(lc)s / %(lj)s)'), {'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber, 'lc':len(cparms), 'lj':len(self.params)})
         return faillist
     def getVisibility(self):
         """
@@ -180,9 +198,9 @@ class JavaDoc:
             return ''
         if self.objectType not in JavaDocVars['otypes']:
             if self.name == '':
-                logger.warn('Unnamed object with ID %s (%s line %s has no object type set!', unum, self.file, self.lineNumber)
+                logger.warn(_('Unnamed object with ID %(id)s (%(file)s line %(line)s has no object type set!'), {'id':unum, 'file':self.file, 'line':self.lineNumber})
             else:
-                logger.warn('No object type specified for object id %s, ID %s in %s line %s', self.name, unum, self.file, self.lineNumber)
+                logger.warn(_('No object type specified for object id %(name)s, ID %(id)s in %(file)s line %(line)s'), {'name':self.name, 'id':unum, 'file':self.file, 'line':self.lineNumber})
             return ''
         html = ''
         if self.objectType != 'pkg':
@@ -196,15 +214,15 @@ class JavaDoc:
         html += '  <DL>'
         if self.objectType in ['function', 'procedure']:
           if self.private:
-            html += ' <DT>Private</DT><DD>Just used internally.</DD>'
-          html += '  <DT>Syntax:</DT><DD><DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.name + ' ('
+            html += ' <DT>'+_('Private')+'</DT><DD>'+_('Just used internally.')+'</DD>'
+          html += '  <DT>'+_('Syntax')+':</DT><DD><DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.name + ' ('
           for p in range(len(self.params)):
             html += self.params[p].name
             if p<len(self.params)-1:
               html += ', '
           html += ')</DIV></DD>\n'
           if len(self.params) > 0 and self.objectType != 'pkg':
-            html += ' <DT>Parameters:</DT><DD>'
+            html += ' <DT>'+_('Parameters')+':</DT><DD>'
             for p in range(len(self.params)):
               html += '<DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.params[p].inout + ' ' + self.params[p].sqltype + ' <B>' + self.params[p].name + '</B>'
               if self.params[p].desc != '':
@@ -212,7 +230,7 @@ class JavaDoc:
               html += '</DIV>'
             html += '</DD>\n'
           if self.objectType == 'function':
-            html += ' <DT>Return values:</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
+            html += ' <DT>'+_('Return values')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
             for p in range(len(self.retVals)):
               html += '<LI>' + self.retVals[p].sqltype + ' <B>' + self.retVals[p].name + '</B>'
               if self.retVals[p].desc != '':
@@ -220,29 +238,29 @@ class JavaDoc:
               html += '</LI>'
             html += '</UL></DD>\n'
           if len(self.example) > 0:
-            html += '<DT>Example Usage:</DT>'
+            html += '<DT>'+_('Example Usage')+':</DT>'
             for i in range(len(self.example)):
               html += '<DD>' + self.example[i] + '</DD>'
         if len(self.author) > 0:
-          html += '<DT>Author:</DT><DD>' + listItemHtml(self.author) + '</DD>'
+          html += '<DT>'+_('Author')+':</DT><DD>' + listItemHtml(self.author) + '</DD>'
         if len(self.copyright) > 0:
-          html += '<DT>Copyright:</DT><DD>' + listItemHtml(self.copyright) + '</DD>'
+          html += '<DT>'+_('Copyright')+':</DT><DD>' + listItemHtml(self.copyright) + '</DD>'
         if len(self.license) > 0:
-          html += '<DT>License:</DT><DD>' + listItemHtml(self.license) + '</DD>'
+          html += '<DT>'+_('License')+':</DT><DD>' + listItemHtml(self.license) + '</DD>'
         if len(self.webpage) > 0:
-          html += '<DT>Webpage:</DT>'
+          html += '<DT>'+_('Webpage')+':</DT>'
           for i in range(len(self.webpage)):
             html += '<DD><A HREF="' + self.webpage[i] + '">' + self.webpage[i] + '</A></DD>'
         if len(self.bug) > 0:
-          html += '<DT>BUG:</DT><DD>' + HyperScan(listItemHtml(self.bug)) + '</DD>'
+          html += '<DT>'+_('BUG')+':</DT><DD>' + HyperScan(listItemHtml(self.bug)) + '</DD>'
         if len(self.deprecated) > 0:
-          html += '<DT>DEPRECATED:</DT><DD>' + HyperScan(listItemHtml(self.deprecated)) + '</DD>'
+          html += '<DT>'+_('DEPRECATED')+':</DT><DD>' + HyperScan(listItemHtml(self.deprecated)) + '</DD>'
         if len(self.version) > 0:
-          html += '<DT>Version Info:</DT><DD>' + HyperScan(listItemHtml(self.version)) + '</DD>'
+          html += '<DT>'+_('Version Info')+':</DT><DD>' + HyperScan(listItemHtml(self.version)) + '</DD>'
         if len(self.info) > 0:
-          html += '<DT>Additional Info:</DT><DD>' + HyperScan(listItemHtml(self.info)) + '</DD>'
+          html += '<DT>'+_('Additional Info')+':</DT><DD>' + HyperScan(listItemHtml(self.info)) + '</DD>'
         if len(self.ticket) > 0:
-          html += '<DT>Ticket:</DT>'
+          html += '<DT>'+_('Ticket')+':</DT>'
           for i in range(len(self.ticket)):
             html += '<DD>'
             if JavaDocVars['ticket_url'] != '':
@@ -256,7 +274,7 @@ class JavaDoc:
               html += self.ticket[i]
             html += '</DD>'
         if len(self.wiki) > 0:
-          html += '<DT>Wiki:</DT>'
+          html += '<DT>'+_('Wiki')+':</DT>'
           for i in range(len(self.wiki)):
             html += '<DD>'
             if JavaDocVars['wiki_url'] != '':
@@ -266,12 +284,12 @@ class JavaDoc:
               html += self.wiki[i]
             html += '</DD>'
         if len(self.see) > 0:
-          html += '<DT>See also:</DT><DD>' + HyperScan(listItemHtml(self.see)) + '</DD>'
+          html += '<DT>'+_('See also')+':</DT><DD>' + HyperScan(listItemHtml(self.see)) + '</DD>'
         if len(self.todo) > 0:
-          html += '<DT>TODO:</DT><DD>' + HyperScan(listItemHtml(self.todo)) + '</DD>'
+          html += '<DT>'+_('TODO')+':</DT><DD>' + HyperScan(listItemHtml(self.todo)) + '</DD>'
         html += '\n</DL>\n'
         if self.objectType != 'pkg':
-          html += '<DIV CLASS="toppagelink"><A HREF="#topOfPage">^ Top</A></DIV>\n'
+          html += '<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV>\n'
           html += '</TD></TR></TABLE>\n'
         return html
     def getShortDesc(self):
@@ -636,7 +654,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
         elif tag in tags: # other supported tag
           if tag == 'param':    # @param inout type [name [desc]]
             if len(doc) < 2:
-              logger.warn('@param requires at least one parameter, none given in %s line %s', fileName, lineNumber)
+              logger.warn(_('@param requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
             else:
               p = JavaDocParam()
               if doc[1] in ['in','out','inout']:
@@ -657,7 +675,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
               item.params.append(p)
           elif tag == 'return': # @return type [name [desc]
             if len(doc) < 2:
-              logger.warn('@return requires at least one parameter, none given in %s line %s', fileName, lineNumber)
+              logger.warn(_('@return requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
             else:
               p = JavaDocParam()
               p.sqltype = doc[1].upper()
@@ -670,10 +688,10 @@ def ScanJavaDoc(text,fileName,lineNo=0):
             item.private = True
           else: # tags with only one <text> parameter
             if len(doc) < 2:
-              logger.warn('@%s requires <text> parameter, none given in %s line %s', tag, fileName, lineNumber)
+              logger.warn(_('@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
             content = line[len(tag)+1:].strip()
         else:             # unsupported tag, ignore
-          logger.warn('unsupported JavaDoc tag "%s" in %s line %s', tag, fileName, lineNumber)
+          logger.warn(_('unsupported JavaDoc tag "%(tag)s" in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
           continue
         
     return res
