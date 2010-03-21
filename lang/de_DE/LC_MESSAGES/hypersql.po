@@ -10,8 +10,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: German\n"
-"X-Poedit-Basepath: .\n"
-"X-Poedit-SearchPath-0: ../../../x\n"
 
 #: ../../../x/hyperconf.py:90
 msgid "File Name Index"

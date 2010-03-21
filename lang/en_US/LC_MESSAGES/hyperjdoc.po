@@ -11,8 +11,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: English\n"
 "X-Poedit-Country: UNITED STATES\n"
-"X-Poedit-Basepath: .\n"
-"X-Poedit-SearchPath-0: ../../../lib\n"
 
 #: /mnt/av/src/svn/hypersql/trunk/lib/hyperjdoc.py:126
 msgid "Missing description"

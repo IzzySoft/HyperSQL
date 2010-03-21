@@ -1,0 +1,13 @@
+#!/bin/bash
+# Generate the POT files for this project
+ARGS="-s -L Python --foreign-user"
+
+# Make sure we are in the correct directory
+cd ${0%%/*}
+
+# Generate the POT files
+xgettext -o hypersql.pot $ARGS --foreign-user --package-name=hypersql ../../HyperSQL.py ../../lib/hyperconf.py
+xgettext -o hyperjdoc.pot $ARGS --package-name=hyperjdoc ../../lib/hyperjdoc.py
+
+# Get back to where we came from
+cd -
