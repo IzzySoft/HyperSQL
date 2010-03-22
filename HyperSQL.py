@@ -592,7 +592,7 @@ def MakeNavBar(current_page):
     """
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
-    s += "  <TD CLASS='navbar' WIDTH='600px'>\n"
+    s += "  <TD CLASS='navbar'>\n"
     for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo','report','stat']:
         if metaInfo.indexPage[item] == '':
             continue
@@ -727,7 +727,7 @@ def MakeStatsPage():
     # LinesOfCode
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('Lines of Code')+'</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Lines')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="6" WIDTH="220px"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Lines')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="6" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
 
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
@@ -778,7 +778,7 @@ def MakeStatsPage():
     totalObj = views + funcs + procs
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('Object Statistics')+'</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     pie = PieChart('O',pieposx,pieposy,pie_offset,pie_rad,colors)
     pie.addPiece((float(views)/totalObj) * 100)
@@ -801,7 +801,7 @@ def MakeStatsPage():
     # FileStats
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('File Statistics')+'</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" WIDTH="220px"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
     totalFiles = metaInfo.getFileStat('files')
     # Lines
     stat = metaInfo.getFileLineStat([400,1000])
@@ -846,7 +846,7 @@ def MakeStatsPage():
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
     limits.sort()
     outfile.write('  <TR><TH CLASS="sub">'+_('Total Bytes')+'</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
-        + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD><TD COLSPAN="9" WIDTH="220px"><DIV CLASS="pie_chart">\n')
+        + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD><TD COLSPAN="9" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     pieposy = pie_rad + pie_offset + bar_hei
     sum  = 0
@@ -898,7 +898,7 @@ def MakeStatsPage():
     totalObj = jwarns + jbugs + jtodo
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('JavaDoc Statistics')+'</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" WIDTH="220px" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     pieposy = 0
     pie = PieChart('J',pieposx,pieposy,pie_offset,pie_rad,colors)
