@@ -23,7 +23,7 @@ langpath = ospath.split(sysargv[0])[0] + ossep + 'lang'
 gettext.bindtextdomain('hypersql', langpath)
 gettext.textdomain('hypersql')
 lang = gettext.translation('hypersql', langpath, languages=langs, fallback=True)
-_ = lang.gettext
+_ = lang.ugettext
 
 
 

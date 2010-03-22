@@ -30,7 +30,7 @@
 """
 
 # first import standard modules we use
-import os, sys, string, time, ConfigParser, fileinput, logging, re, gettext, locale
+import os, sys, string, time, ConfigParser, fileinput, logging, re, gettext, locale, codecs
 from shutil import copy2
 
 # now import our own modules
@@ -117,7 +117,7 @@ def ScanFilesForViewsAndPackages():
         dotProgress(dot_count)
 
         dot_count += 1
-        infile = open(file_info.fileName, "r")
+        infile = codecs.open(file_info.fileName, "r", metaInfo.encoding)
         fileLines = infile.readlines()
         infile.close()
         file_info.lines = len(fileLines)
@@ -411,7 +411,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         dotProgress(dot_count)
         dot_count += 1
 
-        infile = open(outer_file_info.fileName, "r")
+        infile = codecs.open(outer_file_info.fileName, "r", metaInfo.encoding)
         fileLines = infile.readlines()
         infile.close()
 
@@ -713,7 +713,7 @@ def MakeStatsPage():
 
     printProgress(_('Creating statistics page'))
 
-    outfile = open(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w')
+    outfile = codecs.open(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w', metaInfo.encoding)
     outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
     copy2(scriptpath + os.sep + 'diagram.js', metaInfo.htmlDir + 'diagram.js')
 
@@ -960,7 +960,7 @@ def MakeFileIndex(objectType):
             filenametuplelist.append((file_info.fileName.upper(), file_info))
     filenametuplelist.sort(TupleCompareFirstElements)
 
-    outfile = open(html_dir + outfilename, "w")
+    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(objectType))
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1018,7 +1018,7 @@ def MakeElemIndex(objectType):
                 objectTupleList.append((elem_info.name.upper(), elem_info, file_info, package_info)) # append as tuple for case insensitive sort
     objectTupleList.sort(TupleCompareFirstElements)
 
-    outfile = open(html_dir + outfilename, "w")
+    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(objectType))
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1088,7 +1088,7 @@ def MakeViewIndex():
 
     viewtuplelist.sort(TupleCompareFirstElements)
 
-    outfile = open(html_dir + outfilename, "w")
+    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('view'))
     outfile.write("<H1>"+_('Index Of All Views')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1148,7 +1148,7 @@ def MakeTaskList(taskType):
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
-    outfile = open(html_dir + outfilename, "w")
+    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(taskType))
     if taskType == 'bug':
         outfile.write("<H1>"+_('List of open Bugs')+"</H1>\n")
@@ -1211,7 +1211,7 @@ def MakePackageIndex():
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
-    outfile = open(html_dir + outfilename, "w")
+    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('package'))
     outfile.write("<H1>"+_('Index Of All Packages')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1296,7 +1296,7 @@ def MakePackagesWithFuncsAndProcsIndex():
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
-    outfile = open(html_dir + outfilename, "w")
+    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('package_full'))
     outfile.write("<H1>"+_('Index Of All Packages, Their Functions And Procedures')+"</H1>\n")
 
@@ -1406,7 +1406,7 @@ def CreateHyperlinkedSourceFilePages():
         dot_count += 1
 
         # read up the source file
-        infile = open(file_info.fileName, "r")
+        infile = codecs.open(file_info.fileName, "r", metaInfo.encoding)
         infile_line_list = infile.readlines()
         infile.close()
 
@@ -1414,7 +1414,7 @@ def CreateHyperlinkedSourceFilePages():
         outfilename = os.path.split(file_info.fileName)[1].replace(".", "_")
         outfilename += "_" + `file_info.uniqueNumber` + ".html"
 
-        outfile = open(html_dir + outfilename, "w")
+        outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
         outfile.write(MakeHTMLHeader(file_info.fileName[len(top_level_directory)+1:]))
         outfile.write("<H1>" + file_info.fileName[len(top_level_directory)+1:] + "</H1>\n")
 
@@ -1482,7 +1482,7 @@ def CreateIndexPage():
     html_dir = metaInfo.htmlDir
     script_name = metaInfo.scriptName
 
-    outfile = open(html_dir + 'index.html', "w")
+    outfile = codecs.open(html_dir + 'index.html', "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('Index'))
 
     # Copy the StyleSheet
@@ -1532,7 +1532,7 @@ def CreateWhereUsedPages():
             
             #open a "where used" file
             whereusedfilename = "where_used_" + `view_info.uniqueNumber` + ".html"
-            outfile = open(html_dir + whereusedfilename, "w")
+            outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
             
             # write our header
             outfile.write(MakeHTMLHeader('Index'))
@@ -1570,7 +1570,7 @@ def CreateWhereUsedPages():
             
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `package_info.uniqueNumber` + ".html"
-                outfile = open(html_dir + whereusedfilename, "w")
+                outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
             
                 # write our header
                 outfile.write(MakeHTMLHeader(package_info.name + " "+_("Where Used List")))
@@ -1609,7 +1609,7 @@ def CreateWhereUsedPages():
                 
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `function_info.uniqueNumber` + ".html"
-                outfile = open(html_dir + whereusedfilename, "w")
+                outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
                 
                 # write our header
                 outfile.write(MakeHTMLHeader(function_info.name.lower() + ' '+_('from Package')+' ' + package_info.name))
@@ -1649,7 +1649,7 @@ def CreateWhereUsedPages():
                 
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `procedure_info.uniqueNumber` + ".html"
-                outfile = open(html_dir + whereusedfilename, "w")
+                outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
                 
                 # write our header
                 outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' '+('from package')+' ' + package_info.name.lower()))
@@ -1719,6 +1719,9 @@ def configRead():
         for i in range(len(fileLines)):
             metaInfo.projectInfo += fileLines[i]
     metaInfo.encoding     = config.get('General','encoding','utf8')
+    gettext.bind_textdomain_codeset('hypersql',metaInfo.encoding.upper())
+    #gettext.bind_textdomain_codeset('hyperjdoc',metaInfo.encoding.upper())
+    setJDocEncoding(metaInfo.encoding.upper())
     JavaDocVars['ticket_url']   = config.get('General','ticket_url','')
     JavaDocVars['wiki_url']     = config.get('General','wiki_url','')
     # Section FILENAMES

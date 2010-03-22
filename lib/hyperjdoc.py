@@ -21,7 +21,7 @@ langpath = os.path.split(pargs[0])[0] + os.sep + 'lang'
 gettext.bindtextdomain('hyperjdoc', langpath)
 gettext.textdomain('hyperjdoc')
 lang = gettext.translation('hyperjdoc', langpath, languages=langs, fallback=True)
-_ = lang.gettext
+_ = lang.ugettext
 
 # Define some more settings
 JavaDocVars = dict(
@@ -39,6 +39,16 @@ JavaDocVars = dict(
                'copyright', 'deprecated', 'see', 'webpage', 'license',
                'ticket', 'wiki', 'desc'] # values of these tags are plain text
 )
+
+def setJDocEncoding(encoding):
+    """
+    Switch encoding to a different character set
+    @param string encoding
+    """
+    try:
+        gettext.bind_textdomain_codeset('hyperjdoc',encoding.upper())
+    except:
+        None
 
 
 def HyperScan(text):
