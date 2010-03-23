@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # see main function at bottom of file
 
@@ -1705,7 +1706,11 @@ def configRead():
     """ Setup internal variables from config """
     # Section GENERAL
     metaInfo.title_prefix  = config.get('General','title_prefix','HyperSQL')
-    metaInfo.projectInfo   = config.get('General','project_info','')
+    metaInfo.encoding     = config.get('General','encoding','utf8')
+    gettext.bind_textdomain_codeset('hypersql',metaInfo.encoding.upper())
+    #gettext.bind_textdomain_codeset('hyperjdoc',metaInfo.encoding.upper())
+    setJDocEncoding(metaInfo.encoding.upper())
+    metaInfo.projectInfo   = unicode(config.get('General','project_info',''),metaInfo.encoding)
     infofile               = config.get('General','project_logo_url','')
     if infofile == '':
       metaInfo.projectLogo = config.get('General','project_logo','')
@@ -1713,15 +1718,10 @@ def configRead():
       metaInfo.projectLogo = infofile
     infofile               = config.get('General','project_info_file','')
     if infofile != '' and os.path.exists(infofile):
-        infile = open(infofile, "r")
-        fileLines = infile.readlines()
+        infile = codecs.open(infofile, "r", metaInfo.encoding)
+        fileLines = ''.join(infile.readlines())
         infile.close()
-        for i in range(len(fileLines)):
-            metaInfo.projectInfo += fileLines[i]
-    metaInfo.encoding     = config.get('General','encoding','utf8')
-    gettext.bind_textdomain_codeset('hypersql',metaInfo.encoding.upper())
-    #gettext.bind_textdomain_codeset('hyperjdoc',metaInfo.encoding.upper())
-    setJDocEncoding(metaInfo.encoding.upper())
+        metaInfo.projectInfo += fileLines
     JavaDocVars['ticket_url']   = config.get('General','ticket_url','')
     JavaDocVars['wiki_url']     = config.get('General','wiki_url','')
     # Section FILENAMES
@@ -1760,7 +1760,7 @@ def confLogger():
     """ Setup logging """
     logging.addLevelName(99,'NONE')
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler( config.get('Logging','logfile') )
+    fh = logging.FileHandler( config.get('Logging','logfile'), 'a', metaInfo.encoding )
     ch = logging.StreamHandler()
     #fh.setFormatter( logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s") )
     fh.setFormatter( logging.Formatter("%(asctime)s %(module)s %(levelname)s %(message)s") )
@@ -1831,6 +1831,7 @@ if __name__ == "__main__":
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
     metaInfo.versionString = "2.4"
     metaInfo.scriptName = sys.argv[0]
+    configRead()
 
     # Initiate logging
     logger = logging.getLogger('main')
@@ -1846,7 +1847,6 @@ if __name__ == "__main__":
     else:
       logger.info(_('where_used shortref scan disabled'))
 
-    configRead()
     top_level_directory = metaInfo.topLevelDirectory
     if not os.path.exists(top_level_directory):
         logger.critical(_('top_level_directory "%s" does not exist - terminating.') % top_level_directory)

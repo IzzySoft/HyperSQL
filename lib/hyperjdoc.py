@@ -34,10 +34,10 @@ JavaDocVars = dict(
     otypes = ['function', 'procedure', 'view', 'pkg'], # supported object types
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
-              'see', 'webpage', 'license', 'ticket', 'wiki'], # other supported tags
+              'see', 'webpage', 'license', 'ticket', 'wiki', 'since'], # other supported tags
     txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
                'copyright', 'deprecated', 'see', 'webpage', 'license',
-               'ticket', 'wiki', 'desc'] # values of these tags are plain text
+               'ticket', 'wiki', 'desc', 'since'] # values of these tags are plain text
 )
 
 def setJDocEncoding(encoding):
@@ -112,6 +112,7 @@ class JavaDoc(object):
         self.license = []
         self.ticket = []
         self.wiki = []
+        self.since = []
 
     def isDefault(self):
         """
@@ -261,6 +262,8 @@ class JavaDoc(object):
           html += '<DT>'+_('Webpage')+':</DT>'
           for i in range(len(self.webpage)):
             html += '<DD><A HREF="' + self.webpage[i] + '">' + self.webpage[i] + '</A></DD>'
+        if len(self.since) > 0:
+          html += '<DT>'+_('Since')+':</DT><DD>' + HyperScan(listItemHtml(self.since)) + '</DD>'
         if len(self.bug) > 0:
           html += '<DT>'+_('BUG')+':</DT><DD>' + HyperScan(listItemHtml(self.bug)) + '</DD>'
         if len(self.deprecated) > 0:
