@@ -263,7 +263,7 @@ class JavaDoc(object):
           for i in range(len(self.webpage)):
             html += '<DD><A HREF="' + self.webpage[i] + '">' + self.webpage[i] + '</A></DD>'
         if len(self.since) > 0:
-          html += '<DT>'+_('Since')+':</DT><DD>' + HyperScan(listItemHtml(self.since)) + '</DD>'
+          html += '<DT>'+_('Available Since')+':</DT><DD>' + HyperScan(listItemHtml(self.since)) + '</DD>'
         if len(self.bug) > 0:
           html += '<DT>'+_('BUG')+':</DT><DD>' + HyperScan(listItemHtml(self.bug)) + '</DD>'
         if len(self.deprecated) > 0:

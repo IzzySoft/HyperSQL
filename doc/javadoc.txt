@@ -85,5 +85,6 @@ Other tags:
  * @copyright <text>
  * @deprecated <text>
  * @private
- * @see <txt>
+ * @see <text>
+ * @since <text>
  * @webpage <text>
