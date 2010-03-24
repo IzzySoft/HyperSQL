@@ -87,4 +87,6 @@ Other tags:
  * @private
  * @see <text>
  * @since <text>
+ * @throws <name> [<description>]
+ * @uses <object> [<object> ...]
  * @webpage <text>

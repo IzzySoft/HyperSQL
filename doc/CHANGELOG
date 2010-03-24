@@ -5,8 +5,8 @@ v2.4.0
 + added gettext support
 + added locales (currently only en_US and de_DE - all other de_*
   simply link to the latter, en_* to the former)
-+ added @since JavaDoc tag
-
++ added new JavaDoc tags @since, @ignore, @uses, @throws
+* some code hardening for codecs stuff
 
 v2.3.0 (21.03.2010)
 -------------------

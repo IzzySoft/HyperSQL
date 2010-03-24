@@ -34,10 +34,11 @@ JavaDocVars = dict(
     otypes = ['function', 'procedure', 'view', 'pkg'], # supported object types
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
-              'see', 'webpage', 'license', 'ticket', 'wiki', 'since'], # other supported tags
+              'see', 'webpage', 'license', 'ticket', 'wiki', 'since',
+              'uses', 'ignore', 'throws'], # other supported tags
     txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
                'copyright', 'deprecated', 'see', 'webpage', 'license',
-               'ticket', 'wiki', 'desc', 'since'] # values of these tags are plain text
+               'ticket', 'wiki', 'desc', 'since', 'uses', 'throws'] # values of these tags are plain text
 )
 
 def setJDocEncoding(encoding):
@@ -107,12 +108,15 @@ class JavaDoc(object):
         self.copyright = []
         self.deprecated = []
         self.private = False
+        self.ignore = False
         self.see = []
         self.webpage = []
         self.license = []
         self.ticket = []
         self.wiki = []
         self.since = []
+        self.uses = []
+        self.throws = []
 
     def isDefault(self):
         """
@@ -129,7 +133,7 @@ class JavaDoc(object):
         @return list
         """
         faillist = []
-        if self.isDefault() or not JavaDocVars['verification']:
+        if self.isDefault() or self.ignore or not JavaDocVars['verification']:
             return faillist
         for tag in JavaDocVars['mandatory_tags']:
             if tag in JavaDocVars['txttags'] and len(eval("self." + tag)) == 0:
@@ -205,7 +209,7 @@ class JavaDoc(object):
                     txt += '<LI>'+item[i]+'</LI>'
                 txt += '</UL>'
                 return txt
-        if self.isDefault():
+        if self.isDefault() or self.ignore:
             return ''
         if self.objectType not in JavaDocVars['otypes']:
             if self.name == '':
@@ -264,6 +268,10 @@ class JavaDoc(object):
             html += '<DD><A HREF="' + self.webpage[i] + '">' + self.webpage[i] + '</A></DD>'
         if len(self.since) > 0:
           html += '<DT>'+_('Available Since')+':</DT><DD>' + HyperScan(listItemHtml(self.since)) + '</DD>'
+        if len(self.uses) > 0:
+          html += '<DT>'+_('Uses')+':</DT><DD>' + HyperScan(listItemHtml(self.uses)) + '</DD>'
+        if len(self.throws) > 0:
+          html += '<DT>'+_('Throws Exception')+':</DT><DD>' + HyperScan(listItemHtml(self.throws)) + '</DD>'
         if len(self.bug) > 0:
           html += '<DT>'+_('BUG')+':</DT><DD>' + HyperScan(listItemHtml(self.bug)) + '</DD>'
         if len(self.deprecated) > 0:
@@ -699,6 +707,8 @@ def ScanJavaDoc(text,fileName,lineNo=0):
               item.retVals.append(p)
           elif tag == 'private':
             item.private = True
+          elif tag == 'ignore':
+            item.ignore = True
           else: # tags with only one <text> parameter
             if len(doc) < 2:
               logger.warn(_('@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})

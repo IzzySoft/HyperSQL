@@ -31,8 +31,14 @@
 """
 
 # first import standard modules we use
-import os, sys, string, time, ConfigParser, fileinput, logging, re, gettext, locale, codecs
+import os, sys, string, time, ConfigParser, fileinput, logging, re, gettext, locale
 from shutil import copy2
+
+# encoding fallback
+try:
+    import codecs
+except:
+    codecs = None
 
 # now import our own modules
 sys.path.insert(0,os.path.split(sys.argv[0])[0] + os.sep + 'lib')
@@ -42,6 +48,28 @@ from hypercode import *
 from hyperconf import *
 from hyperconf import _ # needs explicit call
 from hypercharts import *
+
+def fopen(filename,mode,enc=None):
+    """
+    Wrapper to open a file either via codecs (if possible), or simply with open()
+    (if codecs==None)
+    @param string filename
+    @param string mode
+    @param optional string encoding
+    @return filehandle
+    """
+    if enc is None:
+        try:
+            enc = metaInfo.encoding
+        except:
+            enc = None
+    if codecs is None:
+        enc = None
+    if enc is None:
+        return open(filename,mode)
+    else:
+        return codecs.open(filename,mode,enc)
+
 
 def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     """
@@ -118,7 +146,7 @@ def ScanFilesForViewsAndPackages():
         dotProgress(dot_count)
 
         dot_count += 1
-        infile = codecs.open(file_info.fileName, "r", metaInfo.encoding)
+        infile = fopen(file_info.fileName, "r", metaInfo.encoding)
         fileLines = infile.readlines()
         infile.close()
         file_info.lines = len(fileLines)
@@ -233,7 +261,7 @@ def ScanFilesForViewsAndPackages():
                             view_info.javadoc = jdoc[j]
                         mname = view_info.javadoc.name or package_info.name
                         mands = view_info.javadoc.verify_mandatory()
-                        #for mand in mands: Need to setup report here as well! ###TODO###
+                        #for mand in mands: Need to setup report here as well! ###TODO### also: handle @ignore
                         if JavaDocVars['javadoc_mandatory'] and view_info.javadoc.isDefault():
                             logger.warn(_('View %s has no JavaDoc information attached'), view_info.name)
                             #view_info.verification.addItem(view_info.name,'No JavaDoc information available')
@@ -269,8 +297,9 @@ def ScanFilesForViewsAndPackages():
                     if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault():
                         logger.warn(_('Package %s has no JavaDoc information attached'), mname)
                         package_info.verification.addItem(mname,'No JavaDoc information available')
-                    file_info.packageInfoList.append(package_info) # permanent storage
-                    package_count += 1 # use this flag below
+                    if not package_info.javadoc.ignore: # ignore items with @ignore tag
+                        file_info.packageInfoList.append(package_info) # permanent storage
+                        package_count += 1 # use this flag below
 
             # if a package definition was found, look for functions and procedures
             if package_count != -1:
@@ -291,33 +320,35 @@ def ScanFilesForViewsAndPackages():
                           if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
                             function_info.javadoc = jdoc[j]
                             function_info.javadoc.lndiff = abs(ln)
+                        ###TODO:### Shouldn't the following two items be in the outer loop to avoid duplicate processing of overloaded functions?
                         if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
                             for ib in range(len(jdoc[j].bug)):
                                 file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug[ib])
                         if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
                             for ib in range(len(jdoc[j].todo)):
                                 file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo[ib])
-                    mname = function_info.javadoc.name or function_info.name
-                    mands = function_info.javadoc.verify_mandatory()
-                    for mand in mands:
-                        file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
-                    if JavaDocVars['javadoc_mandatory'] and function_info.javadoc.isDefault():
-                        logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
-                        file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'))
-                    if JavaDocVars['verification']:
-                        fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
-                        cparms = re.findall(fupatt,filetext)
-                        if len(cparms)==0:
-                            mands = function_info.javadoc.verify_params([])
-                        elif len(cparms)==1:
-                            cparms = cparms[0].split(',')
-                            mands = function_info.javadoc.verify_params(cparms)
-                        else:
-                            logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'package': file_info.packageInfoList[package_count].name, 'function': mname})
-                        if len(cparms)<2:
-                            for mand in mands:
-                                file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
-                    file_info.packageInfoList[package_count].functionInfoList.append(function_info)
+                    if not function_info.javadoc.ignore:
+                        mname = function_info.javadoc.name or function_info.name
+                        mands = function_info.javadoc.verify_mandatory()
+                        for mand in mands:
+                            file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
+                        if JavaDocVars['javadoc_mandatory'] and function_info.javadoc.isDefault():
+                            logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
+                            file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'))
+                        if JavaDocVars['verification']:
+                            fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
+                            cparms = re.findall(fupatt,filetext)
+                            if len(cparms)==0:
+                                mands = function_info.javadoc.verify_params([])
+                            elif len(cparms)==1:
+                                cparms = cparms[0].split(',')
+                                mands = function_info.javadoc.verify_params(cparms)
+                            else:
+                                logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'package': file_info.packageInfoList[package_count].name, 'function': mname})
+                            if len(cparms)<2:
+                                for mand in mands:
+                                    file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
+                        file_info.packageInfoList[package_count].functionInfoList.append(function_info)
 		    
                 # now find procedures
                 if len(token_list) > 1 and token_list[0] == "PROCEDURE":
@@ -342,27 +373,28 @@ def ScanFilesForViewsAndPackages():
                         if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
                             for ib in range(len(jdoc[j].todo)):
                                 file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo[ib])
-                    mname = procedure_info.javadoc.name or procedure_info.name
-                    mands = procedure_info.javadoc.verify_mandatory()
-                    for mand in mands:
-                        file_info.packageInfoList[package_count].verification.addProc(mname,mand)
-                    if JavaDocVars['javadoc_mandatory'] and procedure_info.javadoc.isDefault():
-                        logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
-                        file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'))
-                    if JavaDocVars['verification']:
-                        fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
-                        cparms = re.findall(fupatt,filetext)
-                        if len(cparms)==0:
-                            mands = procedure_info.javadoc.verify_params([])
-                        elif len(cparms)==1:
-                            cparms = cparms[0].split(',')
-                            mands = procedure_info.javadoc.verify_params(cparms)
-                        else:
-                            logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
-                        if len(cparms)<2:
-                            for mand in mands:
-                                file_info.packageInfoList[package_count].verification.addProc(mname,mand)
-                    file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
+                    if not procedure_info.javadoc.ignore:
+                        mname = procedure_info.javadoc.name or procedure_info.name
+                        mands = procedure_info.javadoc.verify_mandatory()
+                        for mand in mands:
+                            file_info.packageInfoList[package_count].verification.addProc(mname,mand)
+                        if JavaDocVars['javadoc_mandatory'] and procedure_info.javadoc.isDefault():
+                            logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
+                            file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'))
+                        if JavaDocVars['verification']:
+                            fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
+                            cparms = re.findall(fupatt,filetext)
+                            if len(cparms)==0:
+                                mands = procedure_info.javadoc.verify_params([])
+                            elif len(cparms)==1:
+                                cparms = cparms[0].split(',')
+                                mands = procedure_info.javadoc.verify_params(cparms)
+                            else:
+                                logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
+                            if len(cparms)<2:
+                                for mand in mands:
+                                    file_info.packageInfoList[package_count].verification.addProc(mname,mand)
+                        file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
     # print carriage return after last dot
     dotFlush()
@@ -412,7 +444,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         dotProgress(dot_count)
         dot_count += 1
 
-        infile = codecs.open(outer_file_info.fileName, "r", metaInfo.encoding)
+        infile = fopen(outer_file_info.fileName, "r", metaInfo.encoding)
         fileLines = infile.readlines()
         infile.close()
 
@@ -714,7 +746,7 @@ def MakeStatsPage():
 
     printProgress(_('Creating statistics page'))
 
-    outfile = codecs.open(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w', metaInfo.encoding)
+    outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w', metaInfo.encoding)
     outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
     copy2(scriptpath + os.sep + 'diagram.js', metaInfo.htmlDir + 'diagram.js')
 
@@ -961,7 +993,7 @@ def MakeFileIndex(objectType):
             filenametuplelist.append((file_info.fileName.upper(), file_info))
     filenametuplelist.sort(TupleCompareFirstElements)
 
-    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(objectType))
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1019,7 +1051,7 @@ def MakeElemIndex(objectType):
                 objectTupleList.append((elem_info.name.upper(), elem_info, file_info, package_info)) # append as tuple for case insensitive sort
     objectTupleList.sort(TupleCompareFirstElements)
 
-    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(objectType))
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1089,7 +1121,7 @@ def MakeViewIndex():
 
     viewtuplelist.sort(TupleCompareFirstElements)
 
-    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('view'))
     outfile.write("<H1>"+_('Index Of All Views')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1149,7 +1181,7 @@ def MakeTaskList(taskType):
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
-    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(taskType))
     if taskType == 'bug':
         outfile.write("<H1>"+_('List of open Bugs')+"</H1>\n")
@@ -1212,7 +1244,7 @@ def MakePackageIndex():
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
-    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('package'))
     outfile.write("<H1>"+_('Index Of All Packages')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -1297,7 +1329,7 @@ def MakePackagesWithFuncsAndProcsIndex():
 
     packagetuplelist.sort(TupleCompareFirstElements)
 
-    outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('package_full'))
     outfile.write("<H1>"+_('Index Of All Packages, Their Functions And Procedures')+"</H1>\n")
 
@@ -1407,7 +1439,7 @@ def CreateHyperlinkedSourceFilePages():
         dot_count += 1
 
         # read up the source file
-        infile = codecs.open(file_info.fileName, "r", metaInfo.encoding)
+        infile = fopen(file_info.fileName, "r", metaInfo.encoding)
         infile_line_list = infile.readlines()
         infile.close()
 
@@ -1415,7 +1447,7 @@ def CreateHyperlinkedSourceFilePages():
         outfilename = os.path.split(file_info.fileName)[1].replace(".", "_")
         outfilename += "_" + `file_info.uniqueNumber` + ".html"
 
-        outfile = codecs.open(html_dir + outfilename, "w", metaInfo.encoding)
+        outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
         outfile.write(MakeHTMLHeader(file_info.fileName[len(top_level_directory)+1:]))
         outfile.write("<H1>" + file_info.fileName[len(top_level_directory)+1:] + "</H1>\n")
 
@@ -1483,7 +1515,7 @@ def CreateIndexPage():
     html_dir = metaInfo.htmlDir
     script_name = metaInfo.scriptName
 
-    outfile = codecs.open(html_dir + 'index.html', "w", metaInfo.encoding)
+    outfile = fopen(html_dir + 'index.html', "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('Index'))
 
     # Copy the StyleSheet
@@ -1533,7 +1565,7 @@ def CreateWhereUsedPages():
             
             #open a "where used" file
             whereusedfilename = "where_used_" + `view_info.uniqueNumber` + ".html"
-            outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
+            outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
             
             # write our header
             outfile.write(MakeHTMLHeader('Index'))
@@ -1571,7 +1603,7 @@ def CreateWhereUsedPages():
             
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `package_info.uniqueNumber` + ".html"
-                outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
+                outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
             
                 # write our header
                 outfile.write(MakeHTMLHeader(package_info.name + " "+_("Where Used List")))
@@ -1610,7 +1642,7 @@ def CreateWhereUsedPages():
                 
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `function_info.uniqueNumber` + ".html"
-                outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
+                outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
                 
                 # write our header
                 outfile.write(MakeHTMLHeader(function_info.name.lower() + ' '+_('from Package')+' ' + package_info.name))
@@ -1650,7 +1682,7 @@ def CreateWhereUsedPages():
                 
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `procedure_info.uniqueNumber` + ".html"
-                outfile = codecs.open(html_dir + whereusedfilename, "w", metaInfo.encoding)
+                outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
                 
                 # write our header
                 outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' '+('from package')+' ' + package_info.name.lower()))
@@ -1718,7 +1750,7 @@ def configRead():
       metaInfo.projectLogo = infofile
     infofile               = config.get('General','project_info_file','')
     if infofile != '' and os.path.exists(infofile):
-        infile = codecs.open(infofile, "r", metaInfo.encoding)
+        infile = fopen(infofile, "r", metaInfo.encoding)
         fileLines = ''.join(infile.readlines())
         infile.close()
         metaInfo.projectInfo += fileLines
