@@ -409,10 +409,12 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             objectInfo.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects:
-            dep = objectInfo.name + ' -> "' + os.path.split(fileInfo.fileName)[1] + '"'
+            if otype in ['proc','func'] and objectInfo.parent: oname = objectInfo.parent.name + '.' + objectInfo.name
+            else: oname = objectInfo.name
+            dep = '"' + os.path.split(fileInfo.fileName)[1] + '" -> "' + oname + '";'
             if not dep in metaInfo.depGraph: 
                 metaInfo.depGraph.append(dep)
-                props = objectInfo.name + ' [color="'+cols[otype][0]+'",fontcolor="'+cols[otype][1] + '"];'
+                props = '"' + oname + '" [color="'+cols[otype][0]+'",fontcolor="'+cols[otype][1] + '"];'
                 if not props in metaInfo.depGraph: 
                     metaInfo.depGraph.append(props)
 
@@ -1885,7 +1887,7 @@ if __name__ == "__main__":
       print _('No config file found, using defaults.')
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.4"
+    metaInfo.versionString = "2.5"
     metaInfo.scriptName = sys.argv[0]
     configRead()
     confDeps()
