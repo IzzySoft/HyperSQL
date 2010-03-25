@@ -65,6 +65,7 @@ class MetaInfo:
         self.linesOfCode['code'] = 0
         self.linesOfCode['comment'] = 0
         self.linesOfCode['empty'] = 0
+        self.depGraph = []
         
     def NextIndex(self):
         """

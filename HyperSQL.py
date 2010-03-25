@@ -31,14 +31,8 @@
 """
 
 # first import standard modules we use
-import os, sys, string, time, ConfigParser, fileinput, logging, re, gettext, locale
+import os, sys, time, fileinput, logging, re, gettext, locale
 from shutil import copy2
-
-# encoding fallback
-try:
-    import codecs
-except:
-    codecs = None
 
 # now import our own modules
 sys.path.insert(0,os.path.split(sys.argv[0])[0] + os.sep + 'lib')
@@ -48,28 +42,8 @@ from hypercode import *
 from hyperconf import *
 from hyperconf import _ # needs explicit call
 from hypercharts import *
-
-def fopen(filename,mode,enc=None):
-    """
-    Wrapper to open a file either via codecs (if possible), or simply with open()
-    (if codecs==None)
-    @param string filename
-    @param string mode
-    @param optional string encoding
-    @return filehandle
-    """
-    if enc is None:
-        try:
-            enc = metaInfo.encoding
-        except:
-            enc = None
-    if codecs is None:
-        enc = None
-    if enc is None:
-        return open(filename,mode)
-    else:
-        return codecs.open(filename,mode,enc)
-
+from systools import *
+from depgraph import *
 
 def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     """
@@ -153,7 +127,10 @@ def ScanFilesForViewsAndPackages():
         file_info.bytes  = os.path.getsize(file_info.fileName)
 
         # scan this file for possible JavaDoc style comments
-        jdoc = ScanJavaDoc(fileLines, file_info.fileName)
+        if metaInfo.useJavaDoc:
+            jdoc = ScanJavaDoc(fileLines, file_info.fileName)
+        else:
+            jdoc = []
 
         # if we find a package definition, this flag tells us to also look for
         # functions and procedures.  If we don't find a package definition, there
@@ -407,7 +384,15 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     updates <object>list where_used property accordingly.
     """
 
-    def addWhereUsed(objectInfo,fileInfo,lineNumber):
+    # colors for the depgraph
+    if metaInfo.indexPage['depgraph']:
+        cols = {}
+        cols['pkg']  = ['#ff9933','#000000']
+        cols['view'] = ['#cc3333','#ffffff']
+        cols['func'] = ['#3366ff','#ffffff']
+        cols['proc'] = ['#33ff00','#000000']
+
+    def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
         """
         Add where_used info to an object (view, procedure, function, ...)
         @param object objectInfo the view_info/function_info/... object used there
@@ -422,6 +407,14 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         # generate a unique number for use in making where used file if needed
         if objectInfo.uniqueNumber == 0:
             objectInfo.uniqueNumber = metaInfo.NextIndex()
+        # handle depgraph info
+        if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects:
+            dep = objectInfo.name + ' -> "' + os.path.split(fileInfo.fileName)[1] + '"'
+            if not dep in metaInfo.depGraph: 
+                metaInfo.depGraph.append(dep)
+                props = objectInfo.name + ' [color="'+cols[otype][0]+'",fontcolor="'+cols[otype][1] + '"];'
+                if not props in metaInfo.depGraph: 
+                    metaInfo.depGraph.append(props)
 
 
     printProgress(_("Scanning source files for where views and packages are used"))
@@ -556,7 +549,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     for view_info in inner_file_info.viewInfoList:
                         # perform case insensitive find
                         if fileLines[lineNumber].upper().find(view_info.name.upper()) != -1:
-                            addWhereUsed(view_info, outer_file_info, lineNumber)
+                            addWhereUsed(view_info, outer_file_info, lineNumber, 'view')
 
 
                 # if this FileInfo instance has packages
@@ -566,21 +559,21 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                         # perform case insensitive find, this is "package name"."function or procedure name"
                         if fileLines[lineNumber].upper().find(package_info.name.upper() + ".") != -1:
 
-                            addWhereUsed(package_info, outer_file_info, lineNumber)
+                            addWhereUsed(package_info, outer_file_info, lineNumber, 'pkg')
 
                             #look for any of this packages' functions
                             for function_info in package_info.functionInfoList:
                                 # perform case insensitive find
                                 if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
                                   + function_info.name.upper()) != -1:
-                                    addWhereUsed(function_info, outer_file_info, lineNumber)
+                                    addWhereUsed(function_info, outer_file_info, lineNumber, 'func')
 
                             #look for any of this packages procedures
                             for procedure_info in package_info.procedureInfoList:
                                 # perform case insensitive find
                                 if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
                                   + procedure_info.name.upper()) != -1:
-                                    addWhereUsed(procedure_info, outer_file_info, lineNumber)
+                                    addWhereUsed(procedure_info, outer_file_info, lineNumber, 'proc')
 
                         ### File internal references - possible calls without a package_name
                         elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber) \
@@ -600,7 +593,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                   or fileLines[lineNumber].upper().find(function_info.name.upper(),0,epos) == 0) \
                                  and (fileLines[lineNumber].upper().find(function_info.name.upper()+" ",0,epos) != -1 \
                                   or fileLines[lineNumber].upper().find(function_info.name.upper()+"(",0,epos) != -1):
-                                    addWhereUsed(function_info, outer_file_info, lineNumber)
+                                    addWhereUsed(function_info, outer_file_info, lineNumber, 'func')
 
                             #look for any of this packages procedures
                             for procedure_info in package_info.procedureInfoList:
@@ -610,7 +603,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                   or fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) == 0) \
                                  and (fileLines[lineNumber].upper().find(procedure_info.name.upper()+" ",0,epos) != -1 \
                                   or fileLines[lineNumber].upper().find(procedure_info.name.upper()+"(",0,epos) != -1):
-                                    addWhereUsed(procedure_info, outer_file_info, lineNumber)
+                                    addWhereUsed(procedure_info, outer_file_info, lineNumber, 'proc')
 
 
     # print carriage return after last dot
@@ -626,7 +619,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar'>\n"
-    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo','report','stat']:
+    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo','report','stat','depgraph']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -735,6 +728,28 @@ def getDualCodeLink(otuple):
     HTMLref += "#" + `otuple[1].lineNumber`
     return HTMLref,HTMLjref,HTMLpref,HTMLpjref
 
+def makeDualCodeRef(href,jref,name):
+    """
+    Create the anchor element to the object details
+    @param string href code URL
+    @param string jref JavaDoc URL
+    @param string name Name of the object
+    @return string anchor HTML A element or plain text (if no refs - unlikely,
+            only possible if include_source==0 and javadoc==0)
+    """
+    if metaInfo.useJavaDoc:
+        if jref=='':
+            anchor = name
+        else:
+            anchor = '<A HREF="'+jref+'">'+name+'</A>'
+        if href[0]!='' and metaInfo.includeSource:
+            anchor += ' <SUP><A HREF="'+href+'">#</A></SUP>'
+    else:
+        if href[0]=='' or not metaInfo.includeSource:
+            anchor = name
+        else:
+            anchor = '<A HREF="'+href+'">'+name+'</A>'
+    return anchor
 
 def MakeStatsPage():
     """
@@ -1062,27 +1077,9 @@ def MakeElemIndex(objectType):
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(object_tuple)
         trclass = ' CLASS="tr'+`i % 2`+'"'
         # Write column 1: Object name w/ links
-        if HTMLjref == '':
-            outfile.write("  <TR"+trclass+"><TD>" + object_tuple[1].name.lower())
-            if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
-            outfile.write("</TD>")
-        else:
-            outfile.write("  <TR"+trclass+"><TD>" + object_tuple[1].javadoc.getVisibility() + "<A HREF='" + HTMLjref + "'>" + object_tuple[1].name.lower() + "</A>")
-            if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
-            outfile.write("</TD>")
+        outfile.write("  <TR"+trclass+"><TD>" + object_tuple[1].javadoc.getVisibility() + makeDualCodeRef(HTMLref,HTMLjref,object_tuple[1].name.lower()) + "</TD>")
         # Write column 2: Package name w/ links
-        outfile.write("<TD>")
-        if HTMLpjref == '': # object_tuple[3] is package_info
-            outfile.write(object_tuple[3].name.lower())
-            if metaInfo.includeSource:
-                outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
-        else:
-            outfile.write("<A HREF='" + HTMLpjref + "'>" + object_tuple[3].name.lower() + "</A>")
-            if metaInfo.includeSource:
-                outfile.write(" <SUP><A HREF='" + HTMLpref + "'>#</A>")
-        outfile.write("</TD>")
+        outfile.write("<TD>" + makeDualCodeRef(HTMLpref,HTMLpjref,object_tuple[3].name.lower()) + "</TD>")
         # Write column 3: Short description
         outfile.write("<TD>" + object_tuple[1].javadoc.getShortDesc() + "</TD>")
         # Write column 4: where_used
@@ -1202,10 +1199,7 @@ def MakeTaskList(taskType):
         if task.allItemCount() < 1:
             continue
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
-        outfile.write("  <TR><TH COLSPAN='2'><A HREF='" + HTMLjref + "'>" + package_tuple[1].name.lower() + "</A>")
-        if metaInfo.includeSource:
-            outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
-        outfile.write("</TH></TR>\n");
+        outfile.write('  <TR><TH COLSPAN="2">' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower()) + "</TH></TR>\n");
         if task.taskCount() > 0:
             outfile.write("  <TR><TD COLSPAN='2' ALIGN='center'><B><I>"+_('Package General')+"</I></B></TD></TR>\n")
             outfile.write("  <TR><TD COLSPAN='2'>" + task.getHtml() + "</TD></TR>\n")
@@ -1254,16 +1248,7 @@ def MakePackageIndex():
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
         trclass = ' CLASS="tr'+`i % 2`+'"'
-        if HTMLjref == '':
-            outfile.write("  <TR"+trclass+"><TD>" + package_tuple[1].name.lower())
-            if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
-            outfile.write("</TD>")
-        else:
-            outfile.write("  <TR"+trclass+"><TD><A HREF='" + HTMLjref + "'>" + package_tuple[1].name.lower() + "</A>")
-            if metaInfo.includeSource:
-                outfile.write(" <SUP><A href=\"" + HTMLref + "\">#</A></SUP>")
-            outfile.write("</TD>")
+        outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower()) + '</TD>')
         outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
@@ -1292,14 +1277,8 @@ def MakePackagesWithFuncsAndProcsIndex():
         i = 0
         for oTuple in oTupleList:
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
-            outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + oTuple[1].javadoc.getVisibility())
-            if HTMLjref == '':
-                outfile.write(oTuple[1].name.lower())
-            else:
-                outfile.write('<A HREF="' + HTMLjref + '">' + oTuple[1].name.lower() + '</A>')
-            if metaInfo.includeSource:
-                outfile.write(' <SUP><A HREF="' + HTMLref + '">#</A></SUP>')
-            outfile.write('</TD>\n')
+            outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + oTuple[1].javadoc.getVisibility() \
+              + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower() + '</TD>\n'))
             outfile.write("<TD>" + oTuple[1].javadoc.getShortDesc() + "</TD>")
             outfile.write("        <TD CLASS='whereused'>")
             if len(oTuple[1].whereUsed.keys()) > 0:
@@ -1719,6 +1698,39 @@ def CreateWhereUsedPages():
     dotFlush()
 
 
+def CreateDepGraphIndex():
+    """ Generate the depgraphs and their index page """
+
+    if metaInfo.indexPage['depgraph']=='':
+        return
+
+    printProgress(_('Creating dependency graphs'))
+
+    g = depgraph()
+    if not g.deps_ok: # we cannot do anything
+        logger.error(_('Graphviz trouble - unable to generate the graph'))
+        return
+
+    g.set_graph(metaInfo.depGraph)
+    g.set_fontname(metaInfo.fontName)
+    g.set_fontsize(metaInfo.fontSize)
+    g.set_ranksep(metaInfo.graphRankSep)
+    #g.set_size(9,7)
+    res = g.make_graph(metaInfo.htmlDir + 'depgraph.png')
+
+    if res != '':
+        logger.error(_('Graphviz threw an error:') + res.strip())
+
+    outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['depgraph'], "w", metaInfo.encoding)
+    outfile.write(MakeHTMLHeader('depgraph'))
+    outfile.write("<H1>"+_('Dependency Graph')+"</H1>\n")
+
+    outfile.write('<IMG SRC="depgraph.png" ALT="'+_('Dependency Graph')+'" ALIGN="center">\n')
+
+    outfile.write(MakeHTMLFooter('depgraph'))
+    outfile.close()
+
+
 def confPage(page,filenameDefault,pagenameDefault,enableDefault):
     """
     Add the specified page to the list of pages to process if it is enabled
@@ -1738,7 +1750,11 @@ def configRead():
     """ Setup internal variables from config """
     # Section GENERAL
     metaInfo.title_prefix  = config.get('General','title_prefix','HyperSQL')
-    metaInfo.encoding     = config.get('General','encoding','utf8')
+    metaInfo.encoding      = config.get('General','encoding','utf8')
+    metaInfo.fontName      = config.get('DepGraph','fontname','')
+    metaInfo.fontSize      = config.get('DepGraph','fontsize','')
+    metaInfo.graphRankSep  = config.get('DepGraph','ranksep','')
+    metaInfo.depGraphObjects = config.getList('DepGraph','objects',['view','pkg','proc','func'])
     gettext.bind_textdomain_codeset('hypersql',metaInfo.encoding.upper())
     #gettext.bind_textdomain_codeset('hyperjdoc',metaInfo.encoding.upper())
     setJDocEncoding(metaInfo.encoding.upper())
@@ -1768,25 +1784,33 @@ def configRead():
     metaInfo.indexPage          = {}
     metaInfo.indexPageCount     = 1 # We at least have the main index page
     metaInfo.indexPageName      = {}
-    confPage('filepath','FileNameIndexWithPathnames.html','File Names by Path Index',True)
-    confPage('file','FileNameIndexNoPathnames.html','File Name Index',True)
-    confPage('view','ViewIndex.html','View Index',False)
-    confPage('package','PackageIndex.html','Package Index',True)
-    confPage('package_full','PackagesWithFuncsAndProcsIndex.html','Full Package Listing',True)
-    confPage('function','FunctionIndex.html','Function Index',True)
-    confPage('procedure','ProcedureIndex.html','Procedure Index',True)
-    confPage('bug','BugIndex.html','Bug List',True)
-    confPage('todo','TodoIndex.html','Todo List',True)
-    confPage('report','ReportIndex.html','Verification Report',True)
-    confPage('stat','StatIndex.html','Code Statistics',True)
+    confPage('filepath','FileNameIndexWithPathnames.html',_('File Names by Path Index'),True)
+    confPage('file','FileNameIndexNoPathnames.html',_('File Name Index'),True)
+    confPage('view','ViewIndex.html',_('View Index'),False)
+    confPage('package','PackageIndex.html',_('Package Index'),True)
+    confPage('package_full','PackagesWithFuncsAndProcsIndex.html',_('Full Package Listing'),True)
+    confPage('function','FunctionIndex.html',_('Function Index'),True)
+    confPage('procedure','ProcedureIndex.html',_('Procedure Index'),True)
+    confPage('bug','BugIndex.html',_('Bug List'),True)
+    confPage('todo','TodoIndex.html',_('Todo List'),True)
+    confPage('report','ReportIndex.html',_('Verification Report'),True)
+    confPage('stat','StatIndex.html',_('Code Statistics'),True)
+    confPage('depgraph','DepGraphIndex.html',_('Dependency Graphs'),True)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
     # Section PROCESS
     metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
     metaInfo.includeSource = config.getBool('Process','include_source',True)
+    metaInfo.useJavaDoc = config.getBool('Process','javadoc',True)
     # Section VERIFICATION
     JavaDocVars['javadoc_mandatory'] = config.getBool('Verification','javadoc_mandatory',False)
     JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
+
+def confDeps():
+    """ Check dependent options and fix them, if necessary """
+    if metaInfo.indexPage['depgraph']!='':
+        dg = depgraph()
+        if not dg.deps_ok: metaInfo.indexPage['depgraph'] = ''
 
 def confLogger():
     """ Setup logging """
@@ -1864,6 +1888,7 @@ if __name__ == "__main__":
     metaInfo.versionString = "2.4"
     metaInfo.scriptName = sys.argv[0]
     configRead()
+    confDeps()
 
     # Initiate logging
     logger = logging.getLogger('main')
@@ -1914,6 +1939,7 @@ if __name__ == "__main__":
     MakePackagesWithFuncsAndProcsIndex()
 
     CreateWhereUsedPages()
+    CreateDepGraphIndex()
     CreateHyperlinkedSourceFilePages()
     CreateIndexPage()
 

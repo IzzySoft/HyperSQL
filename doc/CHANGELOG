@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v2.5.0
+-------------------
++ new module systools created for misc. system stuff like opening files etc.
++ new config var: process.javadoc (whether JavaDoc should be evaluated), default 1
++ dependency graph added (still needs some more tweaking)
+
 v2.4.0 (24.03.2010)
 -------------------
 + added gettext support

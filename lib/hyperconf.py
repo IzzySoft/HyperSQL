@@ -62,7 +62,7 @@ class HyperConf(IniParser):
             project_logo_url='',
             ticket_url='',
             wiki_url='',
-            encoding='utf8'
+            encoding='utf8',
         )
         # Section FILENAMES
         filenames = dict (
@@ -83,7 +83,8 @@ class HyperConf(IniParser):
             bug = 'BugIndex.html',
             todo = 'TodoIndex.html',
             report = 'ReportIndex.html',
-            stat = 'StatIndex.html'
+            stat = 'StatIndex.html',
+            depgraph = 'DepGraphIndex.html'
         )
         # Section PAGENAMES
         pagenames = dict (
@@ -97,7 +98,8 @@ class HyperConf(IniParser):
             bug = _('Bug List'),
             todo = _('Todo List'),
             report = _('Validation Report'),
-            stat = _('Code Statistics')
+            stat = _('Code Statistics'),
+            depgraph = _('Dependency graphs')
         )
         # Section PAGES
         pages = dict (
@@ -111,13 +113,15 @@ class HyperConf(IniParser):
             bug = '1',
             todo = '1',
             report = '0',
-            stat = '0'
+            stat = '0',
+            depgraph = '1'
         )
         # Section PROCESS
         process = dict (
             purge_on_start = '0',
             blind_offset = '0',
             include_source = '1',
+            javadoc = '1',
             whereused_scan_shortrefs = '0',
             whereused_scan_instring = '0'
         )
@@ -134,6 +138,13 @@ class HyperConf(IniParser):
             verify_javadoc = '0',
             mandatory_tags = ''
         )
+        # Section DEPGRAPH
+        depgraph = dict (
+            fontname = '',
+            fontsize = '',
+            ranksep  = '',
+            objects  = 'view pkg proc func'
+        )
         # Generate the final dict (dict() allows no nesting)
         vals = {}
         vals['General']   = general
@@ -143,4 +154,5 @@ class HyperConf(IniParser):
         vals['Process']   = process
         vals['Logging']   = logg
         vals['Verification'] = verification
+        vals['DepGraph']  = depgraph
         self.setVals( vals )
