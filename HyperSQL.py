@@ -387,10 +387,10 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     # colors for the depgraph
     if metaInfo.indexPage['depgraph']:
         cols = {}
-        cols['pkg']  = ['#ff9933','#000000']
+        cols['proc'] = ['#ff9933','#000000']
         cols['view'] = ['#cc3333','#ffffff']
         cols['func'] = ['#3366ff','#ffffff']
-        cols['proc'] = ['#33ff00','#000000']
+        cols['pkg']  = ['#33ff00','#000000']
 
     def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
         """
@@ -1708,7 +1708,7 @@ def CreateDepGraphIndex():
 
     printProgress(_('Creating dependency graphs'))
 
-    g = depgraph()
+    g = depgraph(metaInfo.graphvizMod)
     if not g.deps_ok: # we cannot do anything
         logger.error(_('Graphviz trouble - unable to generate the graph'))
         return
@@ -1727,7 +1727,7 @@ def CreateDepGraphIndex():
     outfile.write(MakeHTMLHeader('depgraph'))
     outfile.write("<H1>"+_('Dependency Graph')+"</H1>\n")
 
-    outfile.write('<IMG SRC="depgraph.png" ALT="'+_('Dependency Graph')+'" ALIGN="center">\n')
+    outfile.write('<DIV ALIGN="center"><IMG SRC="depgraph.png" ALT="'+_('Dependency Graph')+'" ALIGN="center"></DIV>\n')
 
     outfile.write(MakeHTMLFooter('depgraph'))
     outfile.close()
@@ -1753,10 +1753,6 @@ def configRead():
     # Section GENERAL
     metaInfo.title_prefix  = config.get('General','title_prefix','HyperSQL')
     metaInfo.encoding      = config.get('General','encoding','utf8')
-    metaInfo.fontName      = config.get('DepGraph','fontname','')
-    metaInfo.fontSize      = config.get('DepGraph','fontsize','')
-    metaInfo.graphRankSep  = config.get('DepGraph','ranksep','')
-    metaInfo.depGraphObjects = config.getList('DepGraph','objects',['view','pkg','proc','func'])
     gettext.bind_textdomain_codeset('hypersql',metaInfo.encoding.upper())
     #gettext.bind_textdomain_codeset('hyperjdoc',metaInfo.encoding.upper())
     setJDocEncoding(metaInfo.encoding.upper())
@@ -1807,6 +1803,12 @@ def configRead():
     JavaDocVars['javadoc_mandatory'] = config.getBool('Verification','javadoc_mandatory',False)
     JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
+    # Section DEPGRAPH
+    metaInfo.graphvizMod   = config.get('DepGraph','processor','dot')
+    metaInfo.fontName      = config.get('DepGraph','fontname','')
+    metaInfo.fontSize      = config.get('DepGraph','fontsize','')
+    metaInfo.graphRankSep  = config.get('DepGraph','ranksep','')
+    metaInfo.depGraphObjects = config.getList('DepGraph','objects',['view','pkg','proc','func'])
 
 def confDeps():
     """ Check dependent options and fix them, if necessary """

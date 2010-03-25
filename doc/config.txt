@@ -139,6 +139,8 @@ DepGraph
 
 Here goes everything for the dependency graphs:
 
+ * processor: which graphviz processor to use. Default is 'dot', but
+   you may want to decide for 'fdp', 'neato', or 'circo' as well
  * fontname: Font name to use for text, e.g. "Arial" (Default: "", i.e. let
    graphviz decide). If you set some other name, HyperSQL will not check
    whether that font exists, but simply pass it to  Graphviz. If the font
