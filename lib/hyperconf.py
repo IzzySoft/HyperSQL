@@ -99,7 +99,7 @@ class HyperConf(IniParser):
             todo = _('Todo List'),
             report = _('Validation Report'),
             stat = _('Code Statistics'),
-            depgraph = _('Dependency graphs')
+            depgraph = _('Dependency Graphs')
         )
         # Section PAGES
         pages = dict (

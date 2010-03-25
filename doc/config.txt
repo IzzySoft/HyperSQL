@@ -43,13 +43,8 @@ All about file names - concerning the target HTML files:
  * htmldir: where the HTML output should go to
  * css_file: the stylesheet file to include in the generated HTML pages
  * css_url is used as (additional) CSS link - so you can use both entries
- * filepath: the HTML file for the File Index With Pathnames
- * file: similar for File Index Without Pathnames
- * view: similar for the views listing
- * package: and for the package index
- * function: guessed right, HTML file for the function index
- * procedure: procedure index HTML file
- * package_full: Index of packages including all their functions and procedures
+
+Plus all the pages (see below) with their file names.
 
 PageNames
 ---------
@@ -74,6 +69,7 @@ named similar to their corresponding file names options, so:
  * todo: Index of todos gathered from the JavaDoc @todo tags
  * report: Verification report
  * stat: Some project stats, such as lines of code and file stats
+ * depgraph: Dependency graph
 
 Pages
 -----
@@ -88,8 +84,6 @@ Process
 
 Here come processing options:
 
- * purge_on_start: whether to purge the target HTML directory from files of
-   previous runs (if any) before generating new ones 
  * blind_offset: How many lines before/after the CREATE statement shall we check
    for "anonymous javadoc blocks", i.e. those missing to name the object they
    describe. This is just for compatibility for a quick start - usually, you
@@ -98,6 +92,15 @@ Here come processing options:
    always fit...
  * include_source: whether to include the (highlighted) sourcecode and link to it.
    The value must evaluate to a Boolean (, e.g. 0 for no, 1 for yes)
+ * javadoc: whether to process javadoc at all. If your project does not use
+   JavaDoc, setting this to '0' will speed up processing, as the JavaDoc scan
+   is skipped.
+ * purge_on_start: whether to purge the target HTML directory from files of
+   previous runs (if any) before generating new ones 
+ * whereused_scan_instring: whether to scan strings (i.e. things enclosed within
+   single quotes) for where_used. This only makes sense if you have such calls
+   created dynamically for EXECUTE IMMEDIATE or REF_CURSOR, and is subject to
+   false positives. Default is '0' (No, Off, Don't)
  * whereused_scan_shortrefs: whether we shall also scan for not fully qualified
    references when building the where_used list, i.e. calls to some function or
    procedure not specifying its package. Those calls are sometimes used
@@ -105,10 +108,6 @@ Here come processing options:
    but probably never outside. If enabled, this may produce some false positives
    (especially if one (or more) of your files contain more than one package each)
    Default is '0' (No, Off, Don't)
- * whereused_scan_instring: whether to scan strings (i.e. things enclosed within
-   single quotes) for where_used. This only makes sense if you have such calls
-   created dynamically for EXECUTE IMMEDIATE or REF_CURSOR, and is subject to
-   false positives. Default is '0' (No, Off, Don't)
 
 Logging
 -------
@@ -134,6 +133,27 @@ In this section you may setup some JavaDoc verification stuff:
  * mandatory_tags: if JavaDoc is available for an object, which tags (space
    separated) are mandatory? The pseudo-tag "desc" stands for the objects
    description. Default: empty (no mandatory tags).
+
+DepGraph
+--------
+
+Here goes everything for the dependency graphs:
+
+ * fontname: Font name to use for text, e.g. "Arial" (Default: "", i.e. let
+   graphviz decide). If you set some other name, HyperSQL will not check
+   whether that font exists, but simply pass it to  Graphviz. If the font
+   does not exist, an error will be returned by Graphviz - and it will still
+   use its default font (the error will be logged by HyperSQL). 
+ * fontsize: Used to change the font size. The default here is "", which again
+   means to let Graphviz decide. This value must be numeric, or it is ignored
+   (with an error logged). 
+ * ranksep: If there's not enough (or too much) space between the different
+   levels, you may play with this value. Default is "" again (let Graphviz
+   decide, which uses "0.5" by default). 
+ * objects: Which object types should be included with the dependency graph.
+   By default, we take them all - but with large projects, you may want to
+   restrict it to e.g. "view pkg", which means only views and packages (but
+   not functions and procedures). 
 
 
 How the configuration works

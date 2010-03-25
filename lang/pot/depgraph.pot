@@ -1,0 +1,35 @@
+# SOME DESCRIPTIVE TITLE.
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: depgraph\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-03-25 18:30+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../lib/depgraph.py:66 ../../lib/depgraph.py:95 ../../lib/depgraph.py:107
+#: ../../lib/depgraph.py:123 ../../lib/depgraph.py:135
+#: ../../lib/depgraph.py:147 ../../lib/depgraph.py:160
+#: ../../lib/depgraph.py:175 ../../lib/depgraph.py:178
+#, python-format
+msgid ""
+"%(func)s was called with wrong parameter type: required: [%(req)s], given: [%"
+"(got)s]"
+msgstr ""
+
+#: ../../lib/depgraph.py:181
+msgid "make_graph() called on an empty graph!"
+msgstr ""
+
+#: ../../lib/depgraph.py:110
+#, python-format
+msgid "parameter %(parm)s to %(func)s must not be empty!"
+msgstr ""

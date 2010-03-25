@@ -8,6 +8,7 @@ cd ${0%%/*}
 # Generate the POT files
 xgettext -o hypersql.pot $ARGS --foreign-user --package-name=hypersql ../../HyperSQL.py ../../lib/hyperconf.py
 xgettext -o hyperjdoc.pot $ARGS --package-name=hyperjdoc ../../lib/hyperjdoc.py
+xgettext -o depgraph.pot $ARGS --package-name=depgraph ../../lib/depgraph.py
 
 # Get back to where we came from
 cd -
