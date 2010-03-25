@@ -1280,7 +1280,7 @@ def MakePackagesWithFuncsAndProcsIndex():
         for oTuple in oTupleList:
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
             outfile.write("    <TR CLASS='tr"+`i % 2`+"'><TD>" + oTuple[1].javadoc.getVisibility() \
-              + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower() + '</TD>\n'))
+              + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower()) + '</TD>\n')
             outfile.write("<TD>" + oTuple[1].javadoc.getShortDesc() + "</TD>")
             outfile.write("        <TD CLASS='whereused'>")
             if len(oTuple[1].whereUsed.keys()) > 0:
