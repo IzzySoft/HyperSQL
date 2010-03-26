@@ -38,13 +38,14 @@ class depgraph(object):
     This requires the graphviz application to be installed
     """
 
-    def __init__(self,mod='dot'):
+    def __init__(self,mod='dot',charset='utf-8'):
         """
         Setup required dependencies and create the instance
         @param self
         @param optional string mod graphviz module to use. Defaults to 'dot'
         """
         self.bin   = ''  # the binary/executable
+        self.charset = charset
         self.graph = ''  # graph definition text
         self.name  = 'G' # name of the generated graph
         self.fontname = ''  # font to use with graphviz
@@ -100,16 +101,29 @@ class depgraph(object):
         Set the name for the graph
         @param self
         @param optional string name name of the graph (defaults to a simple 'G')
-        @throws TypeError if the passed name is not a string
-        @throws ValueError when an empty string is passed (graph *must* have a name)
         """
         if not is_str(name):
             logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_name','req':'str','got':','.join(is_what(name))})
-            raise TypeError
+            return
         if name=='':
             logger.error(_('parameter %(parm)s to %(func)s must not be empty!'), {'parm':'name','func':'depgraph.set_name'})
-            raise ValueError
+            return
         self.name = name
+
+    def set_charset(self,name='utf-8'):
+        """
+        Set the character set used in your graph definition
+        @param self
+        @param optional string name name of the charset (defaults to 'utf-8').
+               Pass an empty string to use the defaults configured with graphviz,
+               if unsure - and then investigate the error message shown, which
+               usually suggests you the correct one to use
+        @example depgraph.set_charset('iso-8859-1')
+        """
+        if not is_str(name):
+            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_charset','req':'str','got':','.join(is_what(name))})
+            return
+        self.charset = name
 
     def set_fontname(self,font):
         """
@@ -192,6 +206,7 @@ class depgraph(object):
         if self.fontsize!='': props += ' -Nfontsize="'+self.fontsize+'"'
         if self.size!='': props += ' -Gsize="'+self.size+'"'
         if self.ranksep!='': props += ' -Granksep='+self.ranksep
+        if self.charset!='': props += ' -Gcharset="'+self.charset+'"'
         out,err = popen( self.bin + props + parms )
         logger.info('calling "'+self.bin + props + parms +'"')
         #os_unlink(tmpname)

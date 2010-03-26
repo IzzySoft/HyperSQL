@@ -409,8 +409,8 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             objectInfo.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects:
-            if otype in ['proc','func'] and objectInfo.parent: oname = objectInfo.parent.name + '.' + objectInfo.name
-            else: oname = objectInfo.name
+            if otype in ['proc','func'] and objectInfo.parent: oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
+            else: oname = objectInfo.name.lower()
             dep = '"' + os.path.split(fileInfo.fileName)[1] + '" -> "' + oname + '";'
             if not dep in metaInfo.depGraph: 
                 metaInfo.depGraph.append(dep)
@@ -1708,7 +1708,7 @@ def CreateDepGraphIndex():
 
     printProgress(_('Creating dependency graphs'))
 
-    g = depgraph(metaInfo.graphvizMod)
+    g = depgraph(metaInfo.graphvizMod,metaInfo.encoding)
     if not g.deps_ok: # we cannot do anything
         logger.error(_('Graphviz trouble - unable to generate the graph'))
         return
