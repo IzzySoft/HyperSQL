@@ -11,11 +11,9 @@ logger = logging.getLogger('main.jdoc')
 # Setup gettext support
 langs = []
 lc, encoding = locale.getdefaultlocale()
-if (lc):
-    langs = [lc,lc[:2]]
+if (lc): langs = [lc,lc[:2]]
 language = os.environ.get('LANGUAGE', None)
-if (language):
-    langs += language.split(":")
+if (language): langs += language.split(":")
 langs += ['en_US']
 langpath = os.path.split(pargs[0])[0] + os.sep + 'lang'
 gettext.bindtextdomain('hyperjdoc', langpath)
@@ -391,17 +389,12 @@ def taskSortName(a,b):
     @param TaskItem a
     @param TaskItem b
     """
-    if a.name < b.name:
-        return -1
-    elif a.name > b.name:
-        return 1
+    if a.name < b.name:   return -1
+    elif a.name > b.name: return 1
     else:
-        if a.desc < b.desc:
-            return -1
-        if a.desc > b.desc:
-            return 1
-        else:
-            return 0
+        if a.desc < b.desc: return -1
+        if a.desc > b.desc: return 1
+        else:               return 0
 
 class TaskList:
     """
@@ -448,11 +441,9 @@ class TaskList:
         @param self
         @return string html
         """
-        if self.taskCount < 1:
-            return ''
+        if self.taskCount < 1: return ''
         html = '<UL>\n'
-        for item in self.items:
-            html += '  <LI>'+item.desc+'</LI>\n'
+        for item in self.items: html += '  <LI>'+item.desc+'</LI>\n'
         html += '</UL>\n'
         return html
 
@@ -554,14 +545,12 @@ class PackageTaskList(TaskList):
         @return string html
         """
         if objectType == 'funcs':
-            if len(self.funcs) < 1:
-                return ''
+            if len(self.funcs) < 1: return ''
             self.sortFuncs('name')
             items = self.funcs
             html = '  <TR><TH CLASS="sub">Function</TH><TH CLASS="sub">Task</TH>\n'
         else:
-            if len(self.procs) < 1:
-                return ''
+            if len(self.procs) < 1: return ''
             self.sortProcs('name')
             items = self.procs
             html = '  <TR><TH CLASS="sub">Procedure</TH><TH CLASS="sub">Task</TH>\n'
@@ -716,6 +705,6 @@ def ScanJavaDoc(text,fileName,lineNo=0):
         else:             # unsupported tag, ignore
           logger.warn(_('unsupported JavaDoc tag "%(tag)s" in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
           continue
-        
+
     return res
 

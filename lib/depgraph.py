@@ -2,6 +2,15 @@
 # -*- coding: utf-8 -*-
 """
 Dependency graph
+$Id$
+
+Example usage:
+
+g = depgraph()
+if g.deps_ok:
+  g.set_graph('a -> b\nb -> c')
+  #g.set_graph(['a -> b','b -> c'])
+  g.make_graph('ab.png','png','Vera')
 """
 
 #====================================================[ Imports and Presets ]===
@@ -25,7 +34,7 @@ if (language):
     langs += language.split(":")
 langs += ['en_US']
 langpath = os_path.split(pargs[0])[0] + os.sep + 'lang'
-gettext.bindtextdomain('hyperjdoc', langpath)
+gettext.bindtextdomain('depgraph', langpath)
 gettext.textdomain('depgraph')
 lang = gettext.translation('depgraph', langpath, languages=langs, fallback=True)
 _ = lang.ugettext
@@ -211,15 +220,3 @@ class depgraph(object):
         logger.info('calling "'+self.bin + props + parms +'"')
         #os_unlink(tmpname)
         return err
-        
-"""
-g = depgraph()
-print g.bin
-if g.deps_ok: print 'We can use this!'
-g.set_graph('a -> b\nb -> c')
-print g.graph
-g.set_graph(['a -> b','b -> c'])
-print g.graph
-#g.set_graph(1)
-g.make_graph('/srv/www/htdocs/igwebapi/lib/ab.png','png','Vera')
-"""

@@ -66,7 +66,7 @@ class MetaInfo:
         self.linesOfCode['comment'] = 0
         self.linesOfCode['empty'] = 0
         self.depGraph = []
-        
+
     def NextIndex(self):
         """
         Used to generate unique file names for where used indices
@@ -214,10 +214,8 @@ def TupleCompareFirstElements(a, b):
     @param tuple b
     @return int 0 for equal, -1 if a is less, 1 if a is greater than b
     """
-    if a[0] < b[0]:
-	return -1
-    if a[0] > b[0]:
-	return 1
+    if a[0] < b[0]: return -1
+    if a[0] > b[0]: return 1
     return 0
 
 
@@ -228,10 +226,8 @@ def CaseInsensitiveComparison(a, b):
     @param string b
     @return int 0 for equal, -1 if a is less, 1 if a is greater than b
     """
-    if a.upper() < b.upper():
-	return -1
-    if a.upper() > b.upper():
-	return 1
+    if a.upper() < b.upper(): return -1
+    if a.upper() > b.upper(): return 1
     return 0
 
 def num_format(num, places=0):
@@ -243,6 +239,5 @@ def size_format(size,decs=2):
         if size > lim:
             continue
         else:
-            #return num_format( round(size/float(lim/2**10),decs), decs ).__str__()+suf
             return num_format( round(size/float(lim/2**10),decs), decs )+suf
 
