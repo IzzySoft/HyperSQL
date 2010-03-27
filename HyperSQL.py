@@ -65,7 +65,7 @@ def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     for i in names: 
 
       if i in metaInfo.rcsnames: # do not look in RCS/CVS/SVN/... special dirs
-	    continue
+        continue
 
       # convert from relative to absolute addressing
       # to allow recursive calls
@@ -74,7 +74,7 @@ def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
       # if this item is also a directory, recurse it too
       if os.path.isdir(f1):
         FindFilesAndBuildFileList(f1, fileInfoList, False)
-	    
+
       else:  # file found, only add specific file extensions to the list
         fspl = f1.split('.')
         ext  = fspl[len(fspl)-1]
@@ -115,7 +115,7 @@ def ScanFilesForViewsAndPackages():
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue
-        
+
         # print a . every file
         dotProgress(dot_count)
 
@@ -161,7 +161,7 @@ def ScanFilesForViewsAndPackages():
                     for g in range(len(result.groups())):
                         fileLines[lineNumber+1] = fileLines[lineNumber+1].replace(result.group(g) , "")
                     result = strpatt.search(fileLines[lineNumber+1])
-                
+
                 token_list1 = fileLines[lineNumber+1].split()
                 if matched_string and len(token_list1) < 1: # that line was completely eaten
                     metaInfo.incLoc('code')
@@ -326,7 +326,7 @@ def ScanFilesForViewsAndPackages():
                                 for mand in mands:
                                     file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
                         file_info.packageInfoList[package_count].functionInfoList.append(function_info)
-		    
+
                 # now find procedures
                 if len(token_list) > 1 and token_list[0] == "PROCEDURE":
                     procedure_name = token_list[1].split('(')[0] # some are "name(" and some are "name ("
@@ -449,7 +449,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         package_count = -1
         in_block_comment = 0
         new_file = 1
-        
+
 
         for lineNumber in range(len(fileLines)):
 
@@ -457,7 +457,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 token_list = fileLines[lineNumber].split()
             else:
                 token_list = token_list1
-                
+
             # len()-1 because we start with index 0
             if len(fileLines)-1 > lineNumber and not scan_instring:
                 # eat string contents
@@ -1030,7 +1030,7 @@ def MakeFileIndex(objectType):
     outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter(objectType))
     outfile.close()
-	
+
 
 def MakeElemIndex(objectType):
     """
@@ -1292,7 +1292,7 @@ def MakePackagesWithFuncsAndProcsIndex():
             i += 1
         if len(oTupleList) != 0:
             outfile.write("</TABLE></TD></TR>\n")
-	    
+
 
     printProgress(_("Creating 'package with functions and procedures' index"))
 
@@ -1537,17 +1537,17 @@ def CreateWhereUsedPages():
         # print a . every file
         dotProgress(dot_count)
         dot_count += 1
-	
+
         # loop through views
         for view_info in file_info.viewInfoList:
 
             if len(view_info.whereUsed.keys()) == 0:
                 continue
-            
+
             #open a "where used" file
             whereusedfilename = "where_used_" + `view_info.uniqueNumber` + ".html"
             outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-            
+
             # write our header
             outfile.write(MakeHTMLHeader('Index'))
             outfile.write("<H1>" + view_info.name + " "+_('Where Used List')+"</H1>\n")
@@ -1581,11 +1581,11 @@ def CreateWhereUsedPages():
         for package_info in file_info.packageInfoList:
 
             if len(package_info.whereUsed.keys()) != 0:
-            
+
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `package_info.uniqueNumber` + ".html"
                 outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-            
+
                 # write our header
                 outfile.write(MakeHTMLHeader(package_info.name + " "+_("Where Used List")))
                 outfile.write("<H1>" + package_info.name + " Where Used List</H1>\n")
@@ -1620,11 +1620,11 @@ def CreateWhereUsedPages():
             for function_info in package_info.functionInfoList:
                 if len(function_info.whereUsed.keys()) == 0:
                     continue
-                
+
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `function_info.uniqueNumber` + ".html"
                 outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-                
+
                 # write our header
                 outfile.write(MakeHTMLHeader(function_info.name.lower() + ' '+_('from Package')+' ' + package_info.name))
                 outfile.write("<H1>" + function_info.name.lower() + " <I>"+_('from package')+" " + package_info.name)
@@ -1660,18 +1660,18 @@ def CreateWhereUsedPages():
             for procedure_info in package_info.procedureInfoList:
                 if len(procedure_info.whereUsed.keys()) == 0:
                     continue
-                
+
                 #open a "where used" file
                 whereusedfilename = "where_used_" + `procedure_info.uniqueNumber` + ".html"
                 outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-                
+
                 # write our header
                 outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' '+('from package')+' ' + package_info.name.lower()))
                 outfile.write("<H1>" + procedure_info.name.lower() + " <I>"+_('from package')+" " + package_info.name.lower())
                 outfile.write(" </I>"+_('Where Used List')+"</H1>\n")
                 outfile.write("<TABLE CLASS='apilist'>\n")
                 outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
-                
+
                 # each where used
                 where_used_keys = procedure_info.whereUsed.keys()
                 where_used_keys.sort(CaseInsensitiveComparison)
