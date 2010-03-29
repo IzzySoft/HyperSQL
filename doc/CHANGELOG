@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v2.6.0
+-------------------
++ added smarter progress indicators
+* some adjustments for depgraph.set_charset
++ drawing 3 depgraphs now (basic, medium and full)
+
 v2.5.0 (28.03.2010)
 -------------------
 + new module systools created for misc. system stuff like opening files etc.

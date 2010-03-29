@@ -54,7 +54,7 @@ class depgraph(object):
         @param optional string mod graphviz module to use. Defaults to 'dot'
         """
         self.bin   = ''  # the binary/executable
-        self.charset = charset
+        self.charset = ''
         self.graph = ''  # graph definition text
         self.name  = 'G' # name of the generated graph
         self.fontname = ''  # font to use with graphviz
@@ -62,6 +62,7 @@ class depgraph(object):
         self.size = ''   # image size ('x-inch,y-inch')
         self.ranksep = '' # rank separator for dot
         self.set_mod(mod)
+        self.set_charset(charset)
 
     def set_mod(self,mod='dot'):
         """
@@ -121,7 +122,10 @@ class depgraph(object):
 
     def set_charset(self,name='utf-8'):
         """
-        Set the character set used in your graph definition
+        Set the character set used in your graph definition. Supported charsets
+        are 'utf-8' and 'iso-8859-1' (aka 'latin-1') currently, so all others
+        will provoke an error from Graphviz and fallback to utf-8, until the
+        Graphviz team supports them.
         @param self
         @param optional string name name of the charset (defaults to 'utf-8').
                Pass an empty string to use the defaults configured with graphviz,
@@ -132,6 +136,8 @@ class depgraph(object):
         if not is_str(name):
             logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_charset','req':'str','got':','.join(is_what(name))})
             return
+        name = name.lower()
+        if name=='iso-8859-15': name='iso-8859-1'
         self.charset = name
 
     def set_fontname(self,font):

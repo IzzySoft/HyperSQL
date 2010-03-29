@@ -44,6 +44,7 @@ from hyperconf import _ # needs explicit call
 from hypercharts import *
 from systools import *
 from depgraph import *
+from progressbar import *
 
 def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     """
@@ -103,9 +104,10 @@ def ScanFilesForViewsAndPackages():
     and children) - for functions and procedures contained in packages, a link
     to their parent is stored along.
     """
-    printProgress(_("Scanning source files for views and packages"))
 
     fileInfoList = metaInfo.fileInfoList
+    pbarInit(_("Scanning source files for views and packages"),0,len(fileInfoList))
+    i = 0
     strpatt = re.compile("('[^']*')+")    # String-Regexp
 
     # first, find views in files
@@ -117,9 +119,9 @@ def ScanFilesForViewsAndPackages():
             continue
 
         # print a . every file
-        dotProgress(dot_count)
+        i += 1
+        pbarUpdate(i)
 
-        dot_count += 1
         infile = fopen(file_info.fileName, "r", metaInfo.encoding)
         fileLines = infile.readlines()
         infile.close()
@@ -373,8 +375,8 @@ def ScanFilesForViewsAndPackages():
                                     file_info.packageInfoList[package_count].verification.addProc(mname,mand)
                         file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
 
-    # print carriage return after last dot
-    dotFlush()
+    # complete line on task completion
+    pbarClose()
 
 
 def ScanFilesForWhereViewsAndPackagesAreUsed():
@@ -383,6 +385,27 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     with metaInfo.<object>list for calls to those objects. If it finds any, it
     updates <object>list where_used property accordingly.
     """
+
+    def findUsingObject(fInfo,lineNumber):
+        vObj = ElemInfo()
+        pObj = ElemInfo()
+        fObj = ElemInfo()
+        if len(fInfo.viewInfoList)!=0:
+            for vInfo in fInfo.viewInfoList:
+                if vInfo.lineNumber < lineNumber: vObj = vInfo
+                else: break
+        if len(fInfo.packageInfoList)!=0:
+            for pInfo in fInfo.packageInfoList:
+                for vInfo in pInfo.functionInfoList:
+                    if vInfo.lineNumber < lineNumber: fObj = vInfo
+                    else: break
+                for vInfo in pInfo.procedureInfoList:
+                    if vInfo.lineNumber < lineNumber: pObj = vInfo
+                    else: break
+        if vObj.lineNumber > pObj.lineNumber and vObj.lineNumber > fObj.lineNumber: return 'view',vObj
+        if pObj.lineNumber > vObj.lineNumber and pObj.lineNumber > fObj.lineNumber: return 'proc',pObj
+        return 'func',fObj
+        
 
     # colors for the depgraph
     if metaInfo.indexPage['depgraph']:
@@ -398,7 +421,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         @param object objectInfo the view_info/function_info/... object used there
         @param object fileInfo object of the file where the usage was found
         @param int lineNumber file line number where the usage was found
+        @param string otype object type of the used object
         """
+        uType,uObj = findUsingObject(fileInfo,lineNumber)
         if fileInfo.fileName not in objectInfo.whereUsed.keys():
             objectInfo.whereUsed[fileInfo.fileName] = []
             objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber))
@@ -409,17 +434,40 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             objectInfo.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects:
+            # basic: file -> file
+            if otype in ['proc','func']: oto = objectInfo.parent.parent.fileName
+            else: oto = objectInfo.parent.fileName
+            oto = os.path.split(oto)[1]
+            ofrom = os.path.split(fileInfo.fileName)[1]
+            dep = '"' + ofrom + '" -> "' + oto + '";'
+            if not dep in metaInfo.depGraph['basic']:
+                metaInfo.depGraph['basic'].append(dep)
+            # medium: object -> file
+            if uType in ['proc','func'] and uObj.parent: uname = uObj.parent.name.lower() + '.' + uObj.name.lower()
+            else: uname = uObj.name.lower()
+            dep = '"' + uname + '" -> "' + oto + '";'
+            if not dep in metaInfo.depGraph['medium']:
+                metaInfo.depGraph['medium'].append(dep)
+                props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
+                if not props in metaInfo.depGraph['medium']:
+                    metaInfo.depGraph['medium'].append(props)
+            # full: object -> object
             if otype in ['proc','func'] and objectInfo.parent: oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
             else: oname = objectInfo.name.lower()
-            dep = '"' + os.path.split(fileInfo.fileName)[1] + '" -> "' + oname + '";'
-            if not dep in metaInfo.depGraph: 
-                metaInfo.depGraph.append(dep)
+            dep = '"' + uname + '" -> "' + oname + '";'
+            if not dep in metaInfo.depGraph['full']:
+                metaInfo.depGraph['full'].append(dep)
+                props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
+                if not props in metaInfo.depGraph['full']:
+                    metaInfo.depGraph['full'].append(props)
                 props = '"' + oname + '" [color="'+cols[otype][0]+'",fontcolor="'+cols[otype][1] + '"];'
-                if not props in metaInfo.depGraph: 
-                    metaInfo.depGraph.append(props)
+                if not props in metaInfo.depGraph['full']:
+                    metaInfo.depGraph['full'].append(props)
 
 
-    printProgress(_("Scanning source files for where views and packages are used"))
+    fileInfoList = metaInfo.fileInfoList
+
+    pbarInit(_("Scanning source files for where views and packages are used"),0,len(fileInfoList))
     scan_instring = config.getBool('Process','whereused_scan_instring')
     if scan_instring:
         logger.info(_('Including strings in where_used scan'))
@@ -427,17 +475,15 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         logger.info(_('Excluding strings from where_used scan'))
         strpatt = re.compile("('[^']*')+")    # String-Regexp
 
-    fileInfoList = metaInfo.fileInfoList
-
     outerfileInfoList = []
     for file_info in fileInfoList:
         outerfileInfoList.append(file_info)
 
-    dot_count = 1
+    i = 0
     for outer_file_info in outerfileInfoList:
-        # print a . every file
-        dotProgress(dot_count)
-        dot_count += 1
+        # update progressbar
+        i += 1
+        pbarUpdate(i)
 
         infile = fopen(outer_file_info.fileName, "r", metaInfo.encoding)
         fileLines = infile.readlines()
@@ -608,8 +654,8 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                                     addWhereUsed(procedure_info, outer_file_info, lineNumber, 'proc')
 
 
-    # print carriage return after last dot
-    dotFlush()
+    # complete line on task completion
+    pbarClose()
 
 
 def MakeNavBar(current_page):
@@ -1392,11 +1438,10 @@ def CreateHyperlinkedSourceFilePages():
         outfile.write('</TR>\n')
 
 
-    printProgress(_("Creating hyperlinked source file pages"))
-
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
     top_level_directory = metaInfo.topLevelDirectory
+    pbarInit(_("Creating hyperlinked source file pages"),0,len(fileInfoList))
 
     sqlkeywords = []
     sqltypes    = []
@@ -1409,15 +1454,15 @@ def CreateHyperlinkedSourceFilePages():
         continue
       sqltypes.append(line.strip())
 
-    dot_count = 1
+    k = 0
     for file_info in fileInfoList:
+        # update progressbar
+        k += 1
+        pbarUpdate(k)
+
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue
-
-        # print a . every file
-        dotProgress(dot_count)
-        dot_count += 1
 
         # read up the source file
         infile = fopen(file_info.fileName, "r", metaInfo.encoding)
@@ -1485,8 +1530,8 @@ def CreateHyperlinkedSourceFilePages():
 
         outfile.close()
 
-    # print carriage return after last dot
-    dotFlush()
+    # complete line on task completion
+    pbarClose()
 
 
 def CreateIndexPage():
@@ -1521,22 +1566,21 @@ def CreateIndexPage():
 
 def CreateWhereUsedPages():
     """Generate a where-used-page for each object"""
-    printProgress(_("Creating 'where used' pages"))
-
     html_dir = metaInfo.htmlDir
     fileInfoList = metaInfo.fileInfoList
+    pbarInit(_("Creating 'where used' pages"),0,len(fileInfoList))
 
     # loop through files
-    dot_count = 1
+    i = 0
     for file_info in fileInfoList:
+
+        # Update progressbar
+        i += 1
+        pbarUpdate(i)
 
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue
-
-        # print a . every file
-        dotProgress(dot_count)
-        dot_count += 1
 
         # loop through views
         for view_info in file_info.viewInfoList:
@@ -1696,8 +1740,8 @@ def CreateWhereUsedPages():
                 outfile.write(MakeHTMLFooter(procedure_info.name.lower() + ' '+_('from package')+' ' + package_info.name.lower()))
                 outfile.close()
 
-    # print carriage return after last dot
-    dotFlush()
+    # complete line on task completion
+    pbarClose()
 
 
 def CreateDepGraphIndex():
@@ -1706,32 +1750,53 @@ def CreateDepGraphIndex():
     if metaInfo.indexPage['depgraph']=='':
         return
 
-    printProgress(_('Creating dependency graphs'))
+    pbarInit(_('Creating dependency graphs'),0,3)
 
     g = depgraph(metaInfo.graphvizMod,metaInfo.encoding)
     if not g.deps_ok: # we cannot do anything
         logger.error(_('Graphviz trouble - unable to generate the graph'))
         return
 
-    g.set_graph(metaInfo.depGraph)
     g.set_fontname(metaInfo.fontName)
     g.set_fontsize(metaInfo.fontSize)
     g.set_ranksep(metaInfo.graphRankSep)
-    #g.set_size(9,7)
-    res = g.make_graph(metaInfo.htmlDir + 'depgraph.png')
 
+    # draw the basic graph
+    g.set_graph(metaInfo.depGraph['basic'])
+    res = g.make_graph(metaInfo.htmlDir + 'depgraph_basic.png')
     if res != '':
         logger.error(_('Graphviz threw an error:') + res.strip())
+    pbarUpdate(1)
+
+    # draw the medium graph
+    g.set_graph(metaInfo.depGraph['medium'])
+    res = g.make_graph(metaInfo.htmlDir + 'depgraph_medium.png')
+    if res != '':
+        logger.error(_('Graphviz threw an error:') + res.strip())
+    pbarUpdate(2)
+
+    # draw the full graph
+    g.set_graph(metaInfo.depGraph['full'])
+    res = g.make_graph(metaInfo.htmlDir + 'depgraph_full.png')
+    if res != '':
+        logger.error(_('Graphviz threw an error:') + res.strip())
+    pbarUpdate(3)
 
     outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['depgraph'], "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('depgraph'))
     outfile.write("<H1>"+_('Dependency Graph')+"</H1>\n")
 
-    outfile.write('<DIV ALIGN="center"><IMG SRC="depgraph.png" ALT="'+_('Dependency Graph')+'" ALIGN="center"></DIV>\n')
+    sel = "<SELECT NAME=\"graph\" onChange=\"document.getElementById('depimg').src='depgraph_'+this.value+'.png';\">" \
+        + "<OPTION VALUE='basic' SELECTED>Basic</OPTION><OPTION VALUE='medium'>Medium</OPTION>" \
+        + "<OPTION VALUE='full'>Full</OPTION></SELECT>"
+
+
+    outfile.write('<DIV ALIGN="center">\n' + sel + '\n<IMG ID="depimg" SRC="depgraph_basic.png" ALT="'+_('Dependency Graph')+'" ALIGN="center">\n</DIV>\n')
 
     outfile.write(MakeHTMLFooter('depgraph'))
     outfile.close()
 
+    pbarClose()
 
 def confPage(page,filenameDefault,pagenameDefault,enableDefault):
     """
@@ -1846,29 +1911,34 @@ def printProgress(msg):
     if config.getBool('Logging','progress',True):
         print msg
 
-def dotProgress(dot_count):
+def pbarInit(prefix,start,end):
     """
-    If config(Logging.progress) evaluates to True, print a '.' for each processed object
-    (usually for each processed file), plus a line break all 60 dots
-    @param int dot_count how many dots have been processed already (for line break)
+    Initialize ProgressBar
+    @param string prefix the progress message to pass
+    @param int start start value (usually 0)
+    @param int end max value
     """
     if config.getBool('Logging','progress',True):
-        sys.stdout.write(".")
-        sys.stdout.flush()
-        if (dot_count % 60) == 0: # carriage return every 60 dots
-            print
-            sys.stdout.flush()
+        pbar.__init__(prefix,start,end)
+        pbar.draw()
 
-def dotFlush():
+def pbarUpdate(newVal):
     """
-    If we print progress dots (see dotProgress), we need to close the last line
+    Update the ProgressBar
+    @param int newVal new value (current state)
     """
     if config.getBool('Logging','progress',True):
-        print
+        pbar.update(newVal)
+
+def pbarClose():
+    """ At end of processing, we need a newline """
+    if config.getBool('Logging','progress',True): print
+
 
 if __name__ == "__main__":
 
     # Read configuration
+    pbar = progressBar() # make it global
     config = HyperConf()
     config.initDefaults()
 
@@ -1889,7 +1959,7 @@ if __name__ == "__main__":
       print _('No config file found, using defaults.')
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.5"
+    metaInfo.versionString = "2.6"
     metaInfo.scriptName = sys.argv[0]
     configRead()
     confDeps()
