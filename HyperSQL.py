@@ -1787,8 +1787,9 @@ def CreateDepGraphIndex():
     outfile.write("<H1>"+_('Dependency Graph')+"</H1>\n")
 
     sel = "<SELECT NAME=\"graph\" onChange=\"document.getElementById('depimg').src='depgraph_'+this.value+'.png';\">" \
-        + "<OPTION VALUE='basic' SELECTED>Basic</OPTION><OPTION VALUE='medium'>Medium</OPTION>" \
-        + "<OPTION VALUE='full'>Full</OPTION></SELECT><BR>"
+        + "<OPTION VALUE='basic' SELECTED>" + _("Basic resolution") \
+        + "</OPTION><OPTION VALUE='medium'>" + _("Medium resolution") + "</OPTION>" \
+        + "<OPTION VALUE='full'>" + _("Full resolution") + "</OPTION></SELECT><BR>"
 
 
     outfile.write('<DIV ALIGN="center">\n' + sel + '\n<IMG ID="depimg" SRC="depgraph_basic.png" ALT="'+_('Dependency Graph')+'" ALIGN="center">\n</DIV>\n')
