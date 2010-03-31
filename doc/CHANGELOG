@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v2.6.0
+v2.6.0 (31.03.2010)
 -------------------
 + added smarter progress bar
 * some adjustments for depgraph.set_charset
