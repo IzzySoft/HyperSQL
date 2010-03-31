@@ -140,11 +140,20 @@ class HyperConf(IniParser):
         )
         # Section DEPGRAPH
         depgraph = dict (
-            processor = 'dot',
+            processor = 'fdp',
             fontname = '',
             fontsize = '',
-            ranksep  = '',
-            objects  = 'view pkg proc func'
+            ranksep_dot  = '',
+            ranksep_twopi  = '',
+            len_neato = '',
+            len_fdp = '',
+            mindist_circo = '',
+            objects  = 'view pkg proc func',
+            file2file = '1',
+            file2object = '0',
+            object2file = '1',
+            object2object = '1',
+            deltmp = '1'
         )
         # Generate the final dict (dict() allows no nesting)
         vals = {}

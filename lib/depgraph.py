@@ -47,20 +47,28 @@ class depgraph(object):
     This requires the graphviz application to be installed
     """
 
-    def __init__(self,mod='dot',charset='utf-8'):
+    def __init__(self,mod='dot',charset='utf-8',deltmp=True):
         """
         Setup required dependencies and create the instance
         @param self
         @param optional string mod graphviz module to use. Defaults to 'dot'
+        @param optional string charset charset to use (see set_charset). Default: 'utf-8'
+        @param optional boolean deltmp Whether to delete the temporary command file. Default: True
         """
         self.bin   = ''  # the binary/executable
+        self.mod   = ''  # just the name w/o path
         self.charset = ''
         self.graph = ''  # graph definition text
         self.name  = 'G' # name of the generated graph
         self.fontname = ''  # font to use with graphviz
         self.fontsize = ''  # font size to use with graphviz
         self.size = ''   # image size ('x-inch,y-inch')
-        self.ranksep = '' # rank separator for dot
+        self.ranksep_dot = '' # rank separator for dot
+        self.ranksep_twopi = '' # rank separator for twopi
+        self.len_neato = '' # 'rank separator' for neato
+        self.len_fdp = '' # 'rank separator' for fdp
+        self.mindist_circo = '' # 'rank separator' for circo
+        self.deltmp = deltmp
         self.set_mod(mod)
         self.set_charset(charset)
 
@@ -76,12 +84,15 @@ class depgraph(object):
         if not is_str(mod):
             logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_mod','req':'str','got':','.join(is_what(mod))})
             raise TypeError
+        binmod = mod
         if mod.find(os_sep)==-1:
-            mod = which(mod) # check for the binary in PATH environment
-        if os_path.isfile(mod) and os_access(mod, os.X_OK):
-            self.bin = mod
+            binmod = which(mod) # check for the binary in PATH environment
+        if os_path.isfile(binmod) and os_access(binmod, os.X_OK):
+            self.bin = binmod
+            self.mod = mod
         else:
             self.bin = ''
+            self.mod = ''
 
     def deps_ok(self):
         """
@@ -161,21 +172,37 @@ class depgraph(object):
         @param string font size (in points) - or empty string to reset
         """
         if not is_numeric(size) and size!='':
-            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_fontsize','req':'numeric','got':','.join(is_what(font))})
+            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_fontsize','req':'numeric','got':','.join(is_what(size))})
             return
         self.fontsize = size
 
-    def set_ranksep(self,size):
+    def set_ranksep(self,size,mod):
         """
         Set a different rank separator (valid for dot only)
         Without that, the graphviz default font size is used.
         @param self
-        @param string ranksep - or empty string to reset
+        @param string ranksep ranksep value (distance, numeric) or empty string to reset
+        @param string mod Graphviz module to apply to (one of fdp, neato, circo, dot, twopi)
         """
         if not is_numeric(size) and size!='':
-            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_ranksep','req':'numeric','got':','.join(is_what(font))})
+            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_ranksep','req':'numeric','got':','.join(is_what(size))})
             return
-        self.ranksep = size
+        if not is_str(mod):
+            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_ranksep','req':'string','got':','.join(is_what(mod))})
+            return
+        if mod == 'fdp':
+            self.len_fdp = size
+        elif mod == 'neato':
+            self.len_neato = size
+        elif mod == 'circo':
+            self.mindist_circo = size
+        elif mod == 'dot':
+            self.ranksep_dot = size
+        elif mod == 'twopi':
+            self.ranksep_twopi = size
+        else:
+            logger.error(_('unsupported Graphviz module "%s"'), mod)
+            return
 
     def set_size(self,x,y):
         """
@@ -186,7 +213,7 @@ class depgraph(object):
         @param int y height in inches
         """
         if not is_numeric(x) or not is_numeric(y):
-            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_size','req':'numeric','got':','.join(is_what(font))})
+            logger.error(_('%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]'), {'func':'depgraph.set_size','req':'numeric','got':','.join(is_what(size))})
             return
         if x==0 or y==0: self.size = ''
         else: self.size = `x`+','+`y`
@@ -220,9 +247,13 @@ class depgraph(object):
         if self.fontname!='': props += ' -Nfontname="'+self.fontname+'"'
         if self.fontsize!='': props += ' -Nfontsize="'+self.fontsize+'"'
         if self.size!='': props += ' -Gsize="'+self.size+'"'
-        if self.ranksep!='': props += ' -Granksep='+self.ranksep
+        if self.mod == 'fdp' and self.len_fdp != '': props += ' -Elen='+self.len_fdp
+        elif self.mod == 'neato' and self.len_neato != '': props += ' -Elen='+self.len_neato
+        elif self.mod == 'dot' and self.ranksep_dot != '': props += ' -Granksep='+self.ranksep_dot
+        elif self.mod == 'twopi' and self.ranksep_twopi != '': props += ' -Granksep='+self.ranksep_twopi
+        elif self.mod == 'circo' and self.mindist_circo != '': props += ' -Gmindist='+self.mindist_twopi
         if self.charset!='': props += ' -Gcharset="'+self.charset+'"'
         out,err = popen( self.bin + props + parms )
-        logger.info('calling "'+self.bin + props + parms +'"')
-        #os_unlink(tmpname)
+        logger.debug('calling "'+self.bin + props + parms +'"')
+        if self.deltmp: os_unlink(tmpname)
         return err

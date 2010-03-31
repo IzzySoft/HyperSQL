@@ -2,9 +2,16 @@
 
 v2.6.0
 -------------------
-+ added smarter progress indicators
++ added smarter progress bar
 * some adjustments for depgraph.set_charset
-+ drawing 3 depgraphs now (basic, medium and full)
++ drawing up to 4 depgraphs now (file2file, file2object, object2file, object2object)
+* graphviz default processor changed to fdp
+* excluding private objects from depgraph
+- dropped config parameter depgraph.ranksep
++ added config parameters in section DepGraph: ranksep_dot, ranksep_twopi,
+  len_fdp, len_neato, mindist_circo
+* graphviz cmdline now logged at debug level (instead of info)
++ added deltmp var to depgraph class (plus corresponding DepGraph.deltmp)
 
 v2.5.0 (28.03.2010)
 -------------------

@@ -149,13 +149,24 @@ Here goes everything for the dependency graphs:
  * fontsize: Used to change the font size. The default here is "", which again
    means to let Graphviz decide. This value must be numeric, or it is ignored
    (with an error logged). 
- * ranksep: If there's not enough (or too much) space between the different
+ * ranksep_dot: If there's not enough (or too much) space between the different
    levels, you may play with this value. Default is "" again (let Graphviz
-   decide, which uses "0.5" by default). 
+   decide, which uses "0.5" by default).
+ * ranksep_twopi: Analogue to ranksep_dot for twopi (graphviz default: 1.0)
+ * len_neato: like ranksep for neato (graphviz default: 1.0)
+ * len_fdp: like ranksep for fdp (graphviz default: 0.3)
+ * mindist_circo: like ranksep for circo
  * objects: Which object types should be included with the dependency graph.
    By default, we take them all - but with large projects, you may want to
    restrict it to e.g. "view pkg", which means only views and packages (but
-   not functions and procedures). 
+   not functions and procedures).
+ * deltmp: Delete the temporary graphviz command file? Default: 1. If set
+   to 0, the corresponding command files will remain with the .tmp suffix.
+   You may temporarily want to keep it in order to play with different options.
+ * file2file: Draw the "file accesses file" graph (default: 1)
+ * file2object: Draw the "file accesses object" graph (default: 0)
+ * object2file: Draw the "object accesses file" graph (default: 1)
+ * object2object: Draw the "object accesses object" graph (default: 1)
 
 
 How the configuration works

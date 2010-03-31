@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: depgraph\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-25 18:30+0100\n"
-"PO-Revision-Date: 2010-03-25 18:41+0100\n"
+"POT-Creation-Date: 2010-03-31 18:55+0200\n"
+"PO-Revision-Date: 2010-03-31 19:00+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -12,25 +12,32 @@ msgstr ""
 "X-Poedit-Language: German\n"
 "X-Poedit-Country: GERMANY\n"
 
-#: ../../lib/depgraph.py:66
-#: ../../lib/depgraph.py:95
-#: ../../lib/depgraph.py:107
-#: ../../lib/depgraph.py:123
-#: ../../lib/depgraph.py:135
-#: ../../lib/depgraph.py:147
-#: ../../lib/depgraph.py:160
+#: ../../lib/depgraph.py:85
+#: ../../lib/depgraph.py:117
+#: ../../lib/depgraph.py:127
+#: ../../lib/depgraph.py:148
+#: ../../lib/depgraph.py:163
 #: ../../lib/depgraph.py:175
-#: ../../lib/depgraph.py:178
+#: ../../lib/depgraph.py:188
+#: ../../lib/depgraph.py:191
+#: ../../lib/depgraph.py:216
+#: ../../lib/depgraph.py:231
+#: ../../lib/depgraph.py:234
 #, python-format
 msgid "%(func)s was called with wrong parameter type: required: [%(req)s], given: [%(got)s]"
 msgstr "%(func)s wurde mit falschem Parametertyp aufgerufen: erwartet: [%(req)s], erhalten: [%(got)s]"
 
-#: ../../lib/depgraph.py:181
+#: ../../lib/depgraph.py:237
 msgid "make_graph() called on an empty graph!"
 msgstr "make_graph() wurde für einen leeren Graphen aufgerufen!"
 
-#: ../../lib/depgraph.py:110
+#: ../../lib/depgraph.py:130
 #, python-format
 msgid "parameter %(parm)s to %(func)s must not be empty!"
 msgstr "Parameter %(parm)s für %(func)s darf nicht leer sein!"
+
+#: ../../lib/depgraph.py:204
+#, python-format
+msgid "unsupported Graphviz module \"%s\""
+msgstr "nicht unterstütztes Graphviz-Modul \"%s\""
 

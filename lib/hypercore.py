@@ -66,9 +66,10 @@ class MetaInfo:
         self.linesOfCode['comment'] = 0
         self.linesOfCode['empty'] = 0
         self.depGraph = {}
-        self.depGraph['basic'] = []
-        self.depGraph['medium'] = []
-        self.depGraph['full'] = []
+        self.depGraph['file2file'] = []
+        self.depGraph['file2object'] = []
+        self.depGraph['object2file'] = []
+        self.depGraph['object2object'] = []
 
     def NextIndex(self):
         """

@@ -433,36 +433,46 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         if objectInfo.uniqueNumber == 0:
             objectInfo.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
-        if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects:
+        if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects \
+          and not objectInfo.javadoc.private and not uObj.javadoc.private:
             # basic: file -> file
-            if otype in ['proc','func']: oto = objectInfo.parent.parent.fileName
+            if otype in ['proc','func'] and objectInfo.parent: oto = objectInfo.parent.parent.fileName
             else: oto = objectInfo.parent.fileName
             oto = os.path.split(oto)[1]
             ofrom = os.path.split(fileInfo.fileName)[1]
             dep = '"' + ofrom + '" -> "' + oto + '";'
-            if not dep in metaInfo.depGraph['basic']:
-                metaInfo.depGraph['basic'].append(dep)
+            if not dep in metaInfo.depGraph['file2file']:
+                metaInfo.depGraph['file2file'].append(dep)
             # medium: object -> file
             if uType in ['proc','func'] and uObj.parent: uname = uObj.parent.name.lower() + '.' + uObj.name.lower()
             else: uname = uObj.name.lower()
             dep = '"' + uname + '" -> "' + oto + '";'
-            if not dep in metaInfo.depGraph['medium']:
-                metaInfo.depGraph['medium'].append(dep)
+            if not dep in metaInfo.depGraph['object2file']:
+                metaInfo.depGraph['object2file'].append(dep)
                 props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
-                if not props in metaInfo.depGraph['medium']:
-                    metaInfo.depGraph['medium'].append(props)
+                if not props in metaInfo.depGraph['object2file']:
+                    metaInfo.depGraph['object2file'].append(props)
+            # medium: file -> object
+            if otype in ['proc','func']: oto = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
+            else: oto = objectInfo.name.lower()
+            dep = '"' + ofrom + '" -> "' + oto + '";'
+            if not dep in metaInfo.depGraph['file2object']:
+                metaInfo.depGraph['file2object'].append(dep)
+                props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
+                if not props in metaInfo.depGraph['file2object']:
+                    metaInfo.depGraph['file2object'].append(props)
             # full: object -> object
             if otype in ['proc','func'] and objectInfo.parent: oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
             else: oname = objectInfo.name.lower()
             dep = '"' + uname + '" -> "' + oname + '";'
-            if not dep in metaInfo.depGraph['full']:
-                metaInfo.depGraph['full'].append(dep)
+            if not dep in metaInfo.depGraph['object2object']:
+                metaInfo.depGraph['object2object'].append(dep)
                 props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
-                if not props in metaInfo.depGraph['full']:
-                    metaInfo.depGraph['full'].append(props)
+                if not props in metaInfo.depGraph['object2object']:
+                    metaInfo.depGraph['object2object'].append(props)
                 props = '"' + oname + '" [color="'+cols[otype][0]+'",fontcolor="'+cols[otype][1] + '"];'
-                if not props in metaInfo.depGraph['full']:
-                    metaInfo.depGraph['full'].append(props)
+                if not props in metaInfo.depGraph['object2object']:
+                    metaInfo.depGraph['object2object'].append(props)
 
 
     fileInfoList = metaInfo.fileInfoList
@@ -1750,49 +1760,79 @@ def CreateDepGraphIndex():
     if metaInfo.indexPage['depgraph']=='':
         return
 
-    pbarInit(_('Creating dependency graphs'),0,3)
-
-    g = depgraph(metaInfo.graphvizMod,metaInfo.encoding)
+    g = depgraph(metaInfo.graphvizMod, metaInfo.encoding, metaInfo.depGraphDelTmp)
     if not g.deps_ok: # we cannot do anything
         logger.error(_('Graphviz trouble - unable to generate the graph'))
         return
 
+    i = 0
+    pbarInit(_('Creating dependency graphs'), i, metaInfo.depGraphCount)
+
     g.set_fontname(metaInfo.fontName)
     g.set_fontsize(metaInfo.fontSize)
-    g.set_ranksep(metaInfo.graphRankSep)
+    g.set_ranksep(metaInfo.graphRankSepDot,'dot')
+    g.set_ranksep(metaInfo.graphRankSepTwopi,'twopi')
+    g.set_ranksep(metaInfo.graphLenFdp,'fdp')
+    g.set_ranksep(metaInfo.graphLenNeato,'neato')
+    g.set_ranksep(metaInfo.graphDistCirco,'circo')
 
-    # draw the basic graph
-    g.set_graph(metaInfo.depGraph['basic'])
-    res = g.make_graph(metaInfo.htmlDir + 'depgraph_basic.png')
-    if res != '':
-        logger.error(_('Graphviz threw an error:') + res.strip())
-    pbarUpdate(1)
+    # draw the basic graph (file2file)
+    if metaInfo.makeDepGraph['file2file']:
+        g.set_graph(metaInfo.depGraph['file2file'])
+        res = g.make_graph(metaInfo.htmlDir + 'depgraph_file2file.png')
+        if res != '':
+            logger.error(_('Graphviz threw an error:') + res.strip())
+        i += 1
+        pbarUpdate(i)
 
-    # draw the medium graph
-    g.set_graph(metaInfo.depGraph['medium'])
-    res = g.make_graph(metaInfo.htmlDir + 'depgraph_medium.png')
-    if res != '':
-        logger.error(_('Graphviz threw an error:') + res.strip())
-    pbarUpdate(2)
+    # draw the medium graph (file2object)
+    if metaInfo.makeDepGraph['file2object']:
+        g.set_graph(metaInfo.depGraph['file2object'])
+        res = g.make_graph(metaInfo.htmlDir + 'depgraph_file2object.png')
+        if res != '':
+            logger.error(_('Graphviz threw an error:') + res.strip())
+        i += 1
+        pbarUpdate(i)
 
-    # draw the full graph
-    g.set_graph(metaInfo.depGraph['full'])
-    res = g.make_graph(metaInfo.htmlDir + 'depgraph_full.png')
-    if res != '':
-        logger.error(_('Graphviz threw an error:') + res.strip())
-    pbarUpdate(3)
+    # draw the medium graph (object2file)
+    if metaInfo.makeDepGraph['object2file']:
+        g.set_graph(metaInfo.depGraph['object2file'])
+        res = g.make_graph(metaInfo.htmlDir + 'depgraph_object2file.png')
+        if res != '':
+            logger.error(_('Graphviz threw an error:') + res.strip())
+        i += 1
+        pbarUpdate(i)
+
+    # draw the full graph (object2object)
+    if metaInfo.makeDepGraph['object2object']:
+        g.set_graph(metaInfo.depGraph['object2object'])
+        res = g.make_graph(metaInfo.htmlDir + 'depgraph_object2object.png')
+        if res != '':
+            logger.error(_('Graphviz threw an error:') + res.strip())
+        i += 1
+        pbarUpdate(i)
 
     outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['depgraph'], "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('depgraph'))
     outfile.write("<H1>"+_('Dependency Graph')+"</H1>\n")
 
-    sel = "<SELECT NAME=\"graph\" onChange=\"document.getElementById('depimg').src='depgraph_'+this.value+'.png';\">" \
-        + "<OPTION VALUE='basic' SELECTED>" + _("Basic resolution") \
-        + "</OPTION><OPTION VALUE='medium'>" + _("Medium resolution") + "</OPTION>" \
-        + "<OPTION VALUE='full'>" + _("Full resolution") + "</OPTION></SELECT><BR>"
+    sel = _('Access from') + " <SELECT NAME=\"graph\" onChange=\"document.getElementById('depimg').src='depgraph_'+this.value+'.png';\">"
+    if metaInfo.makeDepGraph['file2file']:
+        sel += "<OPTION VALUE='file2file'>" + _("file to file") + "</OPTION>"
+    if metaInfo.makeDepGraph['file2object']:
+        sel += "<OPTION VALUE='file2object'>" + _("file to object") + "</OPTION>"
+    if metaInfo.makeDepGraph['object2file']:
+        sel += "<OPTION VALUE='object2file'>" + _("object to file") + "</OPTION>"
+    if metaInfo.makeDepGraph['object2object']:
+        sel += "<OPTION VALUE='object2object'>" + _("object to object") + "</OPTION>"
+    sel += "</SELECT><BR>"
 
+    for obj in ['file2file','file2object','object2file','object2object']:
+        if metaInfo.makeDepGraph[obj]:
+            defsrc = 'depgraph_' + obj
+            break;
 
-    outfile.write('<DIV ALIGN="center">\n' + sel + '\n<IMG ID="depimg" SRC="depgraph_basic.png" ALT="'+_('Dependency Graph')+'" ALIGN="center">\n</DIV>\n')
+    outfile.write('<DIV ALIGN="center">\n' + sel + '\n<IMG ID="depimg" SRC="'+ defsrc + '.png" ALT="'+_('Dependency Graph')+'" ALIGN="center">\n</DIV>\n')
 
     outfile.write(MakeHTMLFooter('depgraph'))
     outfile.close()
@@ -1870,11 +1910,26 @@ def configRead():
     JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
     # Section DEPGRAPH
-    metaInfo.graphvizMod   = config.get('DepGraph','processor','dot')
+    metaInfo.graphvizMod   = config.get('DepGraph','processor','fdp')
     metaInfo.fontName      = config.get('DepGraph','fontname','')
     metaInfo.fontSize      = config.get('DepGraph','fontsize','')
-    metaInfo.graphRankSep  = config.get('DepGraph','ranksep','')
+    metaInfo.graphRankSepDot  = config.get('DepGraph','ranksep_dot','')
+    metaInfo.graphRankSepTwopi  = config.get('DepGraph','ranksep_twopi','')
+    metaInfo.graphLenNeato = config.get('DepGraph','len_neato','')
+    metaInfo.graphLenFdp = config.get('DepGraph','len_fdp','')
+    metaInfo.graphDistCirco = config.get('DepGraph','mindist_circo','')
     metaInfo.depGraphObjects = config.getList('DepGraph','objects',['view','pkg','proc','func'])
+    metaInfo.makeDepGraph = {}
+    metaInfo.makeDepGraph['file2file']     = config.getBool('DepGraph','file2file',True)
+    metaInfo.makeDepGraph['file2object']   = config.getBool('DepGraph','file2object',False)
+    metaInfo.makeDepGraph['object2file']   = config.getBool('DepGraph','object2file',True)
+    metaInfo.makeDepGraph['object2object'] = config.getBool('DepGraph','object2object',True)
+    metaInfo.depGraphCount = 0
+    if metaInfo.makeDepGraph['file2file']:     metaInfo.depGraphCount += 1
+    if metaInfo.makeDepGraph['file2object']:   metaInfo.depGraphCount += 1
+    if metaInfo.makeDepGraph['object2file']:   metaInfo.depGraphCount += 1
+    if metaInfo.makeDepGraph['object2object']: metaInfo.depGraphCount += 1
+    metaInfo.depGraphDelTmp = config.getBool('DepGraph','deltmp',True)
 
 def confDeps():
     """ Check dependent options and fix them, if necessary """
@@ -1919,6 +1974,7 @@ def pbarInit(prefix,start,end):
     @param int start start value (usually 0)
     @param int end max value
     """
+    logger.debug(prefix)
     if config.getBool('Logging','progress',True):
         pbar.__init__(prefix,start,end)
         pbar.draw()

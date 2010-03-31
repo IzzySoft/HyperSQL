@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: depgraph\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-29 19:28+0200\n"
+"POT-Creation-Date: 2010-03-31 18:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,22 +15,28 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../../lib/depgraph.py:77 ../../lib/depgraph.py:106
-#: ../../lib/depgraph.py:116 ../../lib/depgraph.py:137
-#: ../../lib/depgraph.py:152 ../../lib/depgraph.py:164
-#: ../../lib/depgraph.py:176 ../../lib/depgraph.py:189
-#: ../../lib/depgraph.py:204 ../../lib/depgraph.py:207
+#: ../../lib/depgraph.py:85 ../../lib/depgraph.py:117
+#: ../../lib/depgraph.py:127 ../../lib/depgraph.py:148
+#: ../../lib/depgraph.py:163 ../../lib/depgraph.py:175
+#: ../../lib/depgraph.py:188 ../../lib/depgraph.py:191
+#: ../../lib/depgraph.py:216 ../../lib/depgraph.py:231
+#: ../../lib/depgraph.py:234
 #, python-format
 msgid ""
 "%(func)s was called with wrong parameter type: required: [%(req)s], given: [%"
 "(got)s]"
 msgstr ""
 
-#: ../../lib/depgraph.py:210
+#: ../../lib/depgraph.py:237
 msgid "make_graph() called on an empty graph!"
 msgstr ""
 
-#: ../../lib/depgraph.py:119
+#: ../../lib/depgraph.py:130
 #, python-format
 msgid "parameter %(parm)s to %(func)s must not be empty!"
+msgstr ""
+
+#: ../../lib/depgraph.py:204
+#, python-format
+msgid "unsupported Graphviz module \"%s\""
 msgstr ""
