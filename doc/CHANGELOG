@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v2.6.5
+-------------------
++ where_used pages now also list the name of calling objects and link to
+  their JavaDoc reference (if possible/available)
+* alternating row colors now also in where_used tables
+
 v2.6.0 (31.03.2010)
 -------------------
 + added smarter progress bar

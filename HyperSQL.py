@@ -404,6 +404,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     else: break
         if vObj.lineNumber > pObj.lineNumber and vObj.lineNumber > fObj.lineNumber: return 'view',vObj
         if pObj.lineNumber > vObj.lineNumber and pObj.lineNumber > fObj.lineNumber: return 'proc',pObj
+        if fObj.lineNumber == -1: # No object found
+            fObj.name = fInfo.fileName
+            return 'file',fObj
         return 'func',fObj
         
 
@@ -426,9 +429,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         uType,uObj = findUsingObject(fileInfo,lineNumber)
         if fileInfo.fileName not in objectInfo.whereUsed.keys():
             objectInfo.whereUsed[fileInfo.fileName] = []
-            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber))
+            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
         else:
-            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber))
+            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
         # generate a unique number for use in making where used file if needed
         if objectInfo.uniqueNumber == 0:
             objectInfo.uniqueNumber = metaInfo.NextIndex()
@@ -1576,6 +1579,60 @@ def CreateIndexPage():
 
 def CreateWhereUsedPages():
     """Generate a where-used-page for each object"""
+
+    def makeUsageTableHead(oname):
+        """
+        Create the table header for usage tables
+        @param string oname name of the used object
+        @return string html header
+        """
+        html  = "<H1>" + oname + " "+_('Where Used List')+"</H1>\n"
+        html += "<TABLE CLASS='apilist'>\n"
+        html += "  <TR><TH>"+_('Object')+"</TH><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n"
+        return html
+
+    def makeUsageColumn(filename,utuple,trclass=''):
+        """
+        Create the usage table
+        @param string filename name of the file the usage was found in
+        @param tuple utuple usage tuple
+        @return string html usage table
+        """
+        if trclass!='': trclass = ' CLASS="'+trclass+'"'
+        filename_short = filename[len(top_level_directory)+1:]
+        line_number = utuple[1]
+        unique_number = utuple[0].uniqueNumber
+        html_file = os.path.split(filename)[1].replace(".", "_") + "_" + `unique_number` + ".html"
+        utype = utuple[2]
+        uObj = utuple[3]
+        if utype in ['func','proc']: uname = uObj.parent.name + '.'
+        else: uname = ''
+        if utype=='file': uname = filename[len(top_level_directory)+1:]
+        elif uObj.javadoc.isDefault(): uname += uObj.name.lower()
+        else: uname += uObj.javadoc.name
+        if utype in ['func','proc']: uname += '()'
+        if utype=='func'  : utype = 'function'
+        elif utype=='proc': utype = 'procedure'
+        elif utype=='pkg' : utype = 'package'
+
+        html = '  <TR'+trclass+'><TD>'
+
+        # only make hypertext references for SQL files for now
+        if utuple[0].fileType == "sql":
+            if not metaInfo.useJavaDoc or uObj.javadoc.isDefault():
+                html += uname + '</TD><TD>'
+            else:
+                html += '<A HREF="' + html_file + '#' + uObj.javadoc.name + `uObj.uniqueNumber` + '">' + uname + '</A></TD><TD>'
+            if metaInfo.includeSource:
+                html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
+                html += '<A href="' + html_file + '#' + `line_number` + '">' + `line_number` + '</A>'
+        else:
+            html += uname + '</TD><TD>' + filename_short + '</TD><TD ALIGN="right">' + `line_number`
+
+        html += '</TD></TR>\n'
+        return html
+
+
     html_dir = metaInfo.htmlDir
     fileInfoList = metaInfo.fileInfoList
     pbarInit(_("Creating 'where used' pages"),0,len(fileInfoList))
@@ -1604,28 +1661,16 @@ def CreateWhereUsedPages():
 
             # write our header
             outfile.write(MakeHTMLHeader('Index'))
-            outfile.write("<H1>" + view_info.name + " "+_('Where Used List')+"</H1>\n")
-            outfile.write("<TABLE CLASS='apilist'>\n")
-            outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
+            outfile.write( makeUsageTableHead(view_info.name) )
 
             # each where used
             where_used_keys = view_info.whereUsed.keys()
             where_used_keys.sort(CaseInsensitiveComparison)
+            k = 0;
             for key in where_used_keys:
                 for whereusedtuple in view_info.whereUsed[key]:
-                    line_number = whereusedtuple[1]
-                    unique_number = whereusedtuple[0].uniqueNumber
-                    outfile.write("  <TR><TD>")
-
-                    # only make hypertext references for SQL files for now
-                    if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
-                        outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
-                        outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
-                        outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
-                        outfile.write( `line_number` + "</A>")
-                    else:
-                        outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>" + `line_number`)
-                    outfile.write("</TD></TR>\n")
+                    outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
+                    k += 1
 
             # footer and close
             outfile.write("</TABLE>")
@@ -1642,28 +1687,16 @@ def CreateWhereUsedPages():
 
                 # write our header
                 outfile.write(MakeHTMLHeader(package_info.name + " "+_("Where Used List")))
-                outfile.write("<H1>" + package_info.name + " Where Used List</H1>\n")
-                outfile.write("<TABLE CLASS='apilist'>\n")
-                outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
+                outfile.write( makeUsageTableHead(package_info.name) )
 
                 # each where used
                 where_used_keys = package_info.whereUsed.keys()
                 where_used_keys.sort(CaseInsensitiveComparison)
+                k = 0
                 for key in where_used_keys:
                     for whereusedtuple in package_info.whereUsed[key]:
-                        line_number = whereusedtuple[1]
-                        unique_number = whereusedtuple[0].uniqueNumber
-                        outfile.write("  <TR><TD>")
-
-                        # only make hypertext references for SQL files for now
-                        if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
-                            outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
-                            outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
-                            outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
-                            outfile.write(`line_number` + "</A>")
-                        else:
-                            outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>" + `line_number`)
-                        outfile.write("</TD></TR>\n")
+                        outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
+                        k += 1
 
                 # footer and close
                 outfile.write("</TABLE>")
@@ -1681,29 +1714,16 @@ def CreateWhereUsedPages():
 
                 # write our header
                 outfile.write(MakeHTMLHeader(function_info.name.lower() + ' '+_('from Package')+' ' + package_info.name))
-                outfile.write("<H1>" + function_info.name.lower() + " <I>"+_('from package')+" " + package_info.name)
-                outfile.write(" </I>"+_('Where Used List')+"</H1>\n")
-                outfile.write("<TABLE CLASS='apilist'>\n")
-                outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
+                outfile.write( makeUsageTableHead(function_info.name.lower() + " <I>"+_('from package')+" " + package_info.name + " </I>") )
 
                 # each where used
                 where_used_keys = function_info.whereUsed.keys()
                 where_used_keys.sort(CaseInsensitiveComparison)
+                k = 0
                 for key in where_used_keys:
                     for whereusedtuple in function_info.whereUsed[key]:
-                        line_number = whereusedtuple[1]
-                        unique_number = whereusedtuple[0].uniqueNumber
-
-                    # only make hypertext references for SQL files for now
-                    outfile.write("  <TR><TD>")
-                    if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
-                        outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
-                        outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
-                        outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
-                        outfile.write(`line_number` + "</A>")
-                    else:
-                        outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>" + `line_number`)
-                    outfile.write("</TD></TR>\n")
+                        outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
+                        k += 1
 
                 # footer and close
                 outfile.write("</TABLE>")
@@ -1721,29 +1741,16 @@ def CreateWhereUsedPages():
 
                 # write our header
                 outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' '+('from package')+' ' + package_info.name.lower()))
-                outfile.write("<H1>" + procedure_info.name.lower() + " <I>"+_('from package')+" " + package_info.name.lower())
-                outfile.write(" </I>"+_('Where Used List')+"</H1>\n")
-                outfile.write("<TABLE CLASS='apilist'>\n")
-                outfile.write("  <TR><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n")
+                outfile.write( makeUsageTableHead(procedure_info.name.lower() + " <I>"+_('from package')+" " + package_info.name.lower() + " </I>") )
 
                 # each where used
                 where_used_keys = procedure_info.whereUsed.keys()
                 where_used_keys.sort(CaseInsensitiveComparison)
+                k = 0
                 for key in where_used_keys:
                     for whereusedtuple in procedure_info.whereUsed[key]:
-                        line_number = whereusedtuple[1]
-                        unique_number = whereusedtuple[0].uniqueNumber
-                        outfile.write("  <TR><TD>")
-
-                        # only make hypertext references for SQL files for now
-                        if whereusedtuple[0].fileType == "sql" and metaInfo.includeSource:
-                            outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>")
-                            outfile.write("<A href=\"" + os.path.split(key)[1].replace(".", "_"))
-                            outfile.write("_" + `unique_number` + ".html" + "#" + `line_number` + "\">")
-                            outfile.write(`line_number` + "</A>")
-                        else:
-                            outfile.write(key[len(top_level_directory)+1:] + "</TD><TD>" + `line_number`)
-                    outfile.write("</TD></TR>\n")
+                        outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
+                        k += 1
 
                 # footer and close
                 outfile.write("</TABLE>")
