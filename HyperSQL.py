@@ -1580,13 +1580,13 @@ def CreateIndexPage():
 def CreateWhereUsedPages():
     """Generate a where-used-page for each object"""
 
-    def makeUsageTableHead(oname):
+    def makeUsageTableHead(otype, oname):
         """
         Create the table header for usage tables
         @param string oname name of the used object
         @return string html header
         """
-        html  = "<H1>" + oname + " "+_('Where Used List')+"</H1>\n"
+        html  = "<H1>" + _('Where Used List for %s') % otype+' '+oname +"</H1>\n"
         html += "<TABLE CLASS='apilist'>\n"
         html += "  <TR><TH>"+_('Object')+"</TH><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n"
         return html
@@ -1615,7 +1615,7 @@ def CreateWhereUsedPages():
         elif utype=='proc': utype = 'procedure'
         elif utype=='pkg' : utype = 'package'
 
-        html = '  <TR'+trclass+'><TD>'
+        html = '  <TR'+trclass+'><TD>' + utype + ' '
 
         # only make hypertext references for SQL files for now
         if utuple[0].fileType == "sql":
@@ -1661,7 +1661,7 @@ def CreateWhereUsedPages():
 
             # write our header
             outfile.write(MakeHTMLHeader('Index'))
-            outfile.write( makeUsageTableHead(view_info.name) )
+            outfile.write( makeUsageTableHead(_('view'),view_info.name) )
 
             # each where used
             where_used_keys = view_info.whereUsed.keys()
@@ -1687,7 +1687,7 @@ def CreateWhereUsedPages():
 
                 # write our header
                 outfile.write(MakeHTMLHeader(package_info.name + " "+_("Where Used List")))
-                outfile.write( makeUsageTableHead(package_info.name) )
+                outfile.write( makeUsageTableHead(_('package'),package_info.name) )
 
                 # each where used
                 where_used_keys = package_info.whereUsed.keys()
@@ -1714,7 +1714,7 @@ def CreateWhereUsedPages():
 
                 # write our header
                 outfile.write(MakeHTMLHeader(function_info.name.lower() + ' '+_('from Package')+' ' + package_info.name))
-                outfile.write( makeUsageTableHead(function_info.name.lower() + " <I>"+_('from package')+" " + package_info.name + " </I>") )
+                outfile.write( makeUsageTableHead(_('function'),function_info.name.lower() + " <I>"+_('from package')+" " + package_info.name + " </I>") )
 
                 # each where used
                 where_used_keys = function_info.whereUsed.keys()
@@ -1741,7 +1741,7 @@ def CreateWhereUsedPages():
 
                 # write our header
                 outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' '+('from package')+' ' + package_info.name.lower()))
-                outfile.write( makeUsageTableHead(procedure_info.name.lower() + " <I>"+_('from package')+" " + package_info.name.lower() + " </I>") )
+                outfile.write( makeUsageTableHead(_('procedure'),procedure_info.name.lower() + " <I>"+_('from package')+" " + package_info.name.lower() + " </I>") )
 
                 # each where used
                 where_used_keys = procedure_info.whereUsed.keys()
@@ -2023,7 +2023,7 @@ if __name__ == "__main__":
       print _('No config file found, using defaults.')
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.6"
+    metaInfo.versionString = "2.6.5"
     metaInfo.scriptName = sys.argv[0]
     configRead()
     confDeps()

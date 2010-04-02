@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hypersql\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-01 18:53+0200\n"
+"POT-Creation-Date: 2010-04-02 14:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -483,9 +483,13 @@ msgstr ""
 msgid "Warnings"
 msgstr ""
 
-#: ../../HyperSQL.py:1589 ../../HyperSQL.py:1677 ../../HyperSQL.py:1689
-#: ../../HyperSQL.py:1703
+#: ../../HyperSQL.py:1677 ../../HyperSQL.py:1689 ../../HyperSQL.py:1703
 msgid "Where Used List"
+msgstr ""
+
+#: ../../HyperSQL.py:1589
+#, python-format
+msgid "Where Used List for %s"
 msgstr ""
 
 #: ../../HyperSQL.py:1273 ../../HyperSQL.py:1541
@@ -513,6 +517,10 @@ msgstr ""
 msgid "from package"
 msgstr ""
 
+#: ../../HyperSQL.py:1717
+msgid "function"
+msgstr ""
+
 #: ../../HyperSQL.py:929
 #, python-format
 msgid "less than %s lines"
@@ -531,9 +539,21 @@ msgstr ""
 msgid "object to object"
 msgstr ""
 
+#: ../../HyperSQL.py:1690
+msgid "package"
+msgstr ""
+
+#: ../../HyperSQL.py:1744
+msgid "procedure"
+msgstr ""
+
 #: ../../HyperSQL.py:2047
 #, python-format
 msgid "top_level_directory \"%s\" does not exist - terminating."
+msgstr ""
+
+#: ../../HyperSQL.py:1664
+msgid "view"
 msgstr ""
 
 #: ../../HyperSQL.py:1149 ../../HyperSQL.py:1203 ../../HyperSQL.py:1316
