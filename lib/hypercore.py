@@ -113,7 +113,8 @@ class MetaInfo:
         """
         if what not in ['totals','code','comment','empty','mixed']:
             return 0.0
-        return round( (float(self.getLoc(what)) / self.getLoc('totals')) * 100, decs)
+        if self.getLoc('totals') != 0: return round( (float(self.getLoc(what)) / self.getLoc('totals')) * 100, decs)
+        else: return round(0,decs)
 
     def getFileStat(self,what):
         """

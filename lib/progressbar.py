@@ -57,7 +57,8 @@ class progressBar:
 
         # Figure out the new percent done, round to an integer
         diffFromMin = float(self.amount - self.min)
-        percentDone = (diffFromMin / float(self.span)) * 100.0
+        if self.span!=0: percentDone = (diffFromMin / float(self.span)) * 100.0
+        else: percentDone = 0
         percentDone = round(percentDone)
         percentDone = int(percentDone)
 

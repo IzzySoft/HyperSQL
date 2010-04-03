@@ -87,7 +87,10 @@ class depgraph(object):
         binmod = mod
         if mod.find(os_sep)==-1:
             binmod = which(mod) # check for the binary in PATH environment
-        if os_path.isfile(binmod) and os_access(binmod, os.X_OK):
+        if binmod==None:
+            self.bin = ''
+            self.mod = ''
+        elif os_path.isfile(binmod) and os_access(binmod, os.X_OK):
             self.bin = binmod
             self.mod = mod
         else:
