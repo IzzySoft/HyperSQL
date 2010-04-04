@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v2.6.5
+v2.6.5 (04.04.2010)
 -------------------
 + where_used pages now also list the name of calling objects and link to
   their JavaDoc reference (if possible/available)
