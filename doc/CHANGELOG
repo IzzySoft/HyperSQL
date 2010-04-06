@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v2.7.0
+v2.7.0 (07.04.2010)
 -------------------
 + added what_used
 ! fixed some more false positives in usage reference
