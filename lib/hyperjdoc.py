@@ -134,12 +134,14 @@ class JavaDoc(object):
         if self.isDefault() or self.ignore or not JavaDocVars['verification']:
             return faillist
         for tag in JavaDocVars['mandatory_tags']:
-            if tag in JavaDocVars['txttags'] and len(eval("self." + tag)) == 0:
-                if tag == 'desc':
-                    faillist.append(_('Missing description'))
-                else:
-                    faillist.append(_('Missing mandatory tag: @%s') % tag)
-                logger.warn(_('Missing mandatory tag "%(tag)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'tag':tag, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+            if tag in JavaDocVars['txttags']:
+                jdvar = eval("self." + tag)
+                if len(jdvar)==0 or (len(jdvar)==1 and len(jdvar[0])==0):
+                    if tag == 'desc':
+                        faillist.append(_('Missing description'))
+                    else:
+                        faillist.append(_('Missing mandatory tag: @%s') % tag)
+                    logger.warn(_('Missing mandatory tag "%(tag)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'tag':tag, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         for param in self.params:
             if param.name == '':
                 faillist.append(_('Missing name for %(type)s parameter (#%(index)s)') % {'type': param.sqltype, 'index': `self.params.index(param)`})

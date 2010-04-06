@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v2.7.0
+-------------------
++ added what_used
+! fixed some more false positives in usage reference
+! javadoc verification was partly broken (missed the missing descriptions)
+
 v2.6.5 (04.04.2010)
 -------------------
 + where_used pages now also list the name of calling objects and link to

@@ -20,6 +20,7 @@ class ElemInfo(object):
         """ Initialize the object with useful defaults """
         self.name = ""
         self.lineNumber = -1
+        self.whatUsed = {} # file name key, fileInfo and line number list
         self.whereUsed = {} # file name key, fileInfo and line number list
         self.uniqueNumber = 0 # used to create unique file name for where used list
         self.parent = None

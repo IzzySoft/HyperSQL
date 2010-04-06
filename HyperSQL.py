@@ -390,24 +390,25 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         vObj = ElemInfo()
         pObj = ElemInfo()
         fObj = ElemInfo()
+        PObj = PackageInfo()
         if len(fInfo.viewInfoList)!=0:
             for vInfo in fInfo.viewInfoList:
                 if vInfo.lineNumber < lineNumber: vObj = vInfo
                 else: break
         if len(fInfo.packageInfoList)!=0:
             for pInfo in fInfo.packageInfoList:
+                if pInfo.lineNumber < lineNumber: PObj = pInfo
                 for vInfo in pInfo.functionInfoList:
                     if vInfo.lineNumber < lineNumber: fObj = vInfo
                     else: break
                 for vInfo in pInfo.procedureInfoList:
                     if vInfo.lineNumber < lineNumber: pObj = vInfo
                     else: break
-        if vObj.lineNumber > pObj.lineNumber and vObj.lineNumber > fObj.lineNumber: return 'view',vObj
-        if pObj.lineNumber > vObj.lineNumber and pObj.lineNumber > fObj.lineNumber: return 'proc',pObj
-        if fObj.lineNumber == -1: # No object found
-            fObj.name = fInfo.fileName
-            return 'file',fObj
-        return 'func',fObj
+        sobj = [['view',vObj.lineNumber,vObj],['pkg',PObj.lineNumber,PObj],['func',fObj.lineNumber,fObj],['proc',pObj.lineNumber,pObj]]
+        sobj.sort(key=lambda obj: obj[1], reverse=True)
+        if sobj[0][1] < 0: rtype = 'file' # No object found
+        else: rtype = sobj[0][0]
+        return rtype,sobj[0][2]
         
 
     # colors for the depgraph
@@ -429,12 +430,21 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         uType,uObj = findUsingObject(fileInfo,lineNumber)
         if fileInfo.fileName not in objectInfo.whereUsed.keys():
             objectInfo.whereUsed[fileInfo.fileName] = []
-            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
-        else:
-            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
+        objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
         # generate a unique number for use in making where used file if needed
         if objectInfo.uniqueNumber == 0:
             objectInfo.uniqueNumber = metaInfo.NextIndex()
+        # now care for the what_used
+        if uType != 'file':
+            if fileInfo.fileName not in uObj.whatUsed.keys():
+                uObj.whatUsed[fileInfo.fileName] = []
+            uObj.whatUsed[fileInfo.fileName].append((fileInfo, lineNumber, otype, objectInfo))
+            if uObj.uniqueNumber == 0: uObj.uniqueNumber = metaInfo.NextIndex()
+            if uType in ['func','proc'] and hasattr(uObj.parent,'whatUsed'): # add the info to pkg as well
+                if fileInfo.fileName not in uObj.parent.whatUsed.keys():
+                    uObj.parent.whatUsed[fileInfo.fileName] = []
+                uObj.parent.whatUsed[fileInfo.fileName].append((fileInfo, lineNumber, otype, objectInfo))
+                if uObj.parent.uniqueNumber == 0: uObj.parent.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects \
           and not objectInfo.javadoc.private and not uObj.javadoc.private:
@@ -609,7 +619,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 if len(inner_file_info.viewInfoList) != 0:
                     for view_info in inner_file_info.viewInfoList:
                         # perform case insensitive find
-                        if fileLines[lineNumber].upper().find(view_info.name.upper()) != -1:
+                        if re.search('\\b'+view_info.name+'\\b',fileLines[lineNumber],re.I):
                             addWhereUsed(view_info, outer_file_info, lineNumber, 'view')
 
 
@@ -618,22 +628,19 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     for package_info in inner_file_info.packageInfoList:
 
                         # perform case insensitive find, this is "package name"."function or procedure name"
-                        if fileLines[lineNumber].upper().find(package_info.name.upper() + ".") != -1:
-
+                        if re.search('\\b'+package_info.name+'\.',fileLines[lineNumber],re.I):
                             addWhereUsed(package_info, outer_file_info, lineNumber, 'pkg')
 
                             #look for any of this packages' functions
                             for function_info in package_info.functionInfoList:
                                 # perform case insensitive find
-                                if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
-                                  + function_info.name.upper()) != -1:
+                                if re.search('\\b'+package_info.name+'\.'+function_info.name+'\\b',fileLines[lineNumber],re.I):
                                     addWhereUsed(function_info, outer_file_info, lineNumber, 'func')
 
                             #look for any of this packages procedures
                             for procedure_info in package_info.procedureInfoList:
                                 # perform case insensitive find
-                                if fileLines[lineNumber].upper().find(package_info.name.upper() + "." \
-                                  + procedure_info.name.upper()) != -1:
+                                if re.search('\\b'+package_info.name+'\.'+procedure_info.name+'\\b',fileLines[lineNumber],re.I):
                                     addWhereUsed(procedure_info, outer_file_info, lineNumber, 'proc')
 
                         ### File internal references - possible calls without a package_name
@@ -1303,19 +1310,25 @@ def MakePackageIndex():
     outfile.write(MakeHTMLHeader('package'))
     outfile.write("<H1>"+_('Index Of All Packages')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
-    outfile.write("  <TR><TH>"+_('Package')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Used')+"</TH></TR>\n")
+    outfile.write("  <TR><TH>"+_('Package')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Usage')+"</TH></TR>\n")
     i = 0
 
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
         trclass = ' CLASS="tr'+`i % 2`+'"'
         outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower()) + '</TD>')
-        outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD>")
+        outfile.write("<TD>" + package_tuple[1].javadoc.getShortDesc() + "</TD><TD CLASS='whereused'>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A></TD></TR>\n")
+            outfile.write('<A href="' + HTMLwhereusedref + '">' + _('where used') + '</A> / ')
         else:
-            outfile.write("<TD CLASS='whereused'>"+_('no use found')+"</TD></TR>\n")
+            outfile.write('- / ')
+        if len(package_tuple[1].whatUsed.keys()) > 0:
+            HTMLwhatusedref = "what_used_" + `package_tuple[1].uniqueNumber` + ".html"
+            outfile.write('<A href="' + HTMLwhatusedref + '">' + _('what used') + '</A>')
+        else:
+            outfile.write('-')
+        outfile.write('</TD></TR>\n')
         i += 1
 
     outfile.write("</TABLE>\n")
@@ -1334,7 +1347,7 @@ def MakePackagesWithFuncsAndProcsIndex():
         if len(oTupleList) != 0:
             outfile.write("  <TR><TH class='sub' COLSPAN='3'>" + listName + "</TH></TR>\n  <TR><TD COLSPAN='3'>")
             outfile.write("<TABLE ALIGN='center'>\n")
-            outfile.write("    <TR><TD ALIGN='center'><B>" + objectName + "</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>Used</B></TD></TR>\n")
+            outfile.write("    <TR><TD ALIGN='center'><B>" + objectName + "</B></TD><TD ALIGN='center'><B>Details</B></TD><TD ALIGN='center'><B>"+_('Usage')+"</B></TD></TR>\n")
         i = 0
         for oTuple in oTupleList:
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
@@ -1344,9 +1357,14 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write("        <TD CLASS='whereused'>")
             if len(oTuple[1].whereUsed.keys()) > 0:
                 HTMLwhereusedref = "where_used_" + `oTuple[1].uniqueNumber` + ".html"
-                outfile.write("<A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A>")
+                outfile.write('<A href="' + HTMLwhereusedref + '">'+_('where used')+'</A> /')
             else:
-                outfile.write(_("no use found"))
+                outfile.write("- /")
+            if len(oTuple[1].whatUsed.keys()) > 0:
+                HTMLwhatusedref = "what_used_" + `oTuple[1].uniqueNumber` + ".html"
+                outfile.write('<A href="' + HTMLwhatusedref + '">'+_('what used')+'</A>')
+            else:
+                outfile.write("-")
             outfile.write("</TD></TR>\n")
             i += 1
         if len(oTupleList) != 0:
@@ -1390,9 +1408,14 @@ def MakePackagesWithFuncsAndProcsIndex():
         outfile.write("</TD><TD CLASS='whereused' WIDTH='33.33%'>")
         if len(package_tuple[1].whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `package_tuple[1].uniqueNumber` + ".html"
-            outfile.write("<A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A>")
+            outfile.write('<A href="' + HTMLwhereusedref + '">'+_('where used')+'</A> / ')
+        elif len(package_tuple[1].whatUsed.keys()) > 0:
+            outfile.write('- / ')
         else:
             outfile.write(_("no use found"))
+        if len(package_tuple[1].whatUsed.keys()) > 0:
+            HTMLwhatusedref = "what_used_" + `package_tuple[1].uniqueNumber` + ".html"
+            outfile.write('<A href="' + HTMLwhatusedref + '">'+_('where used')+'</A>')
         outfile.write("</TD></TR>\n")
 
         # functions in this package
@@ -1442,13 +1465,18 @@ def CreateHyperlinkedSourceFilePages():
             for par in item.javadoc.params:
                 ph += ', ' + par.name
             outfile.write(ph[2:])
-        outfile.write(')</DIV></TD><TD>'+idesc+'</TD>')
+        outfile.write(')</DIV></TD><TD>'+idesc+'</TD><TD CLASS="whereused">')
         if len(item.whereUsed.keys()) > 0:
             HTMLwhereusedref = "where_used_" + `item.uniqueNumber` + ".html"
-            outfile.write("<TD CLASS='whereused'><A href=\"" + HTMLwhereusedref + "\">"+_('where used')+"</A></TD>")
+            outfile.write('<A href="' + HTMLwhereusedref + '">' + _('where used')+'</A> / ')
         else:
-            outfile.write("<TD CLASS='whereused'>"+_('no use found')+"</TD>")
-        outfile.write('</TR>\n')
+            outfile.write('- / ')
+        if len(item.whatUsed.keys()) > 0:
+            HTMLwhatusedref = "what_used_" + `item.uniqueNumber` + ".html"
+            outfile.write('<A href="' + HTMLwhatusedref + '">' + _('what used')+'</A>')
+        else:
+            outfile.write('-')
+        outfile.write('</TD></TR>\n')
 
 
     fileInfoList = metaInfo.fileInfoList
@@ -1580,13 +1608,19 @@ def CreateIndexPage():
 def CreateWhereUsedPages():
     """Generate a where-used-page for each object"""
 
-    def makeUsageTableHead(otype, oname):
+    def makeUsageTableHead(otype, oname, page):
         """
         Create the table header for usage tables
+        @param string otype object type
         @param string oname name of the used object
+        @param string page 'where' or 'what' (used)
         @return string html header
         """
-        html  = "<H1>" + _('Where Used List for %s') % otype+' '+oname +"</H1>\n"
+        tname = otype+' '+oname
+        if page=='where':
+            html  = "<H1>" + _('Where Used List for %s') % tname +"</H1>\n"
+        else:
+            html  = "<H1>" + _('What Used List for %s') % tname +"</H1>\n"
         html += "<TABLE CLASS='apilist'>\n"
         html += "  <TR><TH>"+_('Object')+"</TH><TH>"+_('File')+"</TH><TH>"+_('Line')+"</TH></TR>\n"
         return html
@@ -1632,6 +1666,47 @@ def CreateWhereUsedPages():
         html += '</TD></TR>\n'
         return html
 
+    def makeUsagePage(fname,page,otype,obj):
+        """
+        Write the where/what used page
+        @param string fname file name w/ path
+        @param string page 'where' or 'what'
+        @param string otype object type ('view','pkg','func','proc')
+        @param object obj object info (object of type ElemInfo, see hypercore.py)
+        """
+        if page=='where':
+            used_keys = obj.whereUsed.keys()
+            used_list = obj.whereUsed
+            pname = _("Where Used List for %s") % obj.name
+        else:
+            used_keys = obj.whatUsed.keys()
+            used_list = obj.whatUsed
+            pname = _("What Used List for %s") % obj.name
+        outfile = fopen(fname, 'w', metaInfo.encoding)
+        if otype=='view':
+            outfile.write(MakeHTMLHeader(pname))
+            outfile.write( makeUsageTableHead(_('view'),obj.name,page) )
+        elif otype=='pkg':
+            outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
+            outfile.write( makeUsageTableHead(_('package'),obj.name,page) )
+        elif otype=='func':
+            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from Package')+' ' + obj.parent.name))
+            outfile.write( makeUsageTableHead(_('function'),obj.name.lower() + " <I>"+_('from package')+" " + obj.parent.name + " </I>", page) )
+        elif otype=='proc':
+            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from Package')+' ' + obj.parent.name))
+            outfile.write( makeUsageTableHead(_('procedure'),obj.name.lower() + " <I>"+_('from package')+" " + obj.parent.name + " </I>", page) )
+        else:
+            logger.warn(_('makeUsagePage called for undefined type "%s"'),otype)
+        used_keys.sort(CaseInsensitiveComparison)
+        k = 0;
+        for key in used_keys:
+            for usedtuple in used_list[key]:
+                outfile.write( makeUsageColumn(key,usedtuple,'tr'+`k % 2`) )
+                k += 1
+        outfile.write("</TABLE>")
+        outfile.write(MakeHTMLFooter(pname))
+        outfile.close()
+
 
     html_dir = metaInfo.htmlDir
     fileInfoList = metaInfo.fileInfoList
@@ -1651,111 +1726,47 @@ def CreateWhereUsedPages():
 
         # loop through views
         for view_info in file_info.viewInfoList:
+            #create a "where used" file
+            if len(view_info.whereUsed.keys()) != 0:
+                whereusedfilename = html_dir + "where_used_" + `view_info.uniqueNumber` + ".html"
+                makeUsagePage(whereusedfilename,'where','view',view_info)
+            #create a "what used" file
+            if len(view_info.whatUsed.keys()) != 0:
+                whatusedfilename = html_dir + "what_used_" + `view_info.uniqueNumber` + ".html"
+                makeUsagePage(whatusedfilename,'what','view',view_info)
 
-            if len(view_info.whereUsed.keys()) == 0:
-                continue
-
-            #open a "where used" file
-            whereusedfilename = "where_used_" + `view_info.uniqueNumber` + ".html"
-            outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-
-            # write our header
-            outfile.write(MakeHTMLHeader('Index'))
-            outfile.write( makeUsageTableHead(_('view'),view_info.name) )
-
-            # each where used
-            where_used_keys = view_info.whereUsed.keys()
-            where_used_keys.sort(CaseInsensitiveComparison)
-            k = 0;
-            for key in where_used_keys:
-                for whereusedtuple in view_info.whereUsed[key]:
-                    outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
-                    k += 1
-
-            # footer and close
-            outfile.write("</TABLE>")
-            outfile.write(MakeHTMLFooter(view_info.name + " "+_('Where Used List')))
-            outfile.close()
 
         for package_info in file_info.packageInfoList:
-
+            #create a "where used" file
             if len(package_info.whereUsed.keys()) != 0:
-
-                #open a "where used" file
-                whereusedfilename = "where_used_" + `package_info.uniqueNumber` + ".html"
-                outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-
-                # write our header
-                outfile.write(MakeHTMLHeader(package_info.name + " "+_("Where Used List")))
-                outfile.write( makeUsageTableHead(_('package'),package_info.name) )
-
-                # each where used
-                where_used_keys = package_info.whereUsed.keys()
-                where_used_keys.sort(CaseInsensitiveComparison)
-                k = 0
-                for key in where_used_keys:
-                    for whereusedtuple in package_info.whereUsed[key]:
-                        outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
-                        k += 1
-
-                # footer and close
-                outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(package_info.name + " "+_("Where Used List")))
-                outfile.close()
+                whereusedfilename = html_dir + "where_used_" + `package_info.uniqueNumber` + ".html"
+                makeUsagePage(whereusedfilename,'where','pkg',package_info)
+            #create a "what used" file
+            if len(package_info.whatUsed.keys()) != 0:
+                whatusedfilename = html_dir + "what_used_" + `package_info.uniqueNumber` + ".html"
+                makeUsagePage(whatusedfilename,'what','pkg',package_info)
 
             #look for any of this packages' functions
             for function_info in package_info.functionInfoList:
-                if len(function_info.whereUsed.keys()) == 0:
-                    continue
-
-                #open a "where used" file
-                whereusedfilename = "where_used_" + `function_info.uniqueNumber` + ".html"
-                outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-
-                # write our header
-                outfile.write(MakeHTMLHeader(function_info.name.lower() + ' '+_('from Package')+' ' + package_info.name))
-                outfile.write( makeUsageTableHead(_('function'),function_info.name.lower() + " <I>"+_('from package')+" " + package_info.name + " </I>") )
-
-                # each where used
-                where_used_keys = function_info.whereUsed.keys()
-                where_used_keys.sort(CaseInsensitiveComparison)
-                k = 0
-                for key in where_used_keys:
-                    for whereusedtuple in function_info.whereUsed[key]:
-                        outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
-                        k += 1
-
-                # footer and close
-                outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(function_info.name.lower() + ' '+_('from package')+' ' + package_info.name))
-                outfile.close()
+                #create a "where used" file
+                if len(function_info.whereUsed.keys()) != 0:
+                    whereusedfilename = html_dir + "where_used_" + `function_info.uniqueNumber` + ".html"
+                    makeUsagePage(whereusedfilename,'where','func',function_info)
+                #create a "what used" file
+                if len(function_info.whatUsed.keys()) != 0:
+                    whatusedfilename = html_dir + "what_used_" + `function_info.uniqueNumber` + ".html"
+                    makeUsagePage(whatusedfilename,'what','func',function_info)
 
             #look for any of this packages procedures
             for procedure_info in package_info.procedureInfoList:
-                if len(procedure_info.whereUsed.keys()) == 0:
-                    continue
-
-                #open a "where used" file
-                whereusedfilename = "where_used_" + `procedure_info.uniqueNumber` + ".html"
-                outfile = fopen(html_dir + whereusedfilename, "w", metaInfo.encoding)
-
-                # write our header
-                outfile.write(MakeHTMLHeader(procedure_info.name.lower() + ' '+('from package')+' ' + package_info.name.lower()))
-                outfile.write( makeUsageTableHead(_('procedure'),procedure_info.name.lower() + " <I>"+_('from package')+" " + package_info.name.lower() + " </I>") )
-
-                # each where used
-                where_used_keys = procedure_info.whereUsed.keys()
-                where_used_keys.sort(CaseInsensitiveComparison)
-                k = 0
-                for key in where_used_keys:
-                    for whereusedtuple in procedure_info.whereUsed[key]:
-                        outfile.write( makeUsageColumn(key,whereusedtuple,'tr'+`k % 2`) )
-                        k += 1
-
-                # footer and close
-                outfile.write("</TABLE>")
-                outfile.write(MakeHTMLFooter(procedure_info.name.lower() + ' '+_('from package')+' ' + package_info.name.lower()))
-                outfile.close()
+                #create a "where used" file
+                if len(procedure_info.whereUsed.keys()) != 0:
+                    whereusedfilename = html_dir + "where_used_" + `procedure_info.uniqueNumber` + ".html"
+                    makeUsagePage(whereusedfilename,'where','proc',procedure_info)
+                #create a "what used" file
+                if len(procedure_info.whatUsed.keys()) != 0:
+                    whatusedfilename = html_dir + "what_used_" + `procedure_info.uniqueNumber` + ".html"
+                    makeUsagePage(whatusedfilename,'what','proc',procedure_info)
 
     # complete line on task completion
     pbarClose()
@@ -2023,7 +2034,7 @@ if __name__ == "__main__":
       print _('No config file found, using defaults.')
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.6.5"
+    metaInfo.versionString = "2.7"
     metaInfo.scriptName = sys.argv[0]
     configRead()
     confDeps()
