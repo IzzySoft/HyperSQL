@@ -91,7 +91,10 @@ table.stat { margin-bottom: 20px; }
 
 th.delim { height: 3px; font-size: 2px; }
 
-td.whereused { text-align: center; }
+td.whereused {
+  text-align: center;
+  white-space: nowrap;
+}
 
 table#projectinfo {
   height: 300px;
