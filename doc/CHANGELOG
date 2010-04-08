@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v2.8.0
+-------------------
++ syntax highlighter now uses regexp to split the lines (better accuracy now)
++ syntax highlighter does now recognize keywords containing parenthesis, e.g. VARCHAR2(255)
++ syntax highlighter now also cares for numbers and strings
+
 v2.7.0 (07.04.2010)
 -------------------
 + added what_used

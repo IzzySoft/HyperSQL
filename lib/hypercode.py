@@ -5,6 +5,8 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
 from cgi import escape # for htmlspecialchars
+from systools import is_numeric
+import re
 
 def hypercode(line_list,keywords,types,cssclass='sql'):
     """
@@ -26,61 +28,59 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
     line_number_width = len(`len(line_list)`) # number of chars in "number of lines of text"
 
     html = ''
-    commentmode = 0 # 0 no comment, 1 '--', 2 '/*'
+    commentmode = 0 # 0 no comment, 1 '--', 2 '/*', 3 in_singlequote_string
+    splitter = re.compile('([\s,;\:\(\)\}\{])')
     for line_number in range(len(line_list)):
         line  = escape(line_list[line_number])
         if line.strip()[0:2]=='--':
            text = '<SPAN CLASS="'+cssclass+'comment">' + line + '</SPAN>'
         else:
-            text = line
-            prel = len(text) - len(text.lstrip())
-            text = text[0:prel]
+            text = ''
             if commentmode==2:
                 text += '<SPAN CLASS="'+cssclass+'comment">'
-            for elem in line.split():
-                if elem[len(elem)-1] in [',', ';', ')', '}', ']'] and len(elem)>1:
-                    selem = elem[0:len(elem)-1]
-                    echar  = elem[len(elem)-1]
-                    if echar in [')', '}', ']']:
-                        echar = '<SPAN CLASS="'+cssclass+'brace">' + echar + '</SPAN>'
-                else:
-                    selem = elem
-                    echar  = ''
-                if selem[0:1] in ['(', '{', '['] and len(selem)>1:
-                    schar = '<SPAN CLASS="'+cssclass+'brace">' + selem[0:1] + '</SPAN>'
-                    selem = selem[1:]
-                else:
-                    schar = ''
+            for elem in splitter.split(line):
                 if commentmode==0:
-                    if selem[0:2]=='--':
-                        text += schar + '<SPAN CLASS="'+cssclass+'comment">' + echar + selem
+                    if elem[0:2]=='--':
+                        text += '<SPAN CLASS="'+cssclass+'comment">' + elem
                         commentmode = 1
-                    elif selem[0:2]=='/*':
-                        text += schar + '<SPAN CLASS="'+cssclass+'comment">' + echar + selem
+                    elif elem[0:2]=='/*':
+                        text += '<SPAN CLASS="'+cssclass+'comment">' + elem
                         commentmode = 2
-                    elif selem in keywords:
-                        text += schar + '<SPAN CLASS="'+cssclass+'keyword">' + selem + '</SPAN> ' + echar
-                    elif selem in types:
-                        text += schar + '<SPAN CLASS="'+cssclass+'type">' + selem + '</SPAN> ' + echar
-                    elif selem in ['(', ')', '[', ']', '{', '}']:
-                        text += '<SPAN CLASS="'+cssclass+'brace">' + selem + echar + '</SPAN>'
-                    else:
-                        text += schar + selem + echar + ' '
+                    elif elem[0:1]=="'":
+                        text += '<SPAN CLASS="'+cssclass+'brace">\'</SPAN><SPAN CLASS="'+cssclass+'string">' + elem[1:len(elem)-1]
+                        if elem[len(elem)-1:]=="'": text += '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
+                        else:
+                            text += elem[len(elem)-1:]
+                            commentmode = 3
+                    elif elem in [',', ';', ':', '=', '(', ')', '[', ']', '{', '}']:
+                        text += '<SPAN CLASS="'+cssclass+'brace">' + elem + '</SPAN>'
+                    elif is_numeric(elem):
+                        text += '<SPAN CLASS="'+cssclass+'numeric">' + elem + '</SPAN>'
+                    elif elem in keywords:
+                        text += '<SPAN CLASS="'+cssclass+'keyword">' + elem + '</SPAN>'
+                    elif elem in types:
+                        text += '<SPAN CLASS="'+cssclass+'type">' + elem + '</SPAN>'
+                    else: text += elem
                 elif commentmode==2:
-                    if selem[len(selem)-2:]=='*/':
-                        text += schar + selem + '</SPAN>' + echar
+                    if elem[len(elem)-2:]=='*/':
+                        text += elem + '</SPAN>'
                         commentmode = 0 # clear at comment end
-                    else:
-                        text += ' ' + schar + selem + echar
+                    else: text += elem
+                elif commentmode==3:
+                    if elem[len(elem)-1:]=="'":
+                        text += elem[:len(elem)-1] + '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
+                        commentmode = 0
+                    else: text += elem
                 else: # 1 for now
-                    text += ' ' + schar + selem + echar
+                    text += elem
             if commentmode==1:
                 text += '</SPAN>'
                 commentmode = 0 # clear at line end
             elif commentmode==2:
                 text += '</SPAN>'
-            if text[len(text)-1:] != '\n':
-                text += "\n"
+            #if text[len(text)-1:] != '\n':
+            #    text += "\n"
+        text = text.replace('\n\n','\n')
         zeroes = (1 + line_number_width - len(`line_number`)) * "0" # leading zeroes for line numbers
         html += "<A NAME=\"" + `line_number` + "\"></A>" # hyperlink target
         html += zeroes + `line_number` + ": " + text #text
