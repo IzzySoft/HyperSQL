@@ -31,18 +31,21 @@ As the name suggests, this section serves some general settings:
 FileNames
 ---------
 
-All about file names - concerning the target HTML files:
+All about file names - e.g. concerning the target HTML files:
 
- * top_level_directory: the top level directory of the source code to parse.
-   HyperSQL will investigate all directories below this recursively.
+ * cache_dir: where to put our cache data. If not set, this will default to
+   '<binDir>/cache/<projName>' - with binDir being the directory where
+   HyperSQL.py resides, and projName the name of the project (1st parameter)
+ * cpp_file_exts: the similar for C++ files
+ * css_file: the stylesheet file to include in the generated HTML pages
+ * css_url is used as (additional) CSS link - so you can use both entries
+ * htmldir: where the HTML output should go to
  * rcsnames: directory names to exclude from parsing (below the
    top_level_directory)
  * sql_file_exts: specify extensions of files to be treated as SQL files. Separate
    multiple extensions using spaces.
- * cpp_file_exts: the similar for C++ files
- * htmldir: where the HTML output should go to
- * css_file: the stylesheet file to include in the generated HTML pages
- * css_url is used as (additional) CSS link - so you can use both entries
+ * top_level_directory: the top level directory of the source code to parse.
+   HyperSQL will investigate all directories below this recursively.
 
 Plus all the pages (see below) with their file names.
 
@@ -90,6 +93,7 @@ Here come processing options:
    should leave it to the default of 0. You may however use any positive integer
    here - but keep in mind: the larger it is, the more it finds - which may not
    always fit...
+ * cache: whether caching should be enabled (1, default) or not (0)
  * include_source: whether to include the (highlighted) sourcecode and link to it.
    The value must evaluate to a Boolean (, e.g. 0 for no, 1 for yes)
  * javadoc: whether to process javadoc at all. If your project does not use

@@ -45,6 +45,7 @@ from hypercharts import *
 from systools import *
 from depgraph import *
 from progressbar import *
+import hypercache
 
 def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     """
@@ -114,13 +115,13 @@ def ScanFilesForViewsAndPackages():
     dot_count = 1
     for file_info in fileInfoList:
 
-        # skip all non-sql files
-        if file_info.fileType != "sql":
-            continue
-
         # print a . every file
         i += 1
         pbarUpdate(i)
+
+        # skip all non-sql files
+        if file_info.fileType != "sql":
+            continue
 
         infile = fopen(file_info.fileName, "r", metaInfo.encoding)
         fileLines = infile.readlines()
@@ -1482,6 +1483,7 @@ def CreateHyperlinkedSourceFilePages():
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
     top_level_directory = metaInfo.topLevelDirectory
+    if metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
     pbarInit(_("Creating hyperlinked source file pages"),0,len(fileInfoList))
 
     sqlkeywords = []
@@ -1564,7 +1566,15 @@ def CreateHyperlinkedSourceFilePages():
         if metaInfo.includeSource:
             outfile.write('\n<H2>'+_('Source')+'</H2>\n')
             outfile.write('<code><pre>')
-            outfile.write( hypercode(infile_line_list, sqlkeywords, sqltypes) )
+            if metaInfo.useCache:
+                if cache.check(file_info.fileName,'code'):
+                    code = cache.get(file_info.fileName,'code')
+                else:
+                    code = hypercode(infile_line_list, sqlkeywords, sqltypes)
+                    cache.put(file_info.fileName, 'code', code)
+            else:
+                code = hypercode(infile_line_list, sqlkeywords, sqltypes)
+            outfile.write( code )
             outfile.write("</pre></code>\n")
             outfile.write('<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV><BR>\n')
             outfile.write(MakeHTMLFooter(file_info.fileName[len(top_level_directory)+1:]))
@@ -1794,41 +1804,48 @@ def CreateDepGraphIndex():
     g.set_ranksep(metaInfo.graphLenNeato,'neato')
     g.set_ranksep(metaInfo.graphDistCirco,'circo')
 
-    # draw the basic graph (file2file)
-    if metaInfo.makeDepGraph['file2file']:
-        g.set_graph(metaInfo.depGraph['file2file'])
-        res = g.make_graph(metaInfo.htmlDir + 'depgraph_file2file.png')
-        if res != '':
-            logger.error(_('Graphviz threw an error:') + res.strip())
-        i += 1
-        pbarUpdate(i)
+    if metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
 
-    # draw the medium graph (file2object)
-    if metaInfo.makeDepGraph['file2object']:
-        g.set_graph(metaInfo.depGraph['file2object'])
-        res = g.make_graph(metaInfo.htmlDir + 'depgraph_file2object.png')
-        if res != '':
-            logger.error(_('Graphviz threw an error:') + res.strip())
-        i += 1
-        pbarUpdate(i)
-
-    # draw the medium graph (object2file)
-    if metaInfo.makeDepGraph['object2file']:
-        g.set_graph(metaInfo.depGraph['object2file'])
-        res = g.make_graph(metaInfo.htmlDir + 'depgraph_object2file.png')
-        if res != '':
-            logger.error(_('Graphviz threw an error:') + res.strip())
-        i += 1
-        pbarUpdate(i)
-
-    # draw the full graph (object2object)
-    if metaInfo.makeDepGraph['object2object']:
-        g.set_graph(metaInfo.depGraph['object2object'])
-        res = g.make_graph(metaInfo.htmlDir + 'depgraph_object2object.png')
-        if res != '':
-            logger.error(_('Graphviz threw an error:') + res.strip())
-        i += 1
-        pbarUpdate(i)
+    def makePng(gtyp,i):
+        """
+        Create the graph file
+        @param string gtyp which depGraph to process (file2file, file2object...)
+        """
+        if metaInfo.makeDepGraph[gtyp]:
+            if metaInfo.depGraph[gtyp]:
+                gname = 'depgraph_'+gtyp+'.png'
+                # check the cache first
+                done = False
+                if metaInfo.useCache:
+                    tmp = cache.get(gtyp,'depdata').split('\n')
+                    if tmp==metaInfo.depGraph[gtyp]:
+                        copy2(os.path.join(metaInfo.cacheDirectory,gname), os.path.join(metaInfo.htmlDir,gname))
+                        done = True
+                if not done:
+                    g.set_graph(metaInfo.depGraph[gtyp])
+                    res = g.make_graph(metaInfo.htmlDir + gname)
+                    if res=='':
+                        if metaInfo.useCache:
+                            cache.put(gtyp,'depdata','\n'.join(metaInfo.depGraph[gtyp]))
+                            copy2(os.path.join(metaInfo.htmlDir,gname), os.path.join(metaInfo.cacheDirectory,gname))
+                    else:
+                        logger.error(_('Graphviz threw an error:') + res.strip())
+            else: # no data, no graph
+                if gtyp=='file2file': name = _('file to file')
+                elif gtyp=='file2object': name = _('file to object')
+                elif gtyp=='object2file': name = _('object to file')
+                elif gtyp=='object2object': name = _('object to object')
+                else: name = _('unknown dependency graph type')
+                logger.debug(_('No dependency data for %s'), name)
+            i += 1
+            pbarUpdate(i)
+        return i
+                
+    # draw the graphs
+    i = makePng('file2file',i)
+    i = makePng('file2object',i)
+    i = makePng('object2file',i)
+    i = makePng('object2object',i)
 
     outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['depgraph'], "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('depgraph'))
@@ -1900,6 +1917,10 @@ def configRead():
     metaInfo.rcsnames           = config.getList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
     metaInfo.sql_file_exts      = config.getList('FileNames','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
     metaInfo.cpp_file_exts      = config.getList('FileNames','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
+    if len(sys.argv)>1: defCacheDir = os.path.split(sys.argv[0])[0] + os.sep + "cache" + os.sep + sys.argv[1] + os.sep
+    else: defCacheDir = os.path.split(sys.argv[0])[0] + os.sep + "cache" + os.sep
+    metaInfo.cacheDirectory     = config.get('FileNames','cache_dir',defCacheDir)
+    metaInfo.useCache           = config.getBool('Process','cache',True)
     metaInfo.htmlDir            = config.get('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
     metaInfo.css_file           = config.get('FileNames','css_file','hypersql.css')
     metaInfo.css_url            = config.get('FileNames','css_url','')
@@ -2034,7 +2055,7 @@ if __name__ == "__main__":
       print _('No config file found, using defaults.')
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.7"
+    metaInfo.versionString = "2.8"
     metaInfo.scriptName = sys.argv[0]
     configRead()
     confDeps()

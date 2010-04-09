@@ -123,7 +123,8 @@ class HyperConf(IniParser):
             include_source = '1',
             javadoc = '1',
             whereused_scan_shortrefs = '0',
-            whereused_scan_instring = '0'
+            whereused_scan_instring = '0',
+            cache = '1'
         )
         # Section LOGGING
         logg = dict (

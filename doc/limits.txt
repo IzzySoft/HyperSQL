@@ -1,5 +1,4 @@
 Known issues and limitations
 ============================
 
-- syntax highlighter does not recognize keywords containing parenthesis, e.g. VARCHAR2(255)
 - stand-alone procedures/functions (i.e. those not part of any package) are not dealt with

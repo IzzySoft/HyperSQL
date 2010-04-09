@@ -5,6 +5,11 @@ v2.8.0
 + syntax highlighter now uses regexp to split the lines (better accuracy now)
 + syntax highlighter does now recognize keywords containing parenthesis, e.g. VARCHAR2(255)
 + syntax highlighter now also cares for numbers and strings
++ establishing some caching to speed up things (wow: factor ~200 for the
+  highlighter when found in cache, and even ~300 for dependency graphs on
+  average!) Caching is enabled by default, which reduces the average
+  processing time up to ~50%. If you want it disabled, add "cache = 0" in
+  your .ini files "Process" section.
 
 v2.7.0 (07.04.2010)
 -------------------
