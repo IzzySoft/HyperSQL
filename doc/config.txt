@@ -99,6 +99,8 @@ Here come processing options:
  * javadoc: whether to process javadoc at all. If your project does not use
    JavaDoc, setting this to '0' will speed up processing, as the JavaDoc scan
    is skipped.
+ * link_code_calls: whether calls to functions/procedures should be linked to
+   their targets (1, default) in the highlighted code or not (0)
  * purge_on_start: whether to purge the target HTML directory from files of
    previous runs (if any) before generating new ones 
  * whereused_scan_instring: whether to scan strings (i.e. things enclosed within
