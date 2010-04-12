@@ -141,21 +141,21 @@ class JavaDoc(object):
                         faillist.append(_('Missing description'))
                     else:
                         faillist.append(_('Missing mandatory tag: @%s') % tag)
-                    logger.warn(_('Missing mandatory tag "%(tag)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'tag':tag, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+                    logger.info(_('Missing mandatory tag "%(tag)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'tag':tag, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         for param in self.params:
             if param.name == '':
                 faillist.append(_('Missing name for %(type)s parameter (#%(index)s)') % {'type': param.sqltype, 'index': `self.params.index(param)`})
-                logger.warn(_('Missing name for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+                logger.info(_('Missing name for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
             if param.desc == '':
                 if param.name == '':
                     faillist.append(_('Missing description for %(type)s parameter (#%(index)s)') % {'type':param.sqltype, 'index':`self.params.index(param)`})
-                    logger.warn(_('Missing description for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+                    logger.info(_('Missing description for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s'), {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
                 else:
                     faillist.append(_('Missing description for parameter %s') % param.name)
-                    logger.warn(_('Missing description for parameter "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s'), {'pname':param.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+                    logger.info(_('Missing description for parameter "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s'), {'pname':param.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         if self.objectType == 'function' and len(self.retVals)<1:
             faillist.append(_('Missing return value'))
-            logger.warn(_('Missing return value for function %(name)s in %(file)s line %(line)s'), {'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+            logger.info(_('Missing return value for function %(name)s in %(file)s line %(line)s'), {'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         return faillist
     def verify_params(self,cparms):
         """
@@ -169,7 +169,7 @@ class JavaDoc(object):
             return faillist
         if len(cparms) != len(self.params):
             faillist.append(_('Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s') % { 'cparms':`len(cparms)`, 'jparms':`len(self.params)`})
-            logger.warn(_('Parameter count mismatch for %(otype)s %(name)s in %(file)s line %(line)s (%(lc)s / %(lj)s)'), {'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber, 'lc':len(cparms), 'lj':len(self.params)})
+            logger.info(_('Parameter count mismatch for %(otype)s %(name)s in %(file)s line %(line)s (%(lc)s / %(lj)s)'), {'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber, 'lc':len(cparms), 'lj':len(self.params)})
         return faillist
     def getVisibility(self):
         """
@@ -213,9 +213,9 @@ class JavaDoc(object):
             return ''
         if self.objectType not in JavaDocVars['otypes']:
             if self.name == '':
-                logger.warn(_('Unnamed object with ID %(id)s (%(file)s line %(line)s has no object type set!'), {'id':unum, 'file':self.file, 'line':self.lineNumber})
+                logger.info(_('Unnamed object with ID %(id)s (%(file)s line %(line)s has no object type set!'), {'id':unum, 'file':self.file, 'line':self.lineNumber})
             else:
-                logger.warn(_('No object type specified for object id %(name)s, ID %(id)s in %(file)s line %(line)s'), {'name':self.name, 'id':unum, 'file':self.file, 'line':self.lineNumber})
+                logger.info(_('No object type specified for object id %(name)s, ID %(id)s in %(file)s line %(line)s'), {'name':self.name, 'id':unum, 'file':self.file, 'line':self.lineNumber})
             return ''
         html = ''
         if self.objectType != 'pkg':
@@ -666,7 +666,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
         elif tag in tags: # other supported tag
           if tag == 'param':    # @param inout type [name [desc]]
             if len(doc) < 2:
-              logger.warn(_('@param requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
+              logger.info(_('@param requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
             else:
               p = JavaDocParam()
               if doc[1] in ['in','out','inout']:
@@ -687,7 +687,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
               item.params.append(p)
           elif tag == 'return': # @return type [name [desc]
             if len(doc) < 2:
-              logger.warn(_('@return requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
+              logger.info(_('@return requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
             else:
               p = JavaDocParam()
               p.sqltype = doc[1].upper()
@@ -702,10 +702,10 @@ def ScanJavaDoc(text,fileName,lineNo=0):
             item.ignore = True
           else: # tags with only one <text> parameter
             if len(doc) < 2:
-              logger.warn(_('@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
+              logger.info(_('@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
             content = line[len(tag)+1:].strip()
         else:             # unsupported tag, ignore
-          logger.warn(_('unsupported JavaDoc tag "%(tag)s" in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
+          logger.info(_('unsupported JavaDoc tag "%(tag)s" in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
           continue
 
     return res

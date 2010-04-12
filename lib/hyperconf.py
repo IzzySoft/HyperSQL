@@ -124,7 +124,8 @@ class HyperConf(IniParser):
             javadoc = '1',
             whereused_scan_shortrefs = '0',
             whereused_scan_instring = '0',
-            cache = '1'
+            cache = '1',
+            link_code_calls = '1'
         )
         # Section LOGGING
         logg = dict (

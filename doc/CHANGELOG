@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v2.9.0
+-------------------
+! what_used pages linked to calling object (instead of to the called object)
++ hyperlinking calls to called object in source code (only for funcs/procs)
+* lowering log level for javadoc verification from WARNING to INFO
+! code highlighter had problems with some strings
+
 v2.8.0 (11.04.2010)
 -------------------
 + syntax highlighter now uses regexp to split the lines (better accuracy now)

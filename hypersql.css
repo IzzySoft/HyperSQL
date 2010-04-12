@@ -26,6 +26,7 @@ dt {
  * Code Formatting
  */
 code, pre { background: #ffc; }
+code a, pre a { text-decoration: none; }
 
 pre {
   border: 2px ridge #ccc;
@@ -37,6 +38,8 @@ pre {
 .sqlkeyword { color: #900; }
 .sqltype {color: #00f; }
 .sqlcomment { color: #660; }
+.sqlnumeric { color: #090; }
+.sqlstring { color: #521; }
 
 /*
  * Navigation

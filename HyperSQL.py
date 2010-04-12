@@ -437,14 +437,32 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             objectInfo.uniqueNumber = metaInfo.NextIndex()
         # now care for the what_used
         if uType != 'file':
-            if fileInfo.fileName not in uObj.whatUsed.keys():
-                uObj.whatUsed[fileInfo.fileName] = []
-            uObj.whatUsed[fileInfo.fileName].append((fileInfo, lineNumber, otype, objectInfo))
+            if otype in ['view','pkg']:
+                fname = objectInfo.parent.fileName
+                finfo = objectInfo.parent
+            elif otype in ['func','proc']:
+                try:
+                    fname = objectInfo.parent.parent.fileName
+                    finfo = objectInfo.parent.parent
+                except:
+                    try:
+                        fname = objectInfo.parent.fileName
+                        finfo = objectInfo.parent
+                    except:
+                        logger.warn(_('Could not find filename for %(otype)s %(name)s'), {'otype':otype, 'name':objectInfo.name})
+                        fname = fileInfo.fileName
+                        finfo = fileInfo
+            else:
+                fname = fileInfo.fileName
+                finfo = fileInfo
+            if fname not in uObj.whatUsed.keys():
+                uObj.whatUsed[fname] = []
+            uObj.whatUsed[fname].append((finfo, objectInfo.lineNumber, otype, objectInfo))
             if uObj.uniqueNumber == 0: uObj.uniqueNumber = metaInfo.NextIndex()
             if uType in ['func','proc'] and hasattr(uObj.parent,'whatUsed'): # add the info to pkg as well
-                if fileInfo.fileName not in uObj.parent.whatUsed.keys():
-                    uObj.parent.whatUsed[fileInfo.fileName] = []
-                uObj.parent.whatUsed[fileInfo.fileName].append((fileInfo, lineNumber, otype, objectInfo))
+                if finfo.fileName not in uObj.parent.whatUsed.keys():
+                    uObj.parent.whatUsed[finfo.fileName] = []
+                uObj.parent.whatUsed[finfo.fileName].append((finfo, objectInfo.lineNumber, otype, objectInfo))
                 if uObj.parent.uniqueNumber == 0: uObj.parent.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects \
@@ -1574,6 +1592,24 @@ def CreateHyperlinkedSourceFilePages():
                     cache.put(file_info.fileName, 'code', code)
             else:
                 code = hypercode(infile_line_list, sqlkeywords, sqltypes)
+            # Shall we hyperlink calls?
+            if metaInfo.linkCodeCalls:
+                if len(file_info.packageInfoList) > 0:
+                    for p in range(len(file_info.packageInfoList)):
+                        for w in file_info.packageInfoList[p].whatUsed.keys():
+                            for u in file_info.packageInfoList[p].whatUsed[w]:
+                                if u[2] in ['file','pkg','view']: continue
+                                try: opname = u[3].parent.name
+                                except: opname = ''
+                                oname = u[3].name
+                                href  = os.path.split(u[0].fileName)[1].replace('.','_') \
+                                  + '_' + `u[0].uniqueNumber` + '.html#' + `u[1]`
+                                patt = re.compile('\\b('+opname+')\\.('+oname+')\\b',re.I)
+                                oricode = code
+                                code = patt.sub('\\1.<A HREF="'+href+'">\\2</A>',code)
+                                if code==oricode and file_info.fileName==u[0].fileName: # no match on full name
+                                    patt = re.compile('\\b('+oname+')(\\s*\\()')
+                                    code = patt.sub('<A HREF="'+href+'">\\1</A>\\2',code)
             outfile.write( code )
             outfile.write("</pre></code>\n")
             outfile.write('<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV><BR>\n')
@@ -1666,7 +1702,7 @@ def CreateWhereUsedPages():
             if not metaInfo.useJavaDoc or uObj.javadoc.isDefault():
                 html += uname + '</TD><TD>'
             else:
-                html += '<A HREF="' + html_file + '#' + uObj.javadoc.name + `uObj.uniqueNumber` + '">' + uname + '</A></TD><TD>'
+                html += '<A HREF="' + html_file + '#' + uObj.javadoc.name + '_' + `uObj.uniqueNumber` + '">' + uname + '</A></TD><TD>'
             if metaInfo.includeSource:
                 html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
                 html += '<A href="' + html_file + '#' + `line_number` + '">' + `line_number` + '</A>'
@@ -1944,6 +1980,7 @@ def configRead():
     metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
     metaInfo.includeSource = config.getBool('Process','include_source',True)
     metaInfo.useJavaDoc = config.getBool('Process','javadoc',True)
+    metaInfo.linkCodeCalls = config.getBool('Process','link_code_calls',True)
     # Section VERIFICATION
     JavaDocVars['javadoc_mandatory'] = config.getBool('Verification','javadoc_mandatory',False)
     JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)

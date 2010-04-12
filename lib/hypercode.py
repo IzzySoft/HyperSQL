@@ -29,7 +29,7 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
 
     html = ''
     commentmode = 0 # 0 no comment, 1 '--', 2 '/*', 3 in_singlequote_string
-    splitter = re.compile('([\s,;\:\(\)\}\{])')
+    splitter = re.compile('([\s,;\:\(\)\}\{\|])')
     for line_number in range(len(line_list)):
         line  = escape(line_list[line_number])
         if line.strip()[0:2]=='--':
@@ -46,9 +46,13 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
                     elif elem[0:2]=='/*':
                         text += '<SPAN CLASS="'+cssclass+'comment">' + elem
                         commentmode = 2
+                    elif elem=="'":
+                        text += '<SPAN CLASS="'+cssclass+'brace">\'</SPAN><SPAN CLASS="'+cssclass+'string">'
+                        commentmode = 3
                     elif elem[0:1]=="'":
                         text += '<SPAN CLASS="'+cssclass+'brace">\'</SPAN><SPAN CLASS="'+cssclass+'string">' + elem[1:len(elem)-1]
-                        if elem[len(elem)-1:]=="'": text += '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
+                        if elem[len(elem)-1:]=="'":
+                            text += '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
                         else:
                             text += elem[len(elem)-1:]
                             commentmode = 3
@@ -67,7 +71,10 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
                         commentmode = 0 # clear at comment end
                     else: text += elem
                 elif commentmode==3:
-                    if elem[len(elem)-1:]=="'":
+                    if elem=="'":
+                        text += '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
+                        commentmode = 0
+                    elif elem[len(elem)-1:]=="'":
                         text += elem[:len(elem)-1] + '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
                         commentmode = 0
                     else: text += elem
