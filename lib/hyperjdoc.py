@@ -4,18 +4,12 @@ HyperSQL Javadoc support
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
+from gettext_init import langpath, langs
 from sys import maxint, argv as pargs
 import logging, re, gettext, locale, os
 logger = logging.getLogger('main.jdoc')
 
 # Setup gettext support
-langs = []
-lc, encoding = locale.getdefaultlocale()
-if (lc): langs = [lc,lc[:2]]
-language = os.environ.get('LANGUAGE', None)
-if (language): langs += language.split(":")
-langs += ['en_US']
-langpath = os.path.split(pargs[0])[0] + os.sep + 'lang'
 gettext.bindtextdomain('hyperjdoc', langpath)
 gettext.textdomain('hyperjdoc')
 lang = gettext.translation('hyperjdoc', langpath, languages=langs, fallback=True)

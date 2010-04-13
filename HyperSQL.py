@@ -45,6 +45,7 @@ from hypercharts import *
 from systools import *
 from depgraph import *
 from progressbar import *
+from hyperopts import hyperopts
 import hypercache
 
 def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
@@ -510,7 +511,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     fileInfoList = metaInfo.fileInfoList
 
     pbarInit(_("Scanning source files for where views and packages are used"),0,len(fileInfoList))
-    scan_instring = config.getBool('Process','whereused_scan_instring')
+    scan_instring = metaInfo.scanInString
     if scan_instring:
         logger.info(_('Including strings in where_used scan'))
     else:
@@ -664,7 +665,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
                         ### File internal references - possible calls without a package_name
                         elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber) \
-                         and config.getBool('Process','whereused_scan_shortrefs'):
+                         and metaInfo.scanShortRefs:
 
                             # check for inline comments to be excluded
                             if fileLines[lineNumber].find('--') == -1:
@@ -1918,7 +1919,9 @@ def confPage(page,filenameDefault,pagenameDefault,enableDefault):
     @param string pagenameDefault default for the page name (used if not found in config)
     @param boolean enableDefault
     """
-    if config.getBool('Pages',page,enableDefault):
+    if page in metaInfo.cmdOpts.nopages and page not in metaInfo.cmdOpts.pages:
+        metaInfo.indexPage[page] = ''
+    elif page in metaInfo.cmdOpts.pages and page not in metaInfo.cmdOpts.nopages or config.getBool('Pages',page,enableDefault):
         metaInfo.indexPage[page] = config.get('FileNames',page,filenameDefault)
         metaInfo.indexPageName[page] = config.get('PageNames',page,pagenameDefault)
         metaInfo.indexPageCount += 1
@@ -1948,21 +1951,24 @@ def configRead():
     JavaDocVars['ticket_url']   = config.get('General','ticket_url','')
     JavaDocVars['wiki_url']     = config.get('General','wiki_url','')
     # Section FILENAMES
-    metaInfo.topLevelDirectory  = config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned
+    metaInfo.topLevelDirectory  = metaInfo.cmdOpts.sourceDir or config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned
     JavaDocVars['top_level_dir_len'] = len(metaInfo.topLevelDirectory)
     metaInfo.rcsnames           = config.getList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
     metaInfo.sql_file_exts      = config.getList('FileNames','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
     metaInfo.cpp_file_exts      = config.getList('FileNames','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
-    if len(sys.argv)>1: defCacheDir = os.path.split(sys.argv[0])[0] + os.sep + "cache" + os.sep + sys.argv[1] + os.sep
+    if len(metaInfo.cmdArgs)>0: defCacheDir = os.path.split(sys.argv[0])[0] + os.sep + "cache" + os.sep + metaInfo.cmdArgs[0] + os.sep
     else: defCacheDir = os.path.split(sys.argv[0])[0] + os.sep + "cache" + os.sep
-    metaInfo.cacheDirectory     = config.get('FileNames','cache_dir',defCacheDir)
-    metaInfo.useCache           = config.getBool('Process','cache',True)
-    metaInfo.htmlDir            = config.get('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
+    metaInfo.cacheDirectory     = metaInfo.cmdOpts.cacheDir or config.get('FileNames','cache_dir',defCacheDir)
+    if metaInfo.cmdOpts.cache is None: metaInfo.useCache = config.getBool('Process','cache',True)
+    else: metaInfo.useCache = metaInfo.cmdOpts.cache
+    metaInfo.htmlDir            = metaInfo.cmdOpts.htmlDir or config.get('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
     metaInfo.css_file           = config.get('FileNames','css_file','hypersql.css')
     metaInfo.css_url            = config.get('FileNames','css_url','')
     metaInfo.indexPage          = {}
     metaInfo.indexPageCount     = 1 # We at least have the main index page
     metaInfo.indexPageName      = {}
+    if metaInfo.cmdOpts.pages is None:   metaInfo.cmdOpts.pages = []
+    if metaInfo.cmdOpts.nopages is None: metaInfo.cmdOpts.nopages = []
     confPage('filepath','FileNameIndexWithPathnames.html',_('File Names by Path Index'),True)
     confPage('file','FileNameIndexNoPathnames.html',_('File Name Index'),True)
     confPage('view','ViewIndex.html',_('View Index'),False)
@@ -1977,35 +1983,65 @@ def configRead():
     confPage('depgraph','DepGraphIndex.html',_('Dependency Graphs'),True)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
     # Section PROCESS
-    metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
-    metaInfo.includeSource = config.getBool('Process','include_source',True)
-    metaInfo.useJavaDoc = config.getBool('Process','javadoc',True)
-    metaInfo.linkCodeCalls = config.getBool('Process','link_code_calls',True)
+    if metaInfo.cmdOpts.blind_offset is None:
+        metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer
+    else:
+        metaInfo.blindOffset = abs(metaInfo.cmdOpts.blind_offset)
+    if metaInfo.cmdOpts.source is None:
+        metaInfo.includeSource = config.getBool('Process','include_source',True)
+    else: metaInfo.includeSource = metaInfo.cmdOpts.source
+    if metaInfo.cmdOpts.javadoc is None:
+        metaInfo.useJavaDoc = config.getBool('Process','javadoc',True)
+    else: metaInfo.useJavaDoc = metaInfo.cmdOpts.javadoc
+    if metaInfo.cmdOpts.linkCalls is None:
+        metaInfo.linkCodeCalls = config.getBool('Process','link_code_calls',True)
+    else: metaInfo.linkCodeCalls = metaInfo.cmdOpts.linkCalls
+    if metaInfo.cmdOpts.scanShortrefs is None:
+        metaInfo.scanShortRefs = config.getBool('Process','whereused_scan_shortrefs')
+    else: metaInfo.scanShortRefs = metaInfo.cmdOpts.scanShortrefs
+    if metaInfo.cmdOpts.scanInString is None:
+        metaInfo.scanInString = config.getBool('Process','whereused_scan_instring')
+    else:
+        metaInfo.scanInString = metaInfo.cmdOpts.scanInString
     # Section VERIFICATION
     JavaDocVars['javadoc_mandatory'] = config.getBool('Verification','javadoc_mandatory',False)
-    JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
+    if metaInfo.cmdOpts.verifyJavadoc is None:
+        JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
+    else: JavaDocVars['verification'] = metaInfo.cmdOpts.verifyJavadoc
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
     # Section DEPGRAPH
-    metaInfo.graphvizMod   = config.get('DepGraph','processor','fdp')
-    metaInfo.fontName      = config.get('DepGraph','fontname','')
-    metaInfo.fontSize      = config.get('DepGraph','fontsize','')
-    metaInfo.graphRankSepDot  = config.get('DepGraph','ranksep_dot','')
-    metaInfo.graphRankSepTwopi  = config.get('DepGraph','ranksep_twopi','')
-    metaInfo.graphLenNeato = config.get('DepGraph','len_neato','')
-    metaInfo.graphLenFdp = config.get('DepGraph','len_fdp','')
-    metaInfo.graphDistCirco = config.get('DepGraph','mindist_circo','')
-    metaInfo.depGraphObjects = config.getList('DepGraph','objects',['view','pkg','proc','func'])
+    metaInfo.graphvizMod   = metaInfo.cmdOpts.graphvizProc or config.get('DepGraph','processor','fdp')
+    metaInfo.fontName      = metaInfo.cmdOpts.graphvizFont or config.get('DepGraph','fontname','')
+    metaInfo.fontSize      = metaInfo.cmdOpts.graphvizFontSize or config.get('DepGraph','fontsize','')
+    metaInfo.graphRankSepDot  = metaInfo.cmdOpts.ranksep_dot or config.get('DepGraph','ranksep_dot','')
+    metaInfo.graphRankSepTwopi  = metaInfo.cmdOpts.ranksep_twopi or config.get('DepGraph','ranksep_twopi','')
+    metaInfo.graphLenNeato = metaInfo.cmdOpts.len_neato or config.get('DepGraph','len_neato','')
+    metaInfo.graphLenFdp = metaInfo.cmdOpts.len_fdp or config.get('DepGraph','len_fdp','')
+    metaInfo.graphDistCirco = metaInfo.cmdOpts.mindist_circo or config.get('DepGraph','mindist_circo','')
+    metaInfo.depGraphObjects = metaInfo.cmdOpts.depObjects or config.getList('DepGraph','objects',['view','pkg','proc','func'])
     metaInfo.makeDepGraph = {}
     metaInfo.makeDepGraph['file2file']     = config.getBool('DepGraph','file2file',True)
     metaInfo.makeDepGraph['file2object']   = config.getBool('DepGraph','file2object',False)
     metaInfo.makeDepGraph['object2file']   = config.getBool('DepGraph','object2file',True)
     metaInfo.makeDepGraph['object2object'] = config.getBool('DepGraph','object2object',True)
+    if metaInfo.cmdOpts.graph is not None:
+        for name in metaInfo.cmdOpts.graph:
+            if metaInfo.cmdOpts.nograph is None or name not in metaInfo.cmdOpts.nograph:
+                metaInfo.makeDepGraph[name] = True
+    if metaInfo.cmdOpts.nograph is not None:
+        for name in metaInfo.cmdOpts.nograph:
+            if metaInfo.cmdOpts.graph is None or name not in metaInfo.cmdOpts.graph:
+                metaInfo.makeDepGraph[name] = False
     metaInfo.depGraphCount = 0
     if metaInfo.makeDepGraph['file2file']:     metaInfo.depGraphCount += 1
     if metaInfo.makeDepGraph['file2object']:   metaInfo.depGraphCount += 1
     if metaInfo.makeDepGraph['object2file']:   metaInfo.depGraphCount += 1
     if metaInfo.makeDepGraph['object2object']: metaInfo.depGraphCount += 1
     metaInfo.depGraphDelTmp = config.getBool('DepGraph','deltmp',True)
+    # Section LOGGING
+    if metaInfo.cmdOpts.progress is None:
+        metaInfo.printProgress = config.getBool('Logging','progress',True)
+    else: metaInfo.printProgress = metaInfo.cmdOpts.progress
 
 def confDeps():
     """ Check dependent options and fix them, if necessary """
@@ -2017,18 +2053,24 @@ def confLogger():
     """ Setup logging """
     logging.addLevelName(99,'NONE')
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler( config.get('Logging','logfile'), 'a', metaInfo.encoding )
+    fh = logging.FileHandler( metaInfo.cmdOpts.logfile or config.get('Logging','logfile'), 'a', metaInfo.encoding )
     ch = logging.StreamHandler()
     #fh.setFormatter( logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s") )
     fh.setFormatter( logging.Formatter("%(asctime)s %(module)s %(levelname)s %(message)s") )
     #ch.setFormatter( logging.Formatter("* %(name)s %(levelname)s %(message)s") )
     ch.setFormatter( logging.Formatter("* %(module)s %(levelname)s %(message)s") )
     try:
-        fh.setLevel( eval('logging.'+config.get('Logging','filelevel','WARNING').upper()) )
+        if metaInfo.cmdOpts.fileLogLevel is None:
+            fh.setLevel( logging.__getattribute__(config.get('Logging','filelevel','WARNING').upper()) )
+        else:
+            fh.setLevel( logging.__getattribute__(metaInfo.cmdOpts.fileLogLevel) )
     except AttributeError:
         fh.setLevel(logging.WARNING)
     try:
-        ch.setLevel( eval('logging.'+config.get('Logging','screenlevel','WARNING').upper()) )
+        if metaInfo.cmdOpts.screenLogLevel is None:
+            ch.setLevel( eval('logging.'+config.get('Logging','screenlevel','WARNING').upper()) )
+        else:
+            ch.setLevel( logging.__getattribute__(metaInfo.cmdOpts.screenLogLevel) )
     except AttributeError:
         ch.setLevel(logging.ERROR)
     logger.addHandler(fh)
@@ -2040,7 +2082,7 @@ def printProgress(msg):
     @param string msg what to print out
     """
     logger.debug(msg)
-    if config.getBool('Logging','progress',True):
+    if metaInfo.printProgress:
         print msg
 
 def pbarInit(prefix,start,end):
@@ -2051,7 +2093,7 @@ def pbarInit(prefix,start,end):
     @param int end max value
     """
     logger.debug(prefix)
-    if config.getBool('Logging','progress',True):
+    if metaInfo.printProgress:
         pbar.__init__(prefix,start,end)
         pbar.draw()
 
@@ -2060,15 +2102,40 @@ def pbarUpdate(newVal):
     Update the ProgressBar
     @param int newVal new value (current state)
     """
-    if config.getBool('Logging','progress',True):
+    if metaInfo.printProgress:
         pbar.update(newVal)
 
 def pbarClose():
     """ At end of processing, we need a newline """
-    if config.getBool('Logging','progress',True): print
+    if metaInfo.printProgress: print
+
+def purge_html():
+    if metaInfo.cmdOpts.purgeHTML is None:
+        if config.getBool('Process','purge_on_start',False): purge = True
+    else:
+        if metaInfo.cmdOpts.purgeHTML: purge = True
+    if ( purge and os.path.exists(metaInfo.htmlDir) ):
+      printProgress(_("Removing html files from previous run"))
+      names=os.listdir(metaInfo.htmlDir)
+      for i in names:
+        os.unlink(metaInfo.htmlDir + i)
+
+def purge_cache():
+    if metaInfo.cmdOpts.purge_cache is not None:
+        cache = hypercache.cache(metaInfo.cacheDirectory)
+        for name in metaInfo.cmdOpts.purge_cache: cache.clear(name)
 
 
 if __name__ == "__main__":
+
+    metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
+    metaInfo.versionString = "2.9"
+    metaInfo.scriptName = sys.argv[0]
+
+    # Option parser
+    opts = hyperopts(progname=os.path.split(metaInfo.scriptName)[1],ver=metaInfo.versionString)
+    metaInfo.cmdOpts = opts.getOpts()
+    metaInfo.cmdArgs = opts.getArgs()
 
     # Read configuration
     pbar = progressBar() # make it global
@@ -2077,23 +2144,24 @@ if __name__ == "__main__":
 
     # Check the config files
     confName = []
-    scriptpath = os.path.split(sys.argv[0])[0] + os.sep
-    for proj in ['HyperSQL','hypersql']:
-        if not scriptpath + proj + '.ini' in confName and os.path.exists(scriptpath + proj + '.ini'):
-            confName.append(scriptpath + proj + '.ini')
-    if len(sys.argv)>1:
-        for proj in [sys.argv[1].lower(),sys.argv[1]]:
+    if metaInfo.cmdOpts.config is not None:
+        if os.path.exists(metaInfo.cmdOpts.config): confName.append(metaInfo.cmdOpts.config)
+        else: print 'specified config file %s not found' % metaInfo.cmdOpts.config
+    if len(confName)==0:
+        scriptpath = os.path.split(sys.argv[0])[0] + os.sep
+        for proj in ['HyperSQL','hypersql']:
             if not scriptpath + proj + '.ini' in confName and os.path.exists(scriptpath + proj + '.ini'):
                 confName.append(scriptpath + proj + '.ini')
+        if len(sys.argv)>1:
+            for proj in [sys.argv[1].lower(),sys.argv[1]]:
+                if not scriptpath + proj + '.ini' in confName and os.path.exists(scriptpath + proj + '.ini'):
+                    confName.append(scriptpath + proj + '.ini')
     # If we have any config files, read them!
     if len(confName) > 0:
       config.read(confName)
     else:
       print _('No config file found, using defaults.')
 
-    metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.8"
-    metaInfo.scriptName = sys.argv[0]
     configRead()
     confDeps()
 
@@ -2102,6 +2170,7 @@ if __name__ == "__main__":
     confLogger()
     logger.info(_('HyperSQL v%s initialized') % metaInfo.versionString)
     logger.debug('ScriptName: '+metaInfo.scriptName)
+
     if len(confName) > 0:
       logger.info(_('Using config file(s) ') + ', '.join(confName))
     else:
@@ -2128,11 +2197,8 @@ if __name__ == "__main__":
     ScanFilesForViewsAndPackages()
     ScanFilesForWhereViewsAndPackagesAreUsed()
 
-    if config.getBool('Process','purge_on_start',False) and os.path.exists(metaInfo.htmlDir):
-      printProgress(_("Removing html files from previous run"))
-      names=os.listdir(metaInfo.htmlDir)
-      for i in names:
-        os.unlink(metaInfo.htmlDir + i)
+    purge_html()
+    purge_cache()
 
     CreateHTMLDirectory()
 

@@ -15,6 +15,7 @@ if g.deps_ok:
 
 #====================================================[ Imports and Presets ]===
 from systools import *
+from gettext_init import langpath, langs
 from os import sep as os_sep, path as os_path, access as os_access, unlink as os_unlink
 from tempfile import NamedTemporaryFile
 import logging
@@ -22,18 +23,6 @@ logger = logging.getLogger('main.depgraph')
 
 # Setup gettext support
 import gettext
-from locale import getdefaultlocale
-from sys import argv as pargs
-from os import environ as os_environ
-langs = []
-lc, encoding = getdefaultlocale()
-if (lc):
-    langs = [lc,lc[:2]]
-language = os_environ.get('LANGUAGE', None)
-if (language):
-    langs += language.split(":")
-langs += ['en_US']
-langpath = os_path.split(pargs[0])[0] + os.sep + 'lang'
 gettext.bindtextdomain('depgraph', langpath)
 gettext.textdomain('depgraph')
 lang = gettext.translation('depgraph', langpath, languages=langs, fallback=True)

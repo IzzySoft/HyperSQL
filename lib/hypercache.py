@@ -121,7 +121,17 @@ class cache(object):
         cPickle.dump(obj,cfile,cPickle.HIGHEST_PROTOCOL)
         cfile.close()
 
-    def clear(self):
-        """ Remove all cached content """
-        for fname in listdir(self.dirname): os.unlink(fname)
+    def clear(self,ctype='all'):
+        """
+        Remove cached content
+        @param self
+        @param optional ctype type (extension) of cache to remove (default: 'all')
+        """
+        if ctype=='all':
+            for fname in listdir(self.dirname): os.unlink(fname)
+        else:
+            ext = '.'+ctype
+            pos = len(ext)
+            for fname in listdir(self.dirname):
+                if fname[len(fname)-pos:]==ext: os.unlink(fname)
 
