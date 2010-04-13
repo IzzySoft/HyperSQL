@@ -1,0 +1,208 @@
+# SOME DESCRIPTIVE TITLE.
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: hyperopts\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-04-13 19:08+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../lib/hyperopts.py:37
+msgid "Cache Options"
+msgstr ""
+
+#: ../../lib/hyperopts.py:73
+msgid "Dependency Graph Options"
+msgstr ""
+
+#: ../../lib/hyperopts.py:65
+msgid "Logging Options"
+msgstr ""
+
+#: ../../lib/hyperopts.py:27
+msgid "Options can be used to override configured values."
+msgstr ""
+
+#: ../../lib/hyperopts.py:45
+msgid "Processing Options"
+msgstr ""
+
+#: ../../lib/hyperopts.py:27
+msgid "Syntax: %prog [options] [project]"
+msgstr ""
+
+#: ../../lib/hyperopts.py:61
+msgid "check for Javadoc errors and write the corresponding report"
+msgstr ""
+
+#: ../../lib/hyperopts.py:33
+msgid "config file to use"
+msgstr ""
+
+#: ../../lib/hyperopts.py:35
+msgid "directory the generated HTML files should be written to"
+msgstr ""
+
+#: ../../lib/hyperopts.py:34
+msgid "directory to parse for source files"
+msgstr ""
+
+#: ../../lib/hyperopts.py:62
+msgid ""
+"do not check for Javadoc errors and do not write the corresponding report"
+msgstr ""
+
+#: ../../lib/hyperopts.py:75
+msgid "do not draw the specified graph (multiple definitions allowed)"
+msgstr ""
+
+#: ../../lib/hyperopts.py:60
+msgid "do not include (and link to) highlighted source"
+msgstr ""
+
+#: ../../lib/hyperopts.py:50
+msgid "do not link to targets in code calls"
+msgstr ""
+
+#: ../../lib/hyperopts.py:48
+msgid "do not process javadoc"
+msgstr ""
+
+#: ../../lib/hyperopts.py:52
+msgid ""
+"do not process this page. Multiple definitions (for multiple pages) are "
+"possible."
+msgstr ""
+
+#: ../../lib/hyperopts.py:54
+msgid "do not purge old HTML files before creating the new ones"
+msgstr ""
+
+#: ../../lib/hyperopts.py:56
+msgid "do not scan in strings for where/what objects are used"
+msgstr ""
+
+#: ../../lib/hyperopts.py:58
+msgid "do not scan short references for where/what objects are used"
+msgstr ""
+
+#: ../../lib/hyperopts.py:69
+msgid "do not write progress information to STDOUT"
+msgstr ""
+
+#: ../../lib/hyperopts.py:74
+msgid "draw the specified graph (multiple definitions allowed)"
+msgstr ""
+
+#: ../../lib/hyperopts.py:59
+msgid "include (and link to) highlighted source"
+msgstr ""
+
+#: ../../lib/hyperopts.py:80
+msgid "len parameter for the fdp processor"
+msgstr ""
+
+#: ../../lib/hyperopts.py:81
+msgid "len parameter for the neato processor"
+msgstr ""
+
+#: ../../lib/hyperopts.py:49
+msgid "link to targets in code calls"
+msgstr ""
+
+#: ../../lib/hyperopts.py:70
+msgid "log level to use for STDOUT"
+msgstr ""
+
+#: ../../lib/hyperopts.py:66
+msgid "log level to use for the log file"
+msgstr ""
+
+#: ../../lib/hyperopts.py:82
+msgid "mindist parameter for the circo processor"
+msgstr ""
+
+#: ../../lib/hyperopts.py:76
+msgid "name of the font to use for the graphs (e.g. Arial)"
+msgstr ""
+
+#: ../../lib/hyperopts.py:78
+msgid ""
+"objects to include with the dependency graphs. Multiple specifications (one "
+"per required object) are possible."
+msgstr ""
+
+#: ../../lib/hyperopts.py:40
+msgid "override the cache dir location"
+msgstr ""
+
+#: ../../lib/hyperopts.py:47
+msgid "process javadoc"
+msgstr ""
+
+#: ../../lib/hyperopts.py:51
+msgid ""
+"process this page. Multiple definitions (for multiple pages) are possible."
+msgstr ""
+
+#: ../../lib/hyperopts.py:53
+msgid "purge old HTML files before creating the new ones"
+msgstr ""
+
+#: ../../lib/hyperopts.py:42
+msgid ""
+"purge the specified cache at the very start. Possible values are: all, code, "
+"depdata. Multiple definitions are possible."
+msgstr ""
+
+#: ../../lib/hyperopts.py:55
+msgid "scan in strings for where/what objects are used"
+msgstr ""
+
+#: ../../lib/hyperopts.py:57
+msgid "scan short references for where/what objects are used"
+msgstr ""
+
+#: ../../lib/hyperopts.py:46
+msgid "set the \"blind offset\" to this number of lines"
+msgstr ""
+
+#: ../../lib/hyperopts.py:77
+msgid "size of the font to use for the graphs (e.g. 10 or 8.5)"
+msgstr ""
+
+#: ../../lib/hyperopts.py:83
+msgid "space between the levels (for the dot processor)"
+msgstr ""
+
+#: ../../lib/hyperopts.py:84
+msgid "space between the levels (for the twopi processor)"
+msgstr ""
+
+#: ../../lib/hyperopts.py:39
+msgid "turn the cache off"
+msgstr ""
+
+#: ../../lib/hyperopts.py:38
+msgid "turn the cache on"
+msgstr ""
+
+#: ../../lib/hyperopts.py:67
+msgid "use the specified file to write our log into"
+msgstr ""
+
+#: ../../lib/hyperopts.py:79
+msgid "which graphviz module to use"
+msgstr ""
+
+#: ../../lib/hyperopts.py:68
+msgid "write progress information to STDOUT"
+msgstr ""
