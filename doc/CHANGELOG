@@ -8,6 +8,10 @@ v2.9.0
 ! code highlighter had problems with some strings
 * outsourced common part of gettext initialization to its own file
 + added support for a bunch of commandline options (far too many to mention them all here)
++ added cmd opts --quiet and --cron
+* replacing all occurences of "eval ('object.'+var)" with "object.__getattribute__(var)"
++ what_used was missing in function/procedure and view list
++ new option to define whether findings on javadoc verification should be logged
 
 v2.8.0 (11.04.2010)
 -------------------

@@ -132,7 +132,8 @@ class HyperConf(IniParser):
             screenlevel = 'ERROR',
             filelevel = 'DEBUG',
             logfile = 'HyperSQL.log',
-            progress = '1'
+            progress = '1',
+            verification = '0'
         )
         # Section VERIFICATION
         verification = dict (

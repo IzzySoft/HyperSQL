@@ -61,6 +61,13 @@ pre {
 }
 td.navbar { width: 600px; }
 
+.navbar .active_element {
+  font-weight: bolder;
+  font-style: italic;
+  background: #ffe;
+  border-bottom: 2px dotted;
+}
+
 .topend { margin-bottom: 20px; }
 .bottomstart { margin-top: 20px; }
 #bottombar { text-align: center; }

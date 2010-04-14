@@ -25,17 +25,20 @@ to Randy for now to be published).
 Features
 --------
 
-* flexible configuration by use of .ini files
+* flexible configuration by use of .ini files, overridable by a bunch of
+  command line options
 * generates nicely formatted HTML files, CSS adjustable by use of .css files
 * parses SQL, C++ and Java files according to file extensions you configured
 * generates hyperlinked listings of all objects found (SQL views, packages,
   functions, procedures, etc.)
 * hyperlinks object names to their appearance in the source code
-* generates "where used" lists, to show where your objects have been used
-  by other objects (if they have) - helps you to find unused code if not,
-  or example usages if found
+* generates "where used" and "what used" lists, to show where your objects have
+  been used by other objects (if they have) - helps you to find unused code if
+  not, or example usages if found
 * generates Javadoc like documentation if you used Javadoc style documentation
-  with your code (see javadoc.txt)
+  with your code (see javadoc.txt), and also creates global bug/todo lists from
+  your javadoc style documentation
+* generates dependency graphs
 
 Usage
 -----
@@ -50,5 +53,6 @@ There's not much to say about:
 * Run HyperSQL.py with the name of your project as only parameter, like
   "HyperSQL.py myProject". This would use "myProject.ini" if found, otherwise
   "myproject.ini" - and if that's also not found, fall back to HyperSQL.ini
+* Run "HyperSQL.py --help" to find out about more command line options
 
 That's it - enjoy!

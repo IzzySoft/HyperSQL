@@ -63,11 +63,15 @@ class hyperopts(object):
         self.parser.add_option_group(proc)
         # Logging related options
         log = OptionGroup(self.parser,_('Logging Options'))
-        log.add_option('--file-loglevel',dest='fileLogLevel',choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],help=_('log level to use for the log file'))
+        log.add_option('--cron',dest='cron',action='store_true',help=_('suppress all non-error output to STDOUT. This is equivalent to --noprogress --screen-loglevel ERROR and, as the name suggests, intended to be used for automated runs via a scheduler'))
+        log.add_option('--file-loglevel',dest='fileLogLevel',choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL','NONE'],help=_('log level to use for the log file'))
         log.add_option('--logfile',dest='logfile',help=_('use the specified file to write our log into'))
         log.add_option('--progress',dest='progress',action='store_true',help=_('write progress information to STDOUT'))
         log.add_option('--noprogress',dest='progress',action='store_false',help=_('do not write progress information to STDOUT'))
-        log.add_option('--screen-loglevel',dest='screenLogLevel',choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],help=_('log level to use for STDOUT'))
+        log.add_option('-q','--quiet',dest='bequiet',action='store_true',help=_('suppress all output to STDOUT. This is equivalent to --noprogress --screen-loglevel NONE'))
+        log.add_option('--screen-loglevel',dest='screenLogLevel',choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL','NONE'],help=_('log level to use for STDOUT'))
+        log.add_option('--verification-log',dest='verificationLog',action='store_true',help=_('log javadoc verification messages'))
+        log.add_option('--noverification-log',dest='verificationLog',action='store_false',help=_('do not log javadoc verification messages'))
         self.parser.add_option_group(log)
         # Dependency graphs
         dep = OptionGroup(self.parser,_('Dependency Graph Options'))

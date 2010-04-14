@@ -127,6 +127,9 @@ right-hand from the chosen one are automatically included as well.
  * logfile: File name of the log file. Defaults to HyperSQL.log
  * progress: whether to output progress information to STDOUT. Boolean, defaults
    to 1 (True)
+ * verification: if javadoc verification is enabled, violations will be recorded
+   for the corresponding report. Decide here whether they should also be recorded
+   to the log file (1, as in HyperSQL before v2.9) or not (0, default since v2.9)
 
 Verification
 ------------
