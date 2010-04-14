@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hyperopts\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-13 19:08+0200\n"
-"PO-Revision-Date: 2010-04-13 19:12+0100\n"
+"POT-Creation-Date: 2010-04-14 17:57+0200\n"
+"PO-Revision-Date: 2010-04-14 18:01+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 msgid "Cache Options"
 msgstr "Cache Options"
 
-#: ../../lib/hyperopts.py:73
+#: ../../lib/hyperopts.py:77
 msgid "Dependency Graph Options"
 msgstr "Dependency Graph Options"
 
@@ -56,7 +56,7 @@ msgstr "directory to parse for source files"
 msgid "do not check for Javadoc errors and do not write the corresponding report"
 msgstr "do not check for Javadoc errors and do not write the corresponding report"
 
-#: ../../lib/hyperopts.py:75
+#: ../../lib/hyperopts.py:79
 msgid "do not draw the specified graph (multiple definitions allowed)"
 msgstr "do not draw the specified graph (multiple definitions allowed)"
 
@@ -67,6 +67,10 @@ msgstr "do not include (and link to) highlighted source"
 #: ../../lib/hyperopts.py:50
 msgid "do not link to targets in code calls"
 msgstr "do not link to targets in code calls"
+
+#: ../../lib/hyperopts.py:74
+msgid "do not log javadoc verification messages"
+msgstr "do not log javadoc verification messages"
 
 #: ../../lib/hyperopts.py:48
 msgid "do not process javadoc"
@@ -88,11 +92,11 @@ msgstr "do not scan in strings for where/what objects are used"
 msgid "do not scan short references for where/what objects are used"
 msgstr "do not scan short references for where/what objects are used"
 
-#: ../../lib/hyperopts.py:69
+#: ../../lib/hyperopts.py:70
 msgid "do not write progress information to STDOUT"
 msgstr "do not write progress information to STDOUT"
 
-#: ../../lib/hyperopts.py:74
+#: ../../lib/hyperopts.py:78
 msgid "draw the specified graph (multiple definitions allowed)"
 msgstr "draw the specified graph (multiple definitions allowed)"
 
@@ -100,11 +104,11 @@ msgstr "draw the specified graph (multiple definitions allowed)"
 msgid "include (and link to) highlighted source"
 msgstr "include (and link to) highlighted source"
 
-#: ../../lib/hyperopts.py:80
+#: ../../lib/hyperopts.py:84
 msgid "len parameter for the fdp processor"
 msgstr "len parameter for the fdp processor"
 
-#: ../../lib/hyperopts.py:81
+#: ../../lib/hyperopts.py:85
 msgid "len parameter for the neato processor"
 msgstr "len parameter for the neato processor"
 
@@ -112,23 +116,27 @@ msgstr "len parameter for the neato processor"
 msgid "link to targets in code calls"
 msgstr "link to targets in code calls"
 
-#: ../../lib/hyperopts.py:70
+#: ../../lib/hyperopts.py:73
+msgid "log javadoc verification messages"
+msgstr "log javadoc verification messages"
+
+#: ../../lib/hyperopts.py:72
 msgid "log level to use for STDOUT"
 msgstr "log level to use for STDOUT"
 
-#: ../../lib/hyperopts.py:66
+#: ../../lib/hyperopts.py:67
 msgid "log level to use for the log file"
 msgstr "log level to use for the log file"
 
-#: ../../lib/hyperopts.py:82
+#: ../../lib/hyperopts.py:86
 msgid "mindist parameter for the circo processor"
 msgstr "mindist parameter for the circo processor"
 
-#: ../../lib/hyperopts.py:76
+#: ../../lib/hyperopts.py:80
 msgid "name of the font to use for the graphs (e.g. Arial)"
 msgstr "name of the font to use for the graphs (e.g. Arial)"
 
-#: ../../lib/hyperopts.py:78
+#: ../../lib/hyperopts.py:82
 msgid "objects to include with the dependency graphs. Multiple specifications (one per required object) are possible."
 msgstr "objects to include with the dependency graphs. Multiple specifications (one per required object) are possible."
 
@@ -164,17 +172,25 @@ msgstr "scan short references for where/what objects are used"
 msgid "set the \"blind offset\" to this number of lines"
 msgstr "set the \"blind offset\" to this number of lines"
 
-#: ../../lib/hyperopts.py:77
+#: ../../lib/hyperopts.py:81
 msgid "size of the font to use for the graphs (e.g. 10 or 8.5)"
 msgstr "size of the font to use for the graphs (e.g. 10 or 8.5)"
 
-#: ../../lib/hyperopts.py:83
+#: ../../lib/hyperopts.py:87
 msgid "space between the levels (for the dot processor)"
 msgstr "space between the levels (for the dot processor)"
 
-#: ../../lib/hyperopts.py:84
+#: ../../lib/hyperopts.py:88
 msgid "space between the levels (for the twopi processor)"
 msgstr "space between the levels (for the twopi processor)"
+
+#: ../../lib/hyperopts.py:66
+msgid "suppress all non-error output to STDOUT. This is equivalent to --noprogress --screen-loglevel ERROR and, as the name suggests, intended to be used for automated runs via a scheduler"
+msgstr "suppress all non-error output to STDOUT. This is equivalent to --noprogress --screen-loglevel ERROR and, as the name suggests, intended to be used for automated runs via a scheduler"
+
+#: ../../lib/hyperopts.py:71
+msgid "suppress all output to STDOUT. This is equivalent to --noprogress --screen-loglevel NONE"
+msgstr "suppress all output to STDOUT. This is equivalent to --noprogress --screen-loglevel NONE"
 
 #: ../../lib/hyperopts.py:39
 msgid "turn the cache off"
@@ -184,15 +200,15 @@ msgstr "turn the cache off"
 msgid "turn the cache on"
 msgstr "turn the cache on"
 
-#: ../../lib/hyperopts.py:67
+#: ../../lib/hyperopts.py:68
 msgid "use the specified file to write our log into"
 msgstr "use the specified file to write our log into"
 
-#: ../../lib/hyperopts.py:79
+#: ../../lib/hyperopts.py:83
 msgid "which graphviz module to use"
 msgstr "which graphviz module to use"
 
-#: ../../lib/hyperopts.py:68
+#: ../../lib/hyperopts.py:69
 msgid "write progress information to STDOUT"
 msgstr "write progress information to STDOUT"
 

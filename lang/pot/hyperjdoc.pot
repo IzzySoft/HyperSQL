@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hyperjdoc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-13 19:08+0200\n"
+"POT-Creation-Date: 2010-04-14 17:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,200 +15,200 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../../lib/hyperjdoc.py:699
+#: ../../lib/hyperjdoc.py:708
 #, python-format
 msgid ""
 "@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:663
+#: ../../lib/hyperjdoc.py:672
 #, python-format
 msgid ""
 "@param requires at least one parameter, none given in %(file)s line %(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:684
+#: ../../lib/hyperjdoc.py:693
 #, python-format
 msgid ""
 "@return requires at least one parameter, none given in %(file)s line %(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:276
+#: ../../lib/hyperjdoc.py:285
 msgid "Additional Info"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:254
+#: ../../lib/hyperjdoc.py:263
 msgid "Author"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:264
+#: ../../lib/hyperjdoc.py:273
 msgid "Available Since"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:270
+#: ../../lib/hyperjdoc.py:279
 msgid "BUG"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:256
+#: ../../lib/hyperjdoc.py:265
 msgid "Copyright"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:272
+#: ../../lib/hyperjdoc.py:281
 msgid "DEPRECATED"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:250
+#: ../../lib/hyperjdoc.py:259
 msgid "Example Usage"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:226
+#: ../../lib/hyperjdoc.py:235
 msgid "Just used internally."
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:258
+#: ../../lib/hyperjdoc.py:267
 msgid "License"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:135
+#: ../../lib/hyperjdoc.py:144
 msgid "Missing description"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:145
+#: ../../lib/hyperjdoc.py:154
 #, python-format
 msgid "Missing description for %(type)s parameter (#%(index)s)"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:149
+#: ../../lib/hyperjdoc.py:158
 #, python-format
 msgid ""
 "Missing description for parameter \"%(pname)s\" for %(otype)s %(oname)s in %"
 "(file)s line %(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:148
+#: ../../lib/hyperjdoc.py:157
 #, python-format
 msgid "Missing description for parameter %s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:146
+#: ../../lib/hyperjdoc.py:155
 #, python-format
 msgid ""
 "Missing description for parameter of type \"%(type)s\" for %(otype)s %(name)"
 "s in %(file)s line %(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:138
+#: ../../lib/hyperjdoc.py:147
 #, python-format
 msgid ""
 "Missing mandatory tag \"%(tag)s\" for %(otype)s %(name)s in %(file)s line %"
 "(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:137
+#: ../../lib/hyperjdoc.py:146
 #, python-format
 msgid "Missing mandatory tag: @%s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:141
+#: ../../lib/hyperjdoc.py:150
 #, python-format
 msgid "Missing name for %(type)s parameter (#%(index)s)"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:142
+#: ../../lib/hyperjdoc.py:151
 #, python-format
 msgid ""
 "Missing name for parameter of type \"%(type)s\" for %(otype)s %(name)s in %"
 "(file)s line %(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:151
+#: ../../lib/hyperjdoc.py:160
 msgid "Missing return value"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:152
+#: ../../lib/hyperjdoc.py:161
 #, python-format
 msgid "Missing return value for function %(name)s in %(file)s line %(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:212
+#: ../../lib/hyperjdoc.py:221
 #, python-format
 msgid ""
 "No object type specified for object id %(name)s, ID %(id)s in %(file)s line %"
 "(line)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:166
+#: ../../lib/hyperjdoc.py:175
 #, python-format
 msgid ""
 "Parameter count mismatch for %(otype)s %(name)s in %(file)s line %(line)s (%"
 "(lc)s / %(lj)s)"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:165
+#: ../../lib/hyperjdoc.py:174
 #, python-format
 msgid ""
 "Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:234
+#: ../../lib/hyperjdoc.py:243
 msgid "Parameters"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:226
+#: ../../lib/hyperjdoc.py:235
 msgid "Private"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:242
+#: ../../lib/hyperjdoc.py:251
 msgid "Return values"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:302
+#: ../../lib/hyperjdoc.py:311
 msgid "See also"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:227
+#: ../../lib/hyperjdoc.py:236
 msgid "Syntax"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:304
+#: ../../lib/hyperjdoc.py:313
 msgid "TODO"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:268
+#: ../../lib/hyperjdoc.py:277
 msgid "Throws Exception"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:278
+#: ../../lib/hyperjdoc.py:287
 msgid "Ticket"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:210
+#: ../../lib/hyperjdoc.py:219
 #, python-format
 msgid ""
 "Unnamed object with ID %(id)s (%(file)s line %(line)s has no object type set!"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:266
+#: ../../lib/hyperjdoc.py:275
 msgid "Uses"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:274
+#: ../../lib/hyperjdoc.py:283
 msgid "Version Info"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:260
+#: ../../lib/hyperjdoc.py:269
 msgid "Webpage"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:292
+#: ../../lib/hyperjdoc.py:301
 msgid "Wiki"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:307
+#: ../../lib/hyperjdoc.py:316
 msgid "^ Top"
 msgstr ""
 
-#: ../../lib/hyperjdoc.py:702
+#: ../../lib/hyperjdoc.py:711
 #, python-format
 msgid "unsupported JavaDoc tag \"%(tag)s\" in %(file)s line %(line)s"
 msgstr ""

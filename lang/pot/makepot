@@ -6,10 +6,10 @@ ARGS="-s -L Python --foreign-user"
 cd ${0%%/*}
 
 # Generate the POT files
-xgettext -o hypersql.pot $ARGS --foreign-user --package-name=hypersql ../../HyperSQL.py ../../lib/hyperconf.py
-xgettext -o hyperjdoc.pot $ARGS --package-name=hyperjdoc ../../lib/hyperjdoc.py
-xgettext -o depgraph.pot $ARGS --package-name=depgraph ../../lib/depgraph.py
-xgettext -o hyperopts.pot $ARGS --package-name=hyperopts ../../lib/hyperopts.py
+[ ../../HyperSQL.py -nt hypersql.pot -o ../../lib/hyperconf.py -nt hypersql.pot ] && xgettext -o hypersql.pot $ARGS --foreign-user --package-name=hypersql ../../HyperSQL.py ../../lib/hyperconf.py
+[ ../../lib/hyperjdoc.py -nt hyperjdoc.pot ] && xgettext -o hyperjdoc.pot $ARGS --package-name=hyperjdoc ../../lib/hyperjdoc.py
+[ ../../lib/depgraph.py -nt depgraph.pot ] && xgettext -o depgraph.pot $ARGS --package-name=depgraph ../../lib/depgraph.py
+[ ../../lib/hyperopts.py -nt hyperopts.pot ] && xgettext -o hyperopts.pot $ARGS --package-name=hyperopts ../../lib/hyperopts.py
 
 # Get back to where we came from
 cd -

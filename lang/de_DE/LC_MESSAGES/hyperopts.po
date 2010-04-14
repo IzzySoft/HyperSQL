@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hyperopts\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-13 19:08+0200\n"
-"PO-Revision-Date: 2010-04-13 19:33+0100\n"
+"POT-Creation-Date: 2010-04-14 17:57+0200\n"
+"PO-Revision-Date: 2010-04-14 18:05+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 msgid "Cache Options"
 msgstr "Cache Optionen"
 
-#: ../../lib/hyperopts.py:73
+#: ../../lib/hyperopts.py:77
 msgid "Dependency Graph Options"
 msgstr "Optionen für die Abhängigkeits-Graphen"
 
@@ -56,7 +56,7 @@ msgstr "Verzeichnis, in dem nach den Quellcode-Dateien gesucht werden soll"
 msgid "do not check for Javadoc errors and do not write the corresponding report"
 msgstr "nicht auf Javadoc-Fehler prüfen (und den zugehörigen Report natürlich auch nicht erstellen)"
 
-#: ../../lib/hyperopts.py:75
+#: ../../lib/hyperopts.py:79
 msgid "do not draw the specified graph (multiple definitions allowed)"
 msgstr "den angegebenen Abhängigkeits-Graphen nicht erstellen. Kann mehrfach spezifiziert werden (jeweils ein Graph)"
 
@@ -67,6 +67,10 @@ msgstr "Source-Code nicht highlighten, verlinken, und einfügen"
 #: ../../lib/hyperopts.py:50
 msgid "do not link to targets in code calls"
 msgstr "keine Links in den Source-Code einfügen"
+
+#: ../../lib/hyperopts.py:74
+msgid "do not log javadoc verification messages"
+msgstr "Nachrichten von der JavaDoc-Verifikation nicht in der Log-Datei protokollieren"
 
 #: ../../lib/hyperopts.py:48
 msgid "do not process javadoc"
@@ -88,11 +92,11 @@ msgstr "Strings nicht auf verwendete Objekte untersuchen"
 msgid "do not scan short references for where/what objects are used"
 msgstr "Kurzreferenzen bei der Suche nach verwendeten Objekten nicht berücksichtigen"
 
-#: ../../lib/hyperopts.py:69
+#: ../../lib/hyperopts.py:70
 msgid "do not write progress information to STDOUT"
 msgstr "keine Fortschritts-Anzeige auf der Standardausgabe verwenden"
 
-#: ../../lib/hyperopts.py:74
+#: ../../lib/hyperopts.py:78
 msgid "draw the specified graph (multiple definitions allowed)"
 msgstr "den angegebenen Abhängigkeits-Graphen erstellen. Mehrfachnennungen möglich (ein Graph pro Spezifikation)"
 
@@ -100,11 +104,11 @@ msgstr "den angegebenen Abhängigkeits-Graphen erstellen. Mehrfachnennungen mög
 msgid "include (and link to) highlighted source"
 msgstr "Sourcecode highlighten, verlinken, und einbinden"
 
-#: ../../lib/hyperopts.py:80
+#: ../../lib/hyperopts.py:84
 msgid "len parameter for the fdp processor"
 msgstr "len Parameter für den Graphviz-Prozessor fdp"
 
-#: ../../lib/hyperopts.py:81
+#: ../../lib/hyperopts.py:85
 msgid "len parameter for the neato processor"
 msgstr "len Parameter für den Graphviz-Prozessor neato"
 
@@ -112,23 +116,27 @@ msgstr "len Parameter für den Graphviz-Prozessor neato"
 msgid "link to targets in code calls"
 msgstr "im Quellcode auf aufgerufene Funktionen/Prozeduren verlinken"
 
-#: ../../lib/hyperopts.py:70
+#: ../../lib/hyperopts.py:73
+msgid "log javadoc verification messages"
+msgstr "Nachrichten von der JavaDoc-Verifikation in der Log-Datei protokollieren"
+
+#: ../../lib/hyperopts.py:72
 msgid "log level to use for STDOUT"
 msgstr "Log-Level für die Bildschirmausgabe"
 
-#: ../../lib/hyperopts.py:66
+#: ../../lib/hyperopts.py:67
 msgid "log level to use for the log file"
 msgstr "Log-Level für die Logdatei"
 
-#: ../../lib/hyperopts.py:82
+#: ../../lib/hyperopts.py:86
 msgid "mindist parameter for the circo processor"
 msgstr "mindist Parameter für den Graphviz-Prozessor circo"
 
-#: ../../lib/hyperopts.py:76
+#: ../../lib/hyperopts.py:80
 msgid "name of the font to use for the graphs (e.g. Arial)"
 msgstr "von Graphviz zu verwendende Schriftart (z.B. Arial)"
 
-#: ../../lib/hyperopts.py:78
+#: ../../lib/hyperopts.py:82
 msgid "objects to include with the dependency graphs. Multiple specifications (one per required object) are possible."
 msgstr "Objekte, die in den Abhängigkeitsgraphen verwendet werden sollen"
 
@@ -164,17 +172,25 @@ msgstr "Kurzreferenzen bei der Suche nach verwendeten Objekten berücksichtigen"
 msgid "set the \"blind offset\" to this number of lines"
 msgstr "\"blind offset\" auf die angegebene Zeilenzahl setzen"
 
-#: ../../lib/hyperopts.py:77
+#: ../../lib/hyperopts.py:81
 msgid "size of the font to use for the graphs (e.g. 10 or 8.5)"
 msgstr "Schriftart-Größe für die erstellten Graphen (z.B. 10 oder 8.5)"
 
-#: ../../lib/hyperopts.py:83
+#: ../../lib/hyperopts.py:87
 msgid "space between the levels (for the dot processor)"
 msgstr "Freiraum zwischen den Ebenen (für den Graphviz-Prozessor dot)"
 
-#: ../../lib/hyperopts.py:84
+#: ../../lib/hyperopts.py:88
 msgid "space between the levels (for the twopi processor)"
 msgstr "Freiraum zwischen den Ebenen (für den Graphviz-Prozessor twopi)"
+
+#: ../../lib/hyperopts.py:66
+msgid "suppress all non-error output to STDOUT. This is equivalent to --noprogress --screen-loglevel ERROR and, as the name suggests, intended to be used for automated runs via a scheduler"
+msgstr "Alles außer Fehlermeldungen für die Standard-Ausgabe (STDOUT) ignorieren. Dies entspricht der Kombination aus --noprogress und --screen-loglevel ERROR und ist für die Benutzung mit automatischen Schedulern (z.B. Cron) gedacht."
+
+#: ../../lib/hyperopts.py:71
+msgid "suppress all output to STDOUT. This is equivalent to --noprogress --screen-loglevel NONE"
+msgstr "Alle Nachrichten auf der Standard-Ausgabe (STDOUT) deaktivieren. Dies entspricht der Kombination aus --noprogress und --screen-loglevel NONE"
 
 #: ../../lib/hyperopts.py:39
 msgid "turn the cache off"
@@ -184,15 +200,15 @@ msgstr "Cache deaktivieren"
 msgid "turn the cache on"
 msgstr "Cache aktivieren"
 
-#: ../../lib/hyperopts.py:67
+#: ../../lib/hyperopts.py:68
 msgid "use the specified file to write our log into"
 msgstr "angegebene Datei als Log-Datei verwenden"
 
-#: ../../lib/hyperopts.py:79
+#: ../../lib/hyperopts.py:83
 msgid "which graphviz module to use"
 msgstr "zu verwendender Graphviz-Prozessor (fdp, dot, neato, twopi, circo)"
 
-#: ../../lib/hyperopts.py:68
+#: ../../lib/hyperopts.py:69
 msgid "write progress information to STDOUT"
 msgstr "Fortschrittsanzeige auf der Standardausgabe aktivieren"
 
