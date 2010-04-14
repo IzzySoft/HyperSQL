@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v2.9.0
+v2.9.0 (14.04.2010)
 -------------------
 ! what_used pages linked to calling object (instead of to the called object)
 + hyperlinking calls to called object in source code (only for funcs/procs)
