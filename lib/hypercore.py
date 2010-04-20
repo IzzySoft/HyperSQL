@@ -38,6 +38,16 @@ class PackageInfo(ElemInfo):
         self.todo = PackageTaskList()
         self.verification = PackageTaskList()
 
+def listCompName(a,b):
+    """
+    Helper to sort a list of objects by their "name" property using
+    list.sort(listCompName)
+    used by FileInfo.sortLists
+    """
+    if a.name < b.name: return -1
+    elif a.name > b.name: return 1
+    else: return 0
+
 class FileInfo:
     """ Object to hold information about a file """
     def __init__(self):
@@ -50,6 +60,13 @@ class FileInfo:
         self.lines = 0
         self.bytes = 0
 
+    def sortLists(self):
+        """ Sort all lists alphabetically by object name """
+        if len(self.viewInfoList) > 0: self.viewInfoList.sort(listCompName)
+        if len(self.packageInfoList) > 0:
+            for p in self.packageInfoList:
+                if len(p.functionInfoList) > 0: p.functionInfoList.sort(listCompName)
+                if len(p.procedureInfoList) > 0: p.procedureInfoList.sort(listCompName)
 
 class MetaInfo:
     """ Object to hold global information (e.g. configuration options) """

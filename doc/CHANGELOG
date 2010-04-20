@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v2.9.5
+-------------------
+! some fixes concerning views
++ including JavaDoc info for views on sourcepages
+* some more exception handling
++ object lists are now sorted by name, so it's easier to find the object looked for
+
 v2.9.0 (14.04.2010)
 -------------------
 ! what_used pages linked to calling object (instead of to the called object)

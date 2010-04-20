@@ -232,16 +232,16 @@ def ScanFilesForViewsAndPackages():
                         view_info = ElemInfo()
                         view_info.parent = file_info
                         if len(token_list) > token_index+2:       
-                          view_info.viewName = token_list[token_index+2]
+                          view_info.name = token_list[token_index+2]
                         else:
-                          view_info.view_name = token_list1[0]
+                          view_info.name = token_list1[0]
                         view_info.lineNumber = lineNumber
                         for j in range(len(jdoc)):
                           ln = jdoc[j].lineNumber - lineNumber
                           if (CaseInsensitiveComparison(view_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='view') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                             view_info.javadoc = jdoc[j]
                         if not view_info.javadoc.ignore:
-                            mname = view_info.javadoc.name or package_info.name
+                            mname = view_info.javadoc.name or view_info.name
                             mands = view_info.javadoc.verify_mandatory()
                             #for mand in mands: Need to setup report here as well! ###TODO###
                             if JavaDocVars['javadoc_mandatory'] and view_info.javadoc.isDefault():
@@ -421,6 +421,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         cols['view'] = ['#cc3333','#ffffff']
         cols['func'] = ['#3366ff','#ffffff']
         cols['pkg']  = ['#33ff00','#000000']
+	cols['file'] = ['#dddddd','#000000']
 
     def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
         """
@@ -856,7 +857,10 @@ def MakeStatsPage():
 
     outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w', metaInfo.encoding)
     outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
-    copy2(scriptpath + os.sep + 'diagram.js', metaInfo.htmlDir + 'diagram.js')
+    try:
+        copy2(scriptpath + os.sep + 'diagram.js', metaInfo.htmlDir + 'diagram.js')
+    except IOError:
+        logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('javascript file'),'target':_('HTML-Dir')})
 
     pie_rad = 55
     pie_offset = 5
@@ -1241,13 +1245,11 @@ def MakeViewIndex():
     i = 0
 
     for view_tuple in viewtuplelist: # list of tuples describing every view
-        # file name and line number as an HTML reference
         trclass = ' CLASS="tr'+`i % 2`+'"'
         if metaInfo.includeSource:
-            HTMLref = os.path.split(view_tuple[2].fileName)[1].replace('.', '_')
-            HTMLref += '_' + `view_tuple[2].uniqueNumber` + '.html'
-            HTMLref += '#' + `view_tuple[1].lineNumber`
-            outfile.write('  <TR'+trclass+'><TD><A href="' + HTMLref + '">' + view_tuple[1].name.lower() + '</A></TD>')
+            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(view_tuple)
+            name = makeDualCodeRef(HTMLref,HTMLjref,view_tuple[1].name.lower())
+            outfile.write('  <TR'+trclass+'><TD>' + name + '</TD>')
         else:
             outfile.write('  <TR'+trclass+'><TD>' + view_tuple[1].name.lower() + '</TD>')
         outfile.write('<TD>' + view_tuple[1].javadoc.getShortDesc() + '</TD>')
@@ -1524,11 +1526,12 @@ def CreateHyperlinkedSourceFilePages():
         outfile.write('<H1>' + file_info.fileName[len(top_level_directory)+1:] + '</H1>\n')
 
         # ===[ JAVADOC STARTS HERE ]===
+        file_info.sortLists()
         # Do we have views in this file?
         viewdetails = '\n\n'
-        #if len(file_info.viewInfoList) > 0:
-            #print 'We have views here'
-            ###TODO Do we have to introduce JavaDoc here as well? # *!*
+        if len(file_info.viewInfoList) > 0:
+            for v in range(len(file_info.viewInfoList)):
+                outfile.write(file_info.viewInfoList[v].javadoc.getHtml(file_info.viewInfoList[v].uniqueNumber))
 
         # Do we have packages in this file?
         packagedetails = '\n\n'
@@ -1539,7 +1542,7 @@ def CreateHyperlinkedSourceFilePages():
                 jdoc = file_info.packageInfoList[p].javadoc
                 outfile.write(' <TR><TH COLSPAN="3">' + file_info.packageInfoList[p].name + '</TH></TR>\n')
                 outfile.write(' <TR><TD COLSPAN="3">')
-                outfile.write( jdoc.getHtml(0) )
+                outfile.write( jdoc.getHtml(file_info.packageInfoList[p].uniqueNumber) )
                 outfile.write('</TD></TR>\n')
                 # Check the packages for functions
                 if len(file_info.packageInfoList[p].functionInfoList) > 0:
@@ -1618,7 +1621,10 @@ def CreateIndexPage():
 
     # Copy the StyleSheet
     if os.path.exists(metaInfo.css_file):
-      copy2(metaInfo.css_file,html_dir + os.path.split(metaInfo.css_file)[1])
+      try:
+        copy2(metaInfo.css_file,html_dir + os.path.split(metaInfo.css_file)[1])
+      except IOError:
+        logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('CSS-File'),'target':_('HTML-Dir')})
 
     outfile.write('<H1 STYLE="margin-top:100px">' + metaInfo.title_prefix + ' '+_('HyperSQL Reference')+'</H1>\n')
 
@@ -1626,7 +1632,10 @@ def CreateIndexPage():
     outfile.write('<TABLE ID="projectinfo" ALIGN="center"><TR><TD VALIGN="middle" ALIGN="center">\n')
     if metaInfo.projectLogo != '':
       logoname = os.path.split(metaInfo.projectLogo)[1]
-      copy2(metaInfo.projectLogo,html_dir + logoname)
+      try:
+        copy2(metaInfo.projectLogo,html_dir + logoname)
+      except IOError:
+        logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('project logo'),'target':_('HTML-Dir')})
       outfile.write('  <IMG ALIGN="center" SRC="' + logoname + '" ALT="Logo"><BR><BR><BR>\n')
     outfile.write(metaInfo.projectInfo)
     outfile.write('</TD></TR></TABLE>\n')
@@ -1834,15 +1843,21 @@ def CreateDepGraphIndex():
                 if metaInfo.useCache:
                     tmp = cache.get(gtyp,'depdata').split('\n')
                     if tmp==metaInfo.depGraph[gtyp]:
-                        copy2(os.path.join(metaInfo.cacheDirectory,gname), os.path.join(metaInfo.htmlDir,gname))
-                        done = True
+		        try:
+                          copy2(os.path.join(metaInfo.cacheDirectory,gname), os.path.join(metaInfo.htmlDir,gname))
+                          done = True
+			except:
+                          logger.error(_('Error while copying %s from cache'), gname)
                 if not done:
                     g.set_graph(metaInfo.depGraph[gtyp])
                     res = g.make_graph(metaInfo.htmlDir + gname)
                     if res=='':
                         if metaInfo.useCache:
+			  try:
                             cache.put(gtyp,'depdata','\n'.join(metaInfo.depGraph[gtyp]))
                             copy2(os.path.join(metaInfo.htmlDir,gname), os.path.join(metaInfo.cacheDirectory,gname))
+                          except:
+                            logger.error(_('Error while copying %s to cache'), gname)
                     else:
                         logger.error(_('Graphviz threw an error:') + res.strip())
             else: # no data, no graph
@@ -2099,6 +2114,7 @@ def pbarClose():
     if metaInfo.printProgress: print
 
 def purge_html():
+    purge = False
     if metaInfo.cmdOpts.purgeHTML is None:
         if config.getBool('Process','purge_on_start',False): purge = True
     else:
@@ -2118,7 +2134,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "2.9"
+    metaInfo.versionString = "2.9.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
