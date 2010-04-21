@@ -925,22 +925,31 @@ def MakeStatsPage():
     outfile.write('  <TR><TH COLSPAN="4">'+_('Object Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    pie = PieChart('O',pieposx,pieposy,pie_offset,pie_rad,colors)
-    pie.addPiece((float(views)/totalObj) * 100)
-    pie.addPiece((float(funcs)/totalObj) * 100)
-    pie.addPiece((float(procs)/totalObj) * 100)
-    js += pie.generate();
-    bar = ChartLegend('O',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
-    bar.addBar(_('Views'))
-    bar.addBar(_('Functions'))
-    bar.addBar(_('Procedures'))
-    js += bar.generate()
+    if totalObj > 0:
+        pie = PieChart('O',pieposx,pieposy,pie_offset,pie_rad,colors)
+        pie.addPiece((float(views)/totalObj) * 100)
+        pie.addPiece((float(funcs)/totalObj) * 100)
+        pie.addPiece((float(procs)/totalObj) * 100)
+        js += pie.generate();
+        bar = ChartLegend('O',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+        bar.addBar(_('Views'))
+        bar.addBar(_('Functions'))
+        bar.addBar(_('Procedures'))
+        js += bar.generate()
+        viewPct = num_format((float(views)/totalObj) * 100, 2)
+        funcPct = num_format((float(funcs)/totalObj) * 100, 2)
+        procPct = num_format((float(procs)/totalObj) * 100, 2)
+    else:
+        js += 'function MouseOutO(i) {return;}\n'
+        viewPct = num_format(0.0, 2)
+        funcPct = num_format(0.0, 2)
+        procPct = num_format(0.0, 2)
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Views')+'</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+num_format((float(views)/totalObj) * 100, 2)+'%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Functions')+'</TH><TD ALIGN="right">'+num_format(funcs)+'</TD><TD ALIGN="right">'+num_format((float(funcs)/totalObj) * 100, 2)+'%</TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Procedures')+'</TH><TD ALIGN="right">'+num_format(procs)+'</TD><TD ALIGN="right">'+num_format((float(procs)/totalObj) * 100, 2)+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Views')+'</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+viewPct+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Functions')+'</TH><TD ALIGN="right">'+num_format(funcs)+'</TD><TD ALIGN="right">'+funcPct+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Procedures')+'</TH><TD ALIGN="right">'+num_format(procs)+'</TD><TD ALIGN="right">'+procPct+'%</TD></TR>\n')
     outfile.write("</TABLE>\n")
 
     # FileStats
@@ -1045,26 +1054,35 @@ def MakeStatsPage():
     outfile.write('  <TR><TH COLSPAN="4">'+_('JavaDoc Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
-    pieposy = 0
-    pie = PieChart('J',pieposx,pieposy,pie_offset,pie_rad,colors)
-    sum  = (float(jwarns)/totalObj) * 100
-    sum2 = (float(jbugs)/totalObj) * 100
-    pie.addPiece(sum)
-    pie.addPiece(sum2)
-    pie.addPiece(100-(sum+sum2))
-    js += pie.generate();
-    barposy = pieposy - 2*pie_rad/3 - pie_offset
-    bar = ChartLegend('J',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
-    bar.addBar(_('Warnings'),_('JavaDoc validation warnings'))
-    bar.addBar(_('Bugs'),_('Known Bugs (from your @bug tags)'))
-    bar.addBar(_('Todos'),_('Todo items (from your @todo tags)'))
-    js += bar.generate()
+    if totalObj > 0:
+        pieposy = 0
+        pie = PieChart('J',pieposx,pieposy,pie_offset,pie_rad,colors)
+        sum  = (float(jwarns)/totalObj) * 100
+        sum2 = (float(jbugs)/totalObj) * 100
+        pie.addPiece(sum)
+        pie.addPiece(sum2)
+        pie.addPiece(100-(sum+sum2))
+        js += pie.generate();
+        barposy = pieposy - 2*pie_rad/3 - pie_offset
+        bar = ChartLegend('J',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+        bar.addBar(_('Warnings'),_('JavaDoc validation warnings'))
+        bar.addBar(_('Bugs'),_('Known Bugs (from your @bug tags)'))
+        bar.addBar(_('Todos'),_('Todo items (from your @todo tags)'))
+        js += bar.generate()
+        warnPct = num_format((float(jwarns)/totalObj) * 100, 2)
+        bugPct  = num_format((float(jbugs)/totalObj) * 100, 2)
+        todoPct = num_format((float(jtodo)/totalObj) * 100, 2)
+    else:
+        js += 'function MouseOutJ(i) {return;}\n'
+        warnPct = num_format(0.0, 2)
+        bugPct  = num_format(0.0, 2)
+        todoPct = num_format(0.0, 2)
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('JavaDoc Warnings')+'</TH><TD ALIGN="right">'+num_format(jwarns)+'</TD><TD ALIGN="right">'+num_format((float(jwarns)/totalObj) * 100, 2)+'%</TD></TR>')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Known Bugs')+'</TH><TD ALIGN="right">'+num_format(jbugs)+'</TD><TD ALIGN="right">'+num_format((float(jbugs)/totalObj) * 100, 2)+'%</TD></TR>')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Todo Items')+'</TH><TD ALIGN="right">'+num_format(jtodo)+'</TD><TD ALIGN="right">'+num_format((float(jtodo)/totalObj) * 100, 2)+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">'+_('JavaDoc Warnings')+'</TH><TD ALIGN="right">'+num_format(jwarns)+'</TD><TD ALIGN="right">'+warnPct+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Known Bugs')+'</TH><TD ALIGN="right">'+num_format(jbugs)+'</TD><TD ALIGN="right">'+bugPct+'%</TD></TR>')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Todo Items')+'</TH><TD ALIGN="right">'+num_format(jtodo)+'</TD><TD ALIGN="right">'+todoPct+'%</TD></TR>')
     outfile.write("</TABLE>\n")
 
     outfile.write(MakeHTMLFooter('stat'))

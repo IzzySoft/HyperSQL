@@ -6,6 +6,7 @@ v2.9.5
 + including JavaDoc info for views on sourcepages
 * some more exception handling
 + object lists are now sorted by name, so it's easier to find the object looked for
+! fixed some (rarely occuring) DivisionByZero errors on stats creation
 
 v2.9.0 (14.04.2010)
 -------------------
