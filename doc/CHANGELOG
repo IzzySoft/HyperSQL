@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v3.0.0
+-------------------
+! cache purge crashed due to incomplete file name
+! fixed a minor problem with the syntax highlighter and HTML entitities
++ extended the sql.keywords list for syntax highlighing
+* systools.is_what now returns the object type directly (if possible)
+
 v2.9.5 (21.04.2010)
 -------------------
 ! some fixes concerning views

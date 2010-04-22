@@ -133,5 +133,5 @@ class cache(object):
             ext = '.'+ctype
             pos = len(ext)
             for fname in listdir(self.dirname):
-                if fname[len(fname)-pos:]==ext: os.unlink(fname)
+                if fname[len(fname)-pos:]==ext: os.unlink(os.path.join(self.dirname,fname))
 

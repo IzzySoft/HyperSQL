@@ -234,19 +234,12 @@ def is_file(obj):
 
 def is_what(obj):
     """
-    In which categories does the object belong?
+    Get the type of the passed object
     @param object object to check
-    @return list all matching object types
+    @return mixed string category (if we have a direct match) or list of 0/1 [iter,gen,seq,list,str,dict,file]
     """
-    return [ str(i) for i in (is_iter(obj),is_gen(obj),is_seq(obj),is_list(obj),is_str(obj),is_mapping(obj),is_file(obj))]
-
-
-def test():
-    out, err = popen('tail system.py')
-    outfile = fopen('dummy.txt','w')
-    outfile.write(unicode('Tüdelüt\n',encoding))
-    outfile.write(unicode(out,encoding))
-    outfile.close()
-    print out
-    print err
+    try:
+        if obj.__class__.__name__: return obj.__class__.__name__
+    except:
+        return [ str(i) for i in (is_iter(obj),is_gen(obj),is_seq(obj),is_list(obj),is_str(obj),is_mapping(obj),is_file(obj))]
 

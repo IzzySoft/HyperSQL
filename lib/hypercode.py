@@ -29,15 +29,16 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
 
     html = ''
     commentmode = 0 # 0 no comment, 1 '--', 2 '/*', 3 in_singlequote_string
-    splitter = re.compile('([\s,;\:\(\)\}\{\|])')
+    splitter = re.compile('([\s,\.;\:%\(\)\}\{\|\<\>])')
     for line_number in range(len(line_list)):
-        line  = escape(line_list[line_number])
+        line  = escape(line_list[line_number]).replace('&lt;','<').replace('&gt;','>')
         if line.strip()[0:2]=='--':
            text = '<SPAN CLASS="'+cssclass+'comment">' + line + '</SPAN>'
         else:
             text = ''
             if commentmode==2:
                 text += '<SPAN CLASS="'+cssclass+'comment">'
+            oldelem = ''
             for elem in splitter.split(line):
                 if commentmode==0:
                     if elem[0:2]=='--':
@@ -56,8 +57,11 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
                         else:
                             text += elem[len(elem)-1:]
                             commentmode = 3
-                    elif elem in [',', ';', ':', '=', '(', ')', '[', ']', '{', '}']:
+                    elif elem in [',', ':', '=', '(', ')', '[', ']', '{', '}'] \
+                      or (elem==';' and (len(oldelem)==0 or oldelem[0]!='&')): # skip html entities for ;
                         text += '<SPAN CLASS="'+cssclass+'brace">' + elem + '</SPAN>'
+                    elif elem in ['<','>']:
+                        text += '<SPAN CLASS="'+cssclass+'brace">' + escape(elem) + '</SPAN>'
                     elif is_numeric(elem):
                         text += '<SPAN CLASS="'+cssclass+'numeric">' + elem + '</SPAN>'
                     elif elem in keywords:
@@ -80,6 +84,7 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
                     else: text += elem
                 else: # 1 for now
                     text += elem
+                oldelem = elem # remember for back-check
             if commentmode==1:
                 text += '</SPAN>'
                 commentmode = 0 # clear at line end
