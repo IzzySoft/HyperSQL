@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.0.0
+v3.0.0 (25.04.2010)
 -------------------
 ! cache purge crashed due to incomplete file name
 ! fixed a minor problem with the syntax highlighter and HTML entitities
