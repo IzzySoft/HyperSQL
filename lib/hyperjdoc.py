@@ -112,6 +112,17 @@ class JavaDoc(object):
         self.uses = []
         self.throws = []
 
+    def __repr__(self):
+        """ Basic information for simple debug """
+        if self.isDefault(): return 'empty JavaDoc object'
+        if self.objectType: ret = self.objectType
+        else: ret = 'unknown object'
+        if self.name: ret += ' ' + self.name
+        if self.file:
+            ret += ' from ' + self.file
+            if self.lineNumber!=-1: ret += ' at line ' + `self.lineNumber`
+        return ret
+
     def log(self,msg):
         """
         Log a message

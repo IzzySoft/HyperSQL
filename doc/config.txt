@@ -183,6 +183,7 @@ Here goes everything for the dependency graphs:
  * colors_view: Same for views
  * colors_func: Same for functions
  * colors_pkg: Same for packages
+ * colors_sequence: Same for sequences
  * colors_synonym: Same for synonyms
 
 

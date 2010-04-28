@@ -1,11 +1,13 @@
 # History of Changes for HyperSQL
 
-v3.0.5
+v3.1.0
 -------------------
 * reworked the javadoc module to make it independent from the main script and,
   at the same time, more flexible in terms of handling new object tags
-+ added support for synonyms (JavaDoc tag: @synonym)
++ added support for synonyms (JavaDoc tag: @synonym) and sequences (@sequence)
 + colors for object graphs (statistics and dependency graphs) are now configurable
+! fixing another issue with the code highlighter (concerning HTML contained in source files)
+* some more internal changes and minor fixes
 
 v3.0.0 (25.04.2010)
 -------------------

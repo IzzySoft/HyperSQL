@@ -72,6 +72,7 @@ Object types:
  * @view <name>
  * @pkg <name>
  * @synonym <name>
+ * @sequence <name>
 
 Other tags:
 

@@ -56,6 +56,7 @@ class FileInfo:
         self.fileType = "" # cpp files are only scanned for sql "where used" information
         self.viewInfoList = []
         self.synInfoList = []
+        self.seqInfoList = []
         self.packageInfoList = []
         self.uniqueNumber = 0 # used to create unique file name for where used list
         self.lines = 0

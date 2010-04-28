@@ -29,7 +29,7 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
 
     html = ''
     commentmode = 0 # 0 no comment, 1 '--', 2 '/*', 3 in_singlequote_string
-    splitter = re.compile('([\s,\.;\:%\(\)\}\{\|\<\>])')
+    splitter = re.compile('([\'\s,\.;\:%\(\)\}\{\|\<\>])')
     for line_number in range(len(line_list)):
         line  = escape(line_list[line_number]).replace('&lt;','<').replace('&gt;','>')
         if line.strip()[0:2]=='--':
@@ -39,7 +39,9 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
             if commentmode==2:
                 text += '<SPAN CLASS="'+cssclass+'comment">'
             oldelem = ''
-            for elem in splitter.split(line):
+            tokens = splitter.split(line)
+            for idx in range(len(tokens)):
+                elem = tokens[idx]
                 if commentmode==0:
                     if elem[0:2]=='--':
                         text += '<SPAN CLASS="'+cssclass+'comment">' + elem
@@ -71,19 +73,17 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
                     else: text += elem
                 elif commentmode==2:
                     if elem[len(elem)-2:]=='*/':
-                        text += elem + '</SPAN>'
+                        text += escape(elem) + '</SPAN>'
                         commentmode = 0 # clear at comment end
-                    else: text += elem
+                    else: text += escape(elem)
                 elif commentmode==3:
                     if elem=="'":
-                        text += '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
-                        commentmode = 0
-                    elif elem[len(elem)-1:]=="'":
-                        text += elem[:len(elem)-1] + '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
-                        commentmode = 0
-                    else: text += elem
+                        if not ( idx>0 and tokens[idx-1]=="'" ) or ( len(tokens)>idx and tokens[idx+1]=="'" ):
+                            text += '</SPAN><SPAN CLASS="'+cssclass+'brace">\'</SPAN>'
+                            commentmode = 0
+                    else: text += escape(elem)
                 else: # 1 for now
-                    text += elem
+                    text += escape(elem)
                 oldelem = elem # remember for back-check
             if commentmode==1:
                 text += '</SPAN>'
