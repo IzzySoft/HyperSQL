@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.1.0
+v3.1.0 (28.04.2010)
 -------------------
 * reworked the javadoc module to make it independent from the main script and,
   at the same time, more flexible in terms of handling new object tags
