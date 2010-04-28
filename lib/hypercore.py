@@ -55,6 +55,7 @@ class FileInfo:
         self.fileName = ""
         self.fileType = "" # cpp files are only scanned for sql "where used" information
         self.viewInfoList = []
+        self.synInfoList = []
         self.packageInfoList = []
         self.uniqueNumber = 0 # used to create unique file name for where used list
         self.lines = 0
@@ -87,6 +88,7 @@ class MetaInfo:
         self.depGraph['file2object'] = []
         self.depGraph['object2file'] = []
         self.depGraph['object2object'] = []
+        self.colors = {}
 
     def NextIndex(self):
         """

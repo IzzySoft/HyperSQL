@@ -176,6 +176,14 @@ Here goes everything for the dependency graphs:
  * file2object: Draw the "file accesses object" graph (default: 0)
  * object2file: Draw the "object accesses file" graph (default: 1)
  * object2object: Draw the "object accesses object" graph (default: 1)
+ * colors_proc: Colors to use for procedures in graphs. This must be a pair
+   of hexadecimal HTML colors (e.g. '#ff9933 #000000'), and affects the
+   dependency graph as well as the statistics graph. First color is used for
+   background, second for text.
+ * colors_view: Same for views
+ * colors_func: Same for functions
+ * colors_pkg: Same for packages
+ * colors_synonym: Same for synonyms
 
 
 How the configuration works

@@ -71,6 +71,7 @@ Object types:
  * @procedure <name>
  * @view <name>
  * @pkg <name>
+ * @synonym <name>
 
 Other tags:
 

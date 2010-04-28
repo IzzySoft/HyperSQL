@@ -24,7 +24,8 @@ JavaDocVars = dict(
     verification = False,
     verification_log = False,
     mandatory_tags = [],
-    otypes = ['function', 'procedure', 'view', 'pkg'], # supported object types
+    otypes = {}, # supported object types
+    supertypes = [], # object types with subobjects
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
               'see', 'webpage', 'license', 'ticket', 'wiki', 'since',
@@ -42,7 +43,7 @@ def setJDocEncoding(encoding):
     try:
         gettext.bind_textdomain_codeset('hyperjdoc',encoding.upper())
     except:
-        None
+        pass
 
 
 def HyperScan(text):
@@ -156,9 +157,9 @@ class JavaDoc(object):
                 else:
                     faillist.append(_('Missing description for parameter %s') % param.name)
                     self.log(_('Missing description for parameter "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s') % {'pname':param.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
-        if self.objectType == 'function' and len(self.retVals)<1:
+        if 'return' in JavaDocVars['otypes'][self.objectType]['otags'] and len(self.retVals)<1:
             faillist.append(_('Missing return value'))
-            self.log(_('Missing return value for function %(name)s in %(file)s line %(line)s') % {'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+            self.log(_('Missing return value for %(otype)s %(name)s in %(file)s line %(line)s') % {'otype':JavaDocVars[self.objectType]['name'], 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         return faillist
     def verify_params(self,cparms):
         """
@@ -221,7 +222,7 @@ class JavaDoc(object):
                 self.log(_('No object type specified for object id %(name)s, ID %(id)s in %(file)s line %(line)s') % {'name':self.name, 'id':unum, 'file':self.file, 'line':self.lineNumber})
             return ''
         html = ''
-        if self.objectType != 'pkg':
+        if self.objectType not in JavaDocVars['supertypes']:
           html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if len(self.desc) > 0:
@@ -230,16 +231,17 @@ class JavaDoc(object):
             html += HyperScan(self.desc[i]) 
           html += '</DIV>\n'
         html += '  <DL>'
-        if self.objectType in ['function', 'procedure']:
-          if self.private:
-            html += ' <DT>'+_('Private')+'</DT><DD>'+_('Just used internally.')+'</DD>'
+        if self.private:
+          html += ' <DT>'+_('Private')+'</DT><DD>'+_('Just used internally.')+'</DD>'
+
+        if 'param' in JavaDocVars['otypes'][self.objectType]['otags']:
           html += '  <DT>'+_('Syntax')+':</DT><DD><DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.name + ' ('
           for p in range(len(self.params)):
             html += self.params[p].name
             if p<len(self.params)-1:
               html += ', '
           html += ')</DIV></DD>\n'
-          if len(self.params) > 0 and self.objectType != 'pkg':
+          if len(self.params) > 0:
             html += ' <DT>'+_('Parameters')+':</DT><DD>'
             for p in range(len(self.params)):
               html += '<DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.params[p].inout + ' ' + self.params[p].sqltype + ' <B>' + self.params[p].name + '</B>'
@@ -247,18 +249,19 @@ class JavaDoc(object):
                 html += ': ' + self.params[p].desc
               html += '</DIV>'
             html += '</DD>\n'
-          if self.objectType == 'function':
-            html += ' <DT>'+_('Return values')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
-            for p in range(len(self.retVals)):
-              html += '<LI>' + self.retVals[p].sqltype + ' <B>' + self.retVals[p].name + '</B>'
-              if self.retVals[p].desc != '':
-                html += ': ' + self.retVals[p].desc
-              html += '</LI>'
-            html += '</UL></DD>\n'
-          if len(self.example) > 0:
-            html += '<DT>'+_('Example Usage')+':</DT>'
-            for i in range(len(self.example)):
-              html += '<DD>' + self.example[i] + '</DD>'
+
+        if 'return' in JavaDocVars['otypes'][self.objectType]['otags']:
+          html += ' <DT>'+_('Return values')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
+          for p in range(len(self.retVals)):
+            html += '<LI>' + self.retVals[p].sqltype + ' <B>' + self.retVals[p].name + '</B>'
+            if self.retVals[p].desc != '':
+              html += ': ' + self.retVals[p].desc
+            html += '</LI>'
+          html += '</UL></DD>\n'
+        if len(self.example) > 0:
+          html += '<DT>'+_('Example Usage')+':</DT>'
+          for i in range(len(self.example)):
+            html += '<DD>' + self.example[i] + '</DD>'
         if len(self.author) > 0:
           html += '<DT>'+_('Author')+':</DT><DD>' + listItemHtml(self.author) + '</DD>'
         if len(self.copyright) > 0:
@@ -273,7 +276,7 @@ class JavaDoc(object):
           html += '<DT>'+_('Available Since')+':</DT><DD>' + HyperScan(listItemHtml(self.since)) + '</DD>'
         if len(self.uses) > 0:
           html += '<DT>'+_('Uses')+':</DT><DD>' + HyperScan(listItemHtml(self.uses)) + '</DD>'
-        if len(self.throws) > 0:
+        if 'throws' in JavaDocVars['otypes'][self.objectType]['otags'] and len(self.throws) > 0:
           html += '<DT>'+_('Throws Exception')+':</DT><DD>' + HyperScan(listItemHtml(self.throws)) + '</DD>'
         if len(self.bug) > 0:
           html += '<DT>'+_('BUG')+':</DT><DD>' + HyperScan(listItemHtml(self.bug)) + '</DD>'
@@ -312,7 +315,7 @@ class JavaDoc(object):
         if len(self.todo) > 0:
           html += '<DT>'+_('TODO')+':</DT><DD>' + HyperScan(listItemHtml(self.todo)) + '</DD>'
         html += '\n</DL>\n'
-        if self.objectType != 'pkg':
+        if self.objectType not in JavaDocVars['supertypes']:
           html += '<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV>\n'
           html += '</TD></TR></TABLE>\n'
         return html
@@ -608,6 +611,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     opened = False
     otypes = JavaDocVars['otypes'] # supported object types
     tags   = JavaDocVars['tags']   # other supported tags
+    txttags= JavaDocVars['txttags']# tags with just one parameter, type text
     for lineNumber in range(lineNo,len(text)):
       line = text[lineNumber].strip()
       if not opened and line[0:3] != '/**':
@@ -615,7 +619,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
       if line[0:1] == '*' and line[0:2] != '*/':
         line = line[1:].strip()
       if line == '*/': # end of JavaDoc block
-        if elem in JavaDocVars['txttags']:
+        if elem in txttags:
             exec('item.'+elem+'.append(content)')
         content = ''
         res.append(item)
@@ -657,7 +661,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
             content += ' ' + line.replace('"','&quot;')
           continue
         # new tag starts here
-        if elem != '' and content != '' and elem in JavaDocVars['txttags']: # there is something in the buffer
+        if elem != '' and content != '' and elem in txttags: # there is something in the buffer
             exec('item.'+elem+'.append(content)')
             content = ''
         doc = line.split()
@@ -688,7 +692,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
                     p.desc += doc[w] + ' '
                   p.desc = p.desc.strip()
               item.params.append(p)
-          elif tag == 'return': # @return type [name [desc]
+          elif tag == 'return': # @return type [name [desc]]
             if len(doc) < 2:
               logger.info(_('@return requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
             else:

@@ -76,6 +76,7 @@ class HyperConf(IniParser):
             file = 'FileNameIndexNoPathnames.html',
             filepath = 'FileNameIndexWithPathnames.html',
             view = 'ViewIndex.html',
+            synonym = 'SynonymIndex.html',
             package = 'PackageIndex.html',
             package_full = 'PackagesWithFuncsAndProcsIndex.html',
             function = 'FunctionIndex.html',
@@ -91,6 +92,7 @@ class HyperConf(IniParser):
             file = _('File Name Index'),
             filepath = _('File Names by Path Index'),
             view = _('View Index'),
+            synonym = _('Synonym Index'),
             package = _('Package Index'),
             package_full = _('Full Package Listing'),
             function = _('Function Index'),
@@ -106,6 +108,7 @@ class HyperConf(IniParser):
             file = '1',
             filepath = '1',
             view = '0',
+            synonym = '0',
             package = '1',
             package_full = '1',
             function = '1',
@@ -151,12 +154,18 @@ class HyperConf(IniParser):
             len_neato = '',
             len_fdp = '',
             mindist_circo = '',
-            objects  = 'view pkg proc func',
+            objects  = 'view pkg proc func synonym',
             file2file = '1',
             file2object = '0',
             object2file = '1',
             object2object = '1',
-            deltmp = '1'
+            deltmp = '1',
+            colors_proc = '#ff9933 #000000',
+            colors_view = '#cc3333 #ffffff',
+            colors_func = '#3366ff #ffffff',
+            colors_pkg  = '#33ff00 #000000',
+            colors_synonym = '#ffff00 #000000',
+            colors_file = '#dddddd #000000'
         )
         # Generate the final dict (dict() allows no nesting)
         vals = {}

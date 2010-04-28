@@ -2,3 +2,4 @@ Known issues and limitations
 ============================
 
 - stand-alone procedures/functions (i.e. those not part of any package) are not dealt with
+- if two objects have the same name (e.g. a table and its synonym), the dependency graph cannot tell them apart

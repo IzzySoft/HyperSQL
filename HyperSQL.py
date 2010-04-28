@@ -236,11 +236,13 @@ def ScanFilesForViewsAndPackages():
                         else:
                           view_info.name = token_list1[0]
                         view_info.lineNumber = lineNumber
+                        view_info.javadoc = None
                         for j in range(len(jdoc)):
                           ln = jdoc[j].lineNumber - lineNumber
                           if (CaseInsensitiveComparison(view_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='view') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                             view_info.javadoc = jdoc[j]
-                        if not view_info.javadoc.ignore:
+                        if view_info.javadoc:
+                          if not view_info.javadoc.ignore:
                             mname = view_info.javadoc.name or view_info.name
                             mands = view_info.javadoc.verify_mandatory()
                             #for mand in mands: Need to setup report here as well! ###TODO###
@@ -248,6 +250,46 @@ def ScanFilesForViewsAndPackages():
                                 logger.warn(_('View %s has no JavaDoc information attached'), view_info.name)
                                 #view_info.verification.addItem(view_info.name,'No JavaDoc information available')
                             file_info.viewInfoList.append(view_info)
+                        else:
+                            view_info.javadoc = JavaDoc()
+                            logger.warn(_('View %s has no JavaDoc information attached'), view_info.name)
+                            #view_info.verification.addItem(view_info.name,'No JavaDoc information available')
+                        file_info.viewInfoList.append(view_info)
+
+            # find synonym definitions
+            if metaInfo.indexPage['synonym']:
+                for token_index in range(len(token_list)):
+                    # CREATE [OR REPLACE] [PUBLIC] SYNONYM [schema.]synonym FOR [schema.]object [@dblink]
+                    if len(token_list) > token_index+1 \
+                    and token_list[token_index+1].upper() == "SYNONYM" \
+                    and (token_list[token_index].upper() == "CREATE" \
+                        or token_list[token_index].upper() == "REPLACE" \
+                        or token_list[token_index].upper() == "PUBLIC"):
+                        syn_info = ElemInfo()
+                        syn_info.parent = file_info
+                        if len(token_list) > token_index+2:
+                            syn_info.name = token_list[token_index+2]
+                        else:
+                            syn_info.name = token_list1[0]
+                        syn_info.lineNumber = lineNumber
+                        syn_info.javadoc = None
+                        for j in range(len(jdoc)):
+                          ln = jdoc[j].lineNumber - lineNumber
+                          if (CaseInsensitiveComparison(syn_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='synonym') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                            syn_info.javadoc = jdoc[j]
+                        if syn_info.javadoc:
+                          if not syn_info.javadoc.ignore:
+                            mname = syn_info.javadoc.name or syn_info.name
+                            mands = syn_info.javadoc.verify_mandatory()
+                            #for mand in mands: Need to setup report here as well! ###TODO###
+                            if JavaDocVars['javadoc_mandatory'] and syn_info.javadoc.isDefault():
+                                logger.warn(_('Synonym %s has no JavaDoc information attached'), syn_info.name)
+                                #syn_info.verification.addItem(syn_info.name,'No JavaDoc information available')
+                        else:
+                            syn_info.javadoc = JavaDoc()
+                            logger.warn(_('Synonym %s has no JavaDoc information attached'), syn_info.name)
+                            #syn_info.verification.addItem(syn_info.name,'No JavaDoc information available')
+                        file_info.synInfoList.append(syn_info)
 
             # find package definitions - set flag if found
             # look for CREATE [OR REPLACE] PACKAGE BODY x, making sure enough tokens exist
@@ -414,15 +456,6 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         return rtype,sobj[0][2]
         
 
-    # colors for the depgraph
-    if metaInfo.indexPage['depgraph']:
-        cols = {}
-        cols['proc'] = ['#ff9933','#000000']
-        cols['view'] = ['#cc3333','#ffffff']
-        cols['func'] = ['#3366ff','#ffffff']
-        cols['pkg']  = ['#33ff00','#000000']
-	cols['file'] = ['#dddddd','#000000']
-
     def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
         """
         Add where_used and what_used info to an object (view, procedure, function, ...)
@@ -440,7 +473,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             objectInfo.uniqueNumber = metaInfo.NextIndex()
         # now care for the what_used
         if uType != 'file':
-            if otype in ['view','pkg']:
+            if otype in ['view','pkg','synonym']:
                 fname = objectInfo.parent.fileName
                 finfo = objectInfo.parent
             elif otype in ['func','proc']:
@@ -484,7 +517,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             dep = '"' + uname + '" -> "' + oto + '";'
             if not dep in metaInfo.depGraph['object2file']:
                 metaInfo.depGraph['object2file'].append(dep)
-                props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
+                props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
                 if not props in metaInfo.depGraph['object2file']:
                     metaInfo.depGraph['object2file'].append(props)
             # medium: file -> object
@@ -493,7 +526,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             dep = '"' + ofrom + '" -> "' + oto + '";'
             if not dep in metaInfo.depGraph['file2object']:
                 metaInfo.depGraph['file2object'].append(dep)
-                props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
+                props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
                 if not props in metaInfo.depGraph['file2object']:
                     metaInfo.depGraph['file2object'].append(props)
             # full: object -> object
@@ -502,10 +535,10 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             dep = '"' + uname + '" -> "' + oname + '";'
             if not dep in metaInfo.depGraph['object2object']:
                 metaInfo.depGraph['object2object'].append(dep)
-                props = '"' + uname + '" [color="'+cols[uType][0]+'",fontcolor="'+cols[uType][1] + '"];'
+                props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
                 if not props in metaInfo.depGraph['object2object']:
                     metaInfo.depGraph['object2object'].append(props)
-                props = '"' + oname + '" [color="'+cols[otype][0]+'",fontcolor="'+cols[otype][1] + '"];'
+                props = '"' + oname + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
                 if not props in metaInfo.depGraph['object2object']:
                     metaInfo.depGraph['object2object'].append(props)
 
@@ -611,6 +644,16 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     # we are creating, forcing, or replacing - not using.  Set flag to 0
                     usage_flag = 0
 
+                # look for SYNONYMs
+                if metaInfo.indexPage['synonym'] != '' and len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "SYNONYM" \
+                and (token_list[token_index].upper() == "CREATE" \
+                    or token_list[token_index].upper() == "REPLACE" \
+                    or token_list[token_index].upper() == "DROP" \
+                    or token_list[token_index].upper() == "PUBLIC"):
+                    # we are creating, or dropping - not using.  Set flag to 0
+                    usage_flag = 0
+
                 # look for PACKAGE BODY x IS, making sure enough tokens exist
                 if token_list[token_index].upper() == "PACKAGE" \
                 and len(token_list) > token_index+2:
@@ -645,6 +688,13 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                         # perform case insensitive find
                         if re.search('\\b'+view_info.name+'\\b',fileLines[lineNumber],re.I):
                             addWhereUsed(view_info, outer_file_info, lineNumber, 'view')
+
+                # if this FileInfo instance has synonyms
+                if len(inner_file_info.synInfoList) != 0:
+                    for syn_info in inner_file_info.synInfoList:
+                        # perform case insensitive find
+                        if re.search('\\b'+syn_info.name+'\\b',fileLines[lineNumber],re.I):
+                            addWhereUsed(syn_info, outer_file_info, lineNumber, 'synonym')
 
 
                 # if this FileInfo instance has packages
@@ -711,7 +761,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar'>\n"
-    for item in ['package','function','procedure','package_full','view','file','filepath','bug','todo','report','stat','depgraph']:
+    for item in ['package','function','procedure','package_full','view','synonym','file','filepath','bug','todo','report','stat','depgraph']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -876,7 +926,7 @@ def MakeStatsPage():
 
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
-    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); if (i<3) { MouseOutFL(i); MouseOutO(i); MouseOutJ(i); } } MouseOutFS(4); }\n'
+    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } MouseOutFS(4); }\n'
     colors = ['#cc3333','#3366ff','#dddddd','#ff9933','#33ff00']
     tcols  = ['#ffffff','#ffffff','#000000','#000000','#000000']
     pieposx = pie_rad + 2*pie_offset
@@ -910,17 +960,21 @@ def MakeStatsPage():
     outfile.write("</TABLE>\n")
 
     # Object Stats
-    colors = ['#cc3333','#3366ff','#ff9933','#33ff00','#dddddd']
+    c = metaInfo.colors
+    colors = [col[0] for col in [c['view'],c['func'],c['proc'],c['synonym'],c['pkg']]]
+    tcols  = [col[1] for col in [c['view'],c['func'],c['proc'],c['synonym'],c['pkg']]]
     posy = 0
     views = 0
     funcs = 0
     procs = 0
+    synonyms = 0
     for file_info in metaInfo.fileInfoList:
         views += len(file_info.viewInfoList)
+        synonyms += len(file_info.synInfoList)
         for package_info in file_info.packageInfoList:
             funcs += len(package_info.functionInfoList)
             procs += len(package_info.procedureInfoList)
-    totalObj = views + funcs + procs
+    totalObj = views +synonyms + funcs + procs
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('Object Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
@@ -930,18 +984,22 @@ def MakeStatsPage():
         pie.addPiece((float(views)/totalObj) * 100)
         pie.addPiece((float(funcs)/totalObj) * 100)
         pie.addPiece((float(procs)/totalObj) * 100)
+        pie.addPiece((float(synonyms)/totalObj) * 100)
         js += pie.generate();
         bar = ChartLegend('O',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
         bar.addBar(_('Views'))
         bar.addBar(_('Functions'))
         bar.addBar(_('Procedures'))
+        bar.addBar(_('Synonyms'))
         js += bar.generate()
         viewPct = num_format((float(views)/totalObj) * 100, 2)
         funcPct = num_format((float(funcs)/totalObj) * 100, 2)
         procPct = num_format((float(procs)/totalObj) * 100, 2)
+        synonymPct = num_format((float(views)/totalObj) * 100, 2)
     else:
         js += 'function MouseOutO(i) {return;}\n'
         viewPct = num_format(0.0, 2)
+        synonymPct = num_format(0.0, 2)
         funcPct = num_format(0.0, 2)
         procPct = num_format(0.0, 2)
     js += '</SCRIPT>\n'
@@ -950,9 +1008,12 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">'+_('Views')+'</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+viewPct+'%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Functions')+'</TH><TD ALIGN="right">'+num_format(funcs)+'</TD><TD ALIGN="right">'+funcPct+'%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Procedures')+'</TH><TD ALIGN="right">'+num_format(procs)+'</TD><TD ALIGN="right">'+procPct+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Synonyms')+'</TH><TD ALIGN="right">'+num_format(synonyms)+'</TD><TD ALIGN="right">'+synonymPct+'%</TD></TR>\n')
     outfile.write("</TABLE>\n")
 
     # FileStats
+    colors = ['#cc3333','#3366ff','#ff9933','#33ff00','#dddddd']
+    tcols  = ['#ffffff','#ffffff','#000000','#000000','#000000']
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('File Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
@@ -1233,50 +1294,62 @@ def MakeElemIndex(objectType):
     outfile.close()
 
 
-def MakeViewIndex():
-    """Generate HTML index page for all views"""
+def MakeElem2Index(objectType):
+    """Generate HTML index page for all views or synonyms"""
 
-    if metaInfo.indexPage['view'] == '':
+    if objectType not in ['view','synonym']: # not a valid/supported objectType
+        return
+    if metaInfo.indexPage[objectType] == '': # Index was turned off
         return
 
-    printProgress(_("Creating view index"))
+    printProgress(_("Creating %s index") % _(objectType))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
-    outfilename = metaInfo.indexPage['view']
+    outfilename = metaInfo.indexPage[objectType]
+    if objectType == 'view':
+      html_title = _('Index Of All Views')
+      object_name = _('View')
+    else:
+      html_title = _('Index Of All Synonyms')
+      object_name = _('Synonym')
 
-    viewtuplelist = []
+    objectTupleList = []
     for file_info in fileInfoList:
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
-        for view_info in file_info.viewInfoList:
-            viewtuplelist.append((view_info.name.upper(), view_info, file_info)) # append as tuple for case insensitive sort
+        if objectType == 'view':
+          objectList = file_info.viewInfoList
+        else:
+          objectList = file_info.synInfoList
+        for object_info in objectList:
+            objectTupleList.append((object_info.name.upper(), object_info, file_info)) # append as tuple for case insensitive sort
 
-    viewtuplelist.sort(TupleCompareFirstElements)
+    objectTupleList.sort(TupleCompareFirstElements)
 
     outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
-    outfile.write(MakeHTMLHeader('view'))
-    outfile.write('<H1>'+_('Index Of All Views')+'</H1>\n')
+    outfile.write(MakeHTMLHeader(objectType))
+    outfile.write('<H1>'+html_title+'</H1>\n')
     outfile.write('<TABLE CLASS="apilist">\n')
-    outfile.write('  <TR><TH>'+_('View')+'</TH><TH>'+_('Details')+'</TH><TH>'+_('Usage')+'</TH></TR>\n')
+    outfile.write('  <TR><TH>'+object_name+'</TH><TH>'+_('Details')+'</TH><TH>'+_('Usage')+'</TH></TR>\n')
     i = 0
 
-    for view_tuple in viewtuplelist: # list of tuples describing every view
+    for object_tuple in objectTupleList: # list of tuples describing every view
         trclass = ' CLASS="tr'+`i % 2`+'"'
         if metaInfo.includeSource:
-            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(view_tuple)
-            name = makeDualCodeRef(HTMLref,HTMLjref,view_tuple[1].name.lower())
+            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(object_tuple)
+            name = makeDualCodeRef(HTMLref,HTMLjref,object_tuple[1].name.lower())
             outfile.write('  <TR'+trclass+'><TD>' + name + '</TD>')
         else:
-            outfile.write('  <TR'+trclass+'><TD>' + view_tuple[1].name.lower() + '</TD>')
-        outfile.write('<TD>' + view_tuple[1].javadoc.getShortDesc() + '</TD>')
-        outfile.write( makeUsageCol(len(view_tuple[1].whereUsed.keys())>0,len(view_tuple[1].whatUsed.keys())>0,view_tuple[1].uniqueNumber) )
+            outfile.write('  <TR'+trclass+'><TD>' + object_tuple[1].name.lower() + '</TD>')
+        outfile.write('<TD>' + object_tuple[1].javadoc.getShortDesc() + '</TD>')
+        outfile.write( makeUsageCol(len(object_tuple[1].whereUsed.keys())>0,len(object_tuple[1].whatUsed.keys())>0,object_tuple[1].uniqueNumber) )
         outfile.write('</TR>\n')
         i += 1
 
     outfile.write('</TABLE>\n')
-    outfile.write(MakeHTMLFooter('view'))
+    outfile.write(MakeHTMLFooter(objectType))
     outfile.close()
 
 
@@ -1545,11 +1618,19 @@ def CreateHyperlinkedSourceFilePages():
 
         # ===[ JAVADOC STARTS HERE ]===
         file_info.sortLists()
-        # Do we have views in this file?
         viewdetails = '\n\n'
+
+        # Do we have views in this file?
         if len(file_info.viewInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Views')+'</H2>\n')
             for v in range(len(file_info.viewInfoList)):
                 outfile.write(file_info.viewInfoList[v].javadoc.getHtml(file_info.viewInfoList[v].uniqueNumber))
+
+        # Do we have synonyms in this file?
+        if len(file_info.synInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Synonyms')+'</H2>\n')
+            for v in range(len(file_info.synInfoList)):
+                outfile.write(file_info.synInfoList[v].javadoc.getHtml(file_info.synInfoList[v].uniqueNumber))
 
         # Do we have packages in this file?
         packagedetails = '\n\n'
@@ -1745,7 +1826,10 @@ def CreateWhereUsedPages():
         outfile = fopen(fname, 'w', metaInfo.encoding)
         if otype=='view':
             outfile.write(MakeHTMLHeader(pname))
-            outfile.write( makeUsageTableHead(_('view'),obj.name,page) )
+            outfile.write( makeUsageTableHead(_('View'),obj.name,page) )
+        if otype=='synonym':
+            outfile.write(MakeHTMLHeader(pname))
+            outfile.write( makeUsageTableHead(_('Synonym'),obj.name,page) )
         elif otype=='pkg':
             outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
             outfile.write( makeUsageTableHead(_('package'),obj.name,page) )
@@ -1792,6 +1876,15 @@ def CreateWhereUsedPages():
             #create a "what used" file
             if len(view_info.whatUsed.keys()) != 0:
                 makeUsagePage('what','view',view_info)
+
+        # loop through synonyms
+        for syn_info in file_info.synInfoList:
+            #create a "where used" file
+            if len(syn_info.whereUsed.keys()) != 0:
+                makeUsagePage('where','synonym',syn_info)
+            #create a "what used" file
+            if len(syn_info.whatUsed.keys()) != 0:
+                makeUsagePage('what','synonym',syn_info)
 
         # loop through packages
         for package_info in file_info.packageInfoList:
@@ -1861,17 +1954,17 @@ def CreateDepGraphIndex():
                 if metaInfo.useCache:
                     tmp = cache.get(gtyp,'depdata').split('\n')
                     if tmp==metaInfo.depGraph[gtyp]:
-		        try:
+                        try:
                           copy2(os.path.join(metaInfo.cacheDirectory,gname), os.path.join(metaInfo.htmlDir,gname))
                           done = True
-			except:
+                        except:
                           logger.error(_('Error while copying %s from cache'), gname)
                 if not done:
                     g.set_graph(metaInfo.depGraph[gtyp])
                     res = g.make_graph(metaInfo.htmlDir + gname)
                     if res=='':
                         if metaInfo.useCache:
-			  try:
+                          try:
                             cache.put(gtyp,'depdata','\n'.join(metaInfo.depGraph[gtyp]))
                             copy2(os.path.join(metaInfo.htmlDir,gname), os.path.join(metaInfo.cacheDirectory,gname))
                           except:
@@ -1939,6 +2032,20 @@ def confPage(page,filenameDefault,pagenameDefault,enableDefault):
     else:
         metaInfo.indexPage[page] = ''
 
+def confColors(name,bg,fg):
+    """
+    Configure color tuples for Graphs
+    @param string name name of the tuple
+    @param string bg foreground color (Hex HTML color value, e.g. '#ffffff')
+    @param string fg text color (Hex HTML color value, e.g. '#ffffff')
+    """
+    mask = r'#[A-f0-9]{6}'
+    cvals = config.getList('DepGraph','colors_'+name)
+    if re.match(mask,cvals[0]) and re.match(mask,cvals[1]):
+        metaInfo.colors[name] = cvals
+    else:
+        metaInfo.colors[name] = [bg,fg]
+
 def configRead():
     """ Setup internal variables from config """
     # Section GENERAL
@@ -1983,6 +2090,7 @@ def configRead():
     confPage('filepath','FileNameIndexWithPathnames.html',_('File Names by Path Index'),True)
     confPage('file','FileNameIndexNoPathnames.html',_('File Name Index'),True)
     confPage('view','ViewIndex.html',_('View Index'),False)
+    confPage('synonym','SynonymIndex.html',_('Synonym Index'),False)
     confPage('package','PackageIndex.html',_('Package Index'),True)
     confPage('package_full','PackagesWithFuncsAndProcsIndex.html',_('Full Package Listing'),True)
     confPage('function','FunctionIndex.html',_('Function Index'),True)
@@ -2049,6 +2157,12 @@ def configRead():
     if metaInfo.makeDepGraph['object2file']:   metaInfo.depGraphCount += 1
     if metaInfo.makeDepGraph['object2object']: metaInfo.depGraphCount += 1
     metaInfo.depGraphDelTmp = config.getBool('DepGraph','deltmp',True)
+    confColors('proc', '#ff9933','#000000')
+    confColors('view', '#cc3333','#ffffff')
+    confColors('func', '#3366ff','#ffffff')
+    confColors('pkg', '#33ff00','#000000')
+    confColors('synonym', '#ffff00','#000000')
+    confColors('file', '#dddddd','#000000')
     # Section LOGGING
     if metaInfo.cmdOpts.progress is None:
         metaInfo.printProgress = config.getBool('Logging','progress',True)
@@ -2057,6 +2171,15 @@ def configRead():
         JavaDocVars['verification_log'] = config.getBool('Logging','verification',False)
     else:
         JavaDocVars['verification_log'] = metaInfo.cmdOpts.verificationLog
+    # JavaDoc types for SQL
+    JavaDocVars['otypes'] = {
+              'function':  dict(name='function',  otags=['param','return','throws']),
+              'procedure': dict(name='procedure', otags=['param','throws']),
+              'view':      dict(name='view',      otags=[]),
+              'synonym':   dict(name='synonym',   otags=[]),
+              'pkg':       dict(name='package',   otags=[])
+    } # supported object types
+    JavaDocVars['supertypes'] = ['pkg'] # object types with subobjects
 
 def confDeps():
     """ Check dependent options and fix them, if necessary """
@@ -2152,7 +2275,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.0.0"
+    metaInfo.versionString = "3.0.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
@@ -2228,7 +2351,8 @@ if __name__ == "__main__":
     # Generating the index pages
     MakeFileIndex('filepath')
     MakeFileIndex('file')
-    MakeViewIndex()
+    MakeElem2Index('view')
+    MakeElem2Index('synonym')
     MakePackageIndex()
     MakeElemIndex('function')
     MakeElemIndex('procedure')
