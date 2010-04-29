@@ -107,6 +107,37 @@ def ScanFilesForViewsAndPackages():
     to their parent is stored along.
     """
 
+    def ElemInfoAppendJdoc(oInfo,oType,lineNumber,jdoc):
+        """
+        Append Javadoc info if object matches
+        @param object oInfo ElemInfo object
+        @param string oType object type checked for lineNumber
+        @param int lineNumber number of the currently processed line
+        @param object jdoc JavaDoc object
+        """
+        oInfo.lineNumber = lineNumber
+        for j in range(len(jdoc)):
+            ln = jdoc[j].lineNumber - lineNumber
+            if (CaseInsensitiveComparison(oInfo.name,jdoc[j].name)==0 and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                oInfo.javadoc = jdoc[j]
+        if not oInfo.javadoc.ignore:
+            mname = oInfo.javadoc.name or oInfo.name
+            mands = oInfo.javadoc.verify_mandatory()
+            #for mand in mands: Need to setup report here as well! ###TODO###
+            if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault():
+                logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
+                #oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
+
+    def fixQuotedName(name):
+        """
+        Remove possible double-quotes around object names
+        @param string name name string to check
+        @return string name fixed name
+        """
+        if len(name)<3: return name
+        if name[0]=='"' and name[len(name)-1]=='"': return name[1:len(name)-1]
+        return name
+
     fileInfoList = metaInfo.fileInfoList
     pbarInit(_("Scanning source files for views and packages"),0,len(fileInfoList))
     i = 0
@@ -235,19 +266,8 @@ def ScanFilesForViewsAndPackages():
                           view_info.name = token_list[token_index+2]
                         else:
                           view_info.name = token_list1[0]
-                        view_info.lineNumber = lineNumber
-                        for j in range(len(jdoc)):
-                          ln = jdoc[j].lineNumber - lineNumber
-                          if (CaseInsensitiveComparison(view_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='view') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                            view_info.javadoc = jdoc[j]
-                        if not view_info.javadoc.ignore:
-                          mname = view_info.javadoc.name or view_info.name
-                          mands = view_info.javadoc.verify_mandatory()
-                          #for mand in mands: Need to setup report here as well! ###TODO###
-                          if JavaDocVars['javadoc_mandatory'] and view_info.javadoc.isDefault():
-                              logger.warn(_('View %s has no JavaDoc information attached'), view_info.name)
-                              #view_info.verification.addItem(view_info.name,'No JavaDoc information available')
-                          file_info.viewInfoList.append(view_info)
+                        view_info.name = fixQuotedName(view_info.name)
+                        ElemInfoAppendJdoc(view_info,'view',lineNumber,jdoc)
                         file_info.viewInfoList.append(view_info)
 
             # find synonym definitions
@@ -266,18 +286,8 @@ def ScanFilesForViewsAndPackages():
                             syn_info.name = token_list[token_index+2]
                         else:
                             syn_info.name = token_list1[0]
-                        syn_info.lineNumber = lineNumber
-                        for j in range(len(jdoc)):
-                          ln = jdoc[j].lineNumber - lineNumber
-                          if (CaseInsensitiveComparison(syn_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='synonym') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                            syn_info.javadoc = jdoc[j]
-                        if not syn_info.javadoc.ignore:
-                          mname = syn_info.javadoc.name or syn_info.name
-                          mands = syn_info.javadoc.verify_mandatory()
-                          #for mand in mands: Need to setup report here as well! ###TODO###
-                          if JavaDocVars['javadoc_mandatory'] and syn_info.javadoc.isDefault():
-                              logger.warn(_('Synonym %s has no JavaDoc information attached'), syn_info.name)
-                              #syn_info.verification.addItem(syn_info.name,'No JavaDoc information available')
+                        syn_info.name = fixQuotedName(syn_info.name)
+                        ElemInfoAppendJdoc(syn_info,'synonym',lineNumber,jdoc)
                         file_info.synInfoList.append(syn_info)
 
             # find sequence definitions
@@ -293,18 +303,8 @@ def ScanFilesForViewsAndPackages():
                             seq_info.name = token_list[token_index+2]
                         else:
                             seq_info.name = token_list1[0]
-                        seq_info.lineNumber = lineNumber
-                        for j in range(len(jdoc)):
-                          ln = jdoc[j].lineNumber - lineNumber
-                          if (CaseInsensitiveComparison(seq_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='synonym') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                            seq_info.javadoc = jdoc[j]
-                        if not seq_info.javadoc.ignore:
-                          mname = seq_info.javadoc.name or seq_info.name
-                          mands = seq_info.javadoc.verify_mandatory()
-                          #for mand in mands: Need to setup report here as well! ###TODO###
-                          if JavaDocVars['javadoc_mandatory'] and seq_info.javadoc.isDefault():
-                              logger.warn(_('Sequence %s has no JavaDoc information attached'), seq_info.name)
-                              #seq_info.verification.addItem(seq_info.name,'No JavaDoc information available')
+                        seq_info.name = fixQuotedName(seq_info.name)
+                        ElemInfoAppendJdoc(seq_info,'sequence',lineNumber,jdoc)
                         file_info.seqInfoList.append(seq_info)
 
             # find package definitions - set flag if found
@@ -318,7 +318,7 @@ def ScanFilesForViewsAndPackages():
                        and token_list[token_index+2].upper() == "BODY":
                     package_info = PackageInfo()
                     package_info.parent = file_info
-                    package_info.name = token_list[token_index+3]
+                    package_info.name = fixQuotedName(token_list[token_index+3])
                     package_info.lineNumber = lineNumber
                     for j in range(len(jdoc)):
                       ln = jdoc[j].lineNumber - lineNumber
@@ -348,7 +348,7 @@ def ScanFilesForViewsAndPackages():
                     function_name = token_list[1].split('(')[0] # some are "name(" and some are "name ("
                     function_info = ElemInfo()
                     function_info.parent = file_info.packageInfoList[package_count]
-                    function_info.name = function_name
+                    function_info.name = fixQuotedName(function_name)
                     function_info.lineNumber = lineNumber
                     for j in range(len(jdoc)):
                       ln = jdoc[j].lineNumber - lineNumber
@@ -395,7 +395,7 @@ def ScanFilesForViewsAndPackages():
                     procedure_name = token_list[1].split('(')[0] # some are "name(" and some are "name ("
                     procedure_info = ElemInfo()
                     procedure_info.parent = file_info.packageInfoList[package_count]
-                    procedure_info.name = procedure_name
+                    procedure_info.name = fixQuotedName(procedure_name)
                     procedure_info.lineNumber = lineNumber
                     for j in range(len(jdoc)):
                       ln = jdoc[j].lineNumber - lineNumber
@@ -498,13 +498,15 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         @param string otype object type of the used object
         """
         uType,uObj = findUsingObject(fileInfo,lineNumber)
+        if uType in ['sequence','table']: # these objects are not using other objects
+            return
         if fileInfo.fileName not in objectInfo.whereUsed.keys():
             objectInfo.whereUsed[fileInfo.fileName] = []
         objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
         # generate a unique number for use in making where used file if needed
         if objectInfo.uniqueNumber == 0: objectInfo.uniqueNumber = metaInfo.NextIndex()
         # now care for the what_used
-        if uType != 'file':
+        if uType != 'file': # sequences and tables are not using other objects
             if otype in ['view','pkg','synonym','sequence']:
                 fname = objectInfo.parent.fileName
                 finfo = objectInfo.parent
@@ -534,6 +536,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 if uObj.parent.uniqueNumber == 0: uObj.parent.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects \
+          and uObj.lineNumber != -1 \
           and not objectInfo.javadoc.private and not uObj.javadoc.private:
             # basic: file -> file
             if otype in ['proc','func'] and objectInfo.parent: oto = objectInfo.parent.parent.fileName
@@ -1047,8 +1050,8 @@ def MakeStatsPage():
         viewPct = num_format((float(views)/totalObj) * 100, 2)
         funcPct = num_format((float(funcs)/totalObj) * 100, 2)
         procPct = num_format((float(procs)/totalObj) * 100, 2)
-        synonymPct = num_format((float(views)/totalObj) * 100, 2)
-        sequencePct = num_format((float(views)/totalObj) * 100, 2)
+        synonymPct = num_format((float(synonyms)/totalObj) * 100, 2)
+        sequencePct = num_format((float(sequences)/totalObj) * 100, 2)
     else:
         js += 'function MouseOutO(i) {return;}\n'
         viewPct = num_format(0.0, 2)
@@ -1888,10 +1891,10 @@ def CreateWhereUsedPages():
         if otype=='view':
             outfile.write(MakeHTMLHeader(pname))
             outfile.write( makeUsageTableHead(_('View'),obj.name,page) )
-        if otype=='synonym':
+        elif otype=='synonym':
             outfile.write(MakeHTMLHeader(pname))
             outfile.write( makeUsageTableHead(_('Synonym'),obj.name,page) )
-        if otype=='sequence':
+        elif otype=='sequence':
             outfile.write(MakeHTMLHeader(pname))
             outfile.write( makeUsageTableHead(_('Sequence'),obj.name,page) )
         elif otype=='pkg':
@@ -2351,7 +2354,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.1.0"
+    metaInfo.versionString = "3.1.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

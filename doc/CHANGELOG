@@ -1,5 +1,14 @@
 # History of Changes for HyperSQL
 
+v3.2.0
+-------------------
+! Javadoc for sequences was ignored
+* dependencies/usage: Sequences are not using any other objects
+* some code compacting
+! fixed "empty objects" in dependency graph (probably introduced by last release)
+! percentage for sequences and synonyms on stats page was wrong
+* handling of double-quoted object names (i.e. 'CREATE TABLE "DUMMY"')
+
 v3.1.0 (28.04.2010)
 -------------------
 * reworked the javadoc module to make it independent from the main script and,

@@ -61,18 +61,20 @@ them here!
 In some cases, this might still be useful - handle it with care. The options are
 named similar to their corresponding file names options, so: 
 
- * filepath: the HTML file for the File Index With Pathnames
+ * bug: Index of bugs gathered from the JavaDoc @bug tags
+ * depgraph: Dependency graph
  * file: similar for File Index Without Pathnames
- * view: similar for the views listing
- * package: and for the package index
+ * filepath: the HTML file for the File Index With Pathnames
  * function: guessed right, HTML file for the function index
+ * package: and for the package index
  * procedure: procedure index HTML file
  * package_full: Index of packages including all their functions and procedures
- * bug: Index of bugs gathered from the JavaDoc @bug tags
- * todo: Index of todos gathered from the JavaDoc @todo tags
  * report: Verification report
+ * sequence: sequence listing
  * stat: Some project stats, such as lines of code and file stats
- * depgraph: Dependency graph
+ * synonym: List of synonyms
+ * todo: Index of todos gathered from the JavaDoc @todo tags
+ * view: similar for the views listing
 
 Pages
 -----

@@ -26,6 +26,14 @@ class ElemInfo(object):
         self.parent = None
         self.paramCount = 0
         self.javadoc = JavaDoc()
+    def __repr__(self):
+        """ Basic information for simple debug """
+        if self.lineNumber<0: return 'Empty ElemInfo object'
+        if self.name: ret = 'ElemInfo object "'+self.name+'"'
+        else: ret = 'unnamed ElemInfo object'
+        if self.parent: ret += ' with parent '+self.parent
+        else: ret += ' without parent'
+        return ret + ', attached JavaDoc:\n' + self.javadoc
 
 class PackageInfo(ElemInfo):
     """ Object to hold information about a package """
