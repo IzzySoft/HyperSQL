@@ -6,5 +6,7 @@ TO-DO LIST
   This includes ElemInfo.verification = TaskList (also required for other
   stand-alone objects, see below)
 * Handle Materialized Views (similar to views)
+* Handle Sequences (similar to views)
 * Handle Tables (similar to views)
 * Handle stand-alone functions/procedures
+* Handle Types

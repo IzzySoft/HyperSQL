@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Test\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-28 19:47+0200\n"
-"PO-Revision-Date: 2010-04-28 19:51+0100\n"
+"POT-Creation-Date: 2010-04-29 21:16+0200\n"
+"PO-Revision-Date: 2010-04-29 21:19+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -11,84 +11,89 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: German\n"
 
-#: ../../HyperSQL.py:1092
+#: ../../HyperSQL.py:1095
 #, python-format
 msgid "%(from)s to %(to)s lines"
 msgstr "%(from)s bis %(to)s Zeilen"
 
-#: ../../HyperSQL.py:1093
+#: ../../HyperSQL.py:128
+#, python-format
+msgid "%(otype)s %(name)s has no JavaDoc information attached"
+msgstr "Keine JavaDoc Informationen verfügbar für %(otype)s %(name)s"
+
+#: ../../HyperSQL.py:1096
 #, python-format
 msgid "%s lines and more"
 msgstr "%s Zeilen und mehr"
 
-#: ../../HyperSQL.py:2068
+#: ../../HyperSQL.py:2071
 msgid "Access from"
 msgstr "Zugriff von"
 
-#: ../../HyperSQL.py:1584
+#: ../../HyperSQL.py:1587
 msgid "ApiDoc"
 msgstr "ApiDoc"
 
-#: ../../HyperSQL.py:1142
+#: ../../HyperSQL.py:1145
 msgid "Avg Bytes"
 msgstr "Avg Bytes"
 
-#: ../../HyperSQL.py:1100
+#: ../../HyperSQL.py:1103
 msgid "Avg Lines"
 msgstr "Avg Zeilen"
 
-#: ../../HyperSQL.py:2172
+#: ../../HyperSQL.py:2175
 #: ../../lib/hyperconf.py:102
 msgid "Bug List"
 msgstr "Bug Liste"
 
-#: ../../HyperSQL.py:1186
+#: ../../HyperSQL.py:1189
 msgid "Bugs"
 msgstr "Bugs"
 
-#: ../../HyperSQL.py:1787
+#: ../../HyperSQL.py:1790
 msgid "CSS-File"
 msgstr "CSS-Datei"
 
-#: ../../HyperSQL.py:994
-#: ../../HyperSQL.py:1577
+#: ../../HyperSQL.py:997
+#: ../../HyperSQL.py:1580
 msgid "Code"
 msgstr "Code"
 
-#: ../../HyperSQL.py:2175
+#: ../../HyperSQL.py:2178
 #: ../../lib/hyperconf.py:105
 msgid "Code Statistics"
 msgstr "Code Statistiken"
 
-#: ../../HyperSQL.py:995
+#: ../../HyperSQL.py:998
 msgid "Comment"
 msgstr "Kommentare"
 
-#: ../../HyperSQL.py:520
+#: ../../HyperSQL.py:522
 #, python-format
 msgid "Could not find filename for %(otype)s %(name)s"
 msgstr "Dateiname für %(otype)s %(name)s kann nicht ermittelt werden"
 
-#: ../../HyperSQL.py:1551
+#: ../../HyperSQL.py:1554
 msgid "Creating \"package with functions and procedures\" index"
 msgstr "Erstelle 'Packages mit Funktionen und Prozeduren' Index"
 
-#: ../../HyperSQL.py:1921
+#: ../../HyperSQL.py:1924
 msgid "Creating \"where used\" pages"
 msgstr "Erstelle 'where used' Seiten"
 
-#: ../../HyperSQL.py:1302
-#: ../../HyperSQL.py:1361
+#: ../../HyperSQL.py:1305
+#: ../../HyperSQL.py:1364
 #, python-format
 msgid "Creating %s index"
 msgstr "Erstelle %s Index"
 
-#: ../../HyperSQL.py:1429
+#: ../../HyperSQL.py:1432
 #, python-format
 msgid "Creating %s list"
 msgstr "Erstelle %s Liste"
 
-#: ../../HyperSQL.py:2005
+#: ../../HyperSQL.py:2008
 msgid "Creating dependency graphs"
 msgstr "Erstelle Abhängigkeits-Graphen"
 
@@ -96,107 +101,107 @@ msgstr "Erstelle Abhängigkeits-Graphen"
 msgid "Creating file list"
 msgstr "Erstelle Dateiliste"
 
-#: ../../HyperSQL.py:1225
+#: ../../HyperSQL.py:1228
 msgid "Creating filename by path index"
 msgstr "Erstelle Dateinamen-Index mit Pfad"
 
-#: ../../HyperSQL.py:1222
+#: ../../HyperSQL.py:1225
 msgid "Creating filename no path index"
 msgstr "Erstelle Dateinamen-Index ohne Pfad"
 
-#: ../../HyperSQL.py:882
+#: ../../HyperSQL.py:885
 msgid "Creating html subdirectory"
 msgstr "Erstelle HTML Verzeichnis"
 
-#: ../../HyperSQL.py:1644
+#: ../../HyperSQL.py:1647
 msgid "Creating hyperlinked source file pages"
 msgstr "Erstelle verlinkte Quellcode-Dateien"
 
-#: ../../HyperSQL.py:1489
+#: ../../HyperSQL.py:1492
 msgid "Creating package index"
 msgstr "Erstelle Package Index"
 
-#: ../../HyperSQL.py:1774
+#: ../../HyperSQL.py:1777
 msgid "Creating site index page"
 msgstr "Erstelle Startseite"
 
-#: ../../HyperSQL.py:953
+#: ../../HyperSQL.py:956
 msgid "Creating statistics page"
 msgstr "Erstelle Statistikseite"
 
-#: ../../HyperSQL.py:2066
-#: ../../HyperSQL.py:2084
+#: ../../HyperSQL.py:2069
+#: ../../HyperSQL.py:2087
 msgid "Dependency Graph"
 msgstr "Abhängigkeits-Graph"
 
-#: ../../HyperSQL.py:2176
+#: ../../HyperSQL.py:2179
 #: ../../lib/hyperconf.py:106
 msgid "Dependency Graphs"
 msgstr "Abhängigkeits-Graphen"
 
-#: ../../HyperSQL.py:1331
-#: ../../HyperSQL.py:1396
-#: ../../HyperSQL.py:1509
+#: ../../HyperSQL.py:1334
+#: ../../HyperSQL.py:1399
+#: ../../HyperSQL.py:1512
 msgid "Details"
 msgstr "Details"
 
-#: ../../HyperSQL.py:996
+#: ../../HyperSQL.py:999
 msgid "Empty"
 msgstr "Leer"
 
-#: ../../HyperSQL.py:996
+#: ../../HyperSQL.py:999
 msgid "Empty Lines"
 msgstr "Leerzeilen"
 
-#: ../../HyperSQL.py:2034
+#: ../../HyperSQL.py:2037
 #, python-format
 msgid "Error while copying %s from cache"
 msgstr "%s konnte nicht aus dem Cache-Verzeichnis kopiert werden."
 
-#: ../../HyperSQL.py:2044
+#: ../../HyperSQL.py:2047
 #, python-format
 msgid "Error while copying %s to cache"
 msgstr "%s konnte nicht in das Cache-Verzeichnis kopiert werden."
 
-#: ../../HyperSQL.py:585
+#: ../../HyperSQL.py:588
 msgid "Excluding strings from where_used scan"
 msgstr "Strings werden beim where_used Scan ignoriert"
 
-#: ../../HyperSQL.py:1825
+#: ../../HyperSQL.py:1828
 msgid "File"
 msgstr "Datei"
 
-#: ../../HyperSQL.py:2164
+#: ../../HyperSQL.py:2167
 #: ../../lib/hyperconf.py:93
 msgid "File Name Index"
 msgstr "Dateien"
 
-#: ../../HyperSQL.py:2163
+#: ../../HyperSQL.py:2166
 #: ../../lib/hyperconf.py:94
 msgid "File Names by Path Index"
 msgstr "Dateien mit Pfadnamen"
 
-#: ../../HyperSQL.py:1074
+#: ../../HyperSQL.py:1077
 msgid "File Statistics"
 msgstr "Datei-Statistiken"
 
-#: ../../HyperSQL.py:1135
+#: ../../HyperSQL.py:1138
 #, python-format
 msgid "Files between %(from)s and %(to)s"
 msgstr "Dateien von %(from)s bis %(to)s"
 
-#: ../../HyperSQL.py:1137
+#: ../../HyperSQL.py:1140
 #, python-format
 msgid "Files larger than %s"
 msgstr "Dateien größer als %s"
 
-#: ../../HyperSQL.py:2169
+#: ../../HyperSQL.py:2172
 #: ../../lib/hyperconf.py:99
 msgid "Full Package Listing"
 msgstr "Vollständige Package Liste"
 
-#: ../../HyperSQL.py:1314
-#: ../../HyperSQL.py:1592
+#: ../../HyperSQL.py:1317
+#: ../../HyperSQL.py:1595
 msgid "Function"
 msgstr "Funktion"
 
@@ -205,157 +210,157 @@ msgstr "Funktion"
 msgid "Function %(function)s in package %(package)s has no JavaDoc information attached"
 msgstr "Für die Funktion %(package)s.%(function)s wurden keine JavaDoc Informationen bereitgestellt"
 
-#: ../../HyperSQL.py:2170
+#: ../../HyperSQL.py:2173
 #: ../../lib/hyperconf.py:100
 msgid "Function Index"
 msgstr "Funktionen"
 
-#: ../../HyperSQL.py:1042
-#: ../../HyperSQL.py:1063
-#: ../../HyperSQL.py:1471
-#: ../../HyperSQL.py:1592
-#: ../../HyperSQL.py:1709
-#: ../../HyperSQL.py:1710
+#: ../../HyperSQL.py:1045
+#: ../../HyperSQL.py:1066
+#: ../../HyperSQL.py:1474
+#: ../../HyperSQL.py:1595
+#: ../../HyperSQL.py:1712
+#: ../../HyperSQL.py:1713
 msgid "Functions"
 msgstr "Funktionen"
 
-#: ../../HyperSQL.py:2046
+#: ../../HyperSQL.py:2049
 msgid "Graphviz threw an error:"
 msgstr "Graphviz hat einen Fehler gemeldet:"
 
-#: ../../HyperSQL.py:2001
+#: ../../HyperSQL.py:2004
 msgid "Graphviz trouble - unable to generate the graph"
 msgstr "Probleme mit Graphviz - kann keine Abhängigkeits-Graphen erstellen"
 
-#: ../../HyperSQL.py:960
-#: ../../HyperSQL.py:1787
-#: ../../HyperSQL.py:1798
+#: ../../HyperSQL.py:963
+#: ../../HyperSQL.py:1790
+#: ../../HyperSQL.py:1801
 msgid "HTML-Dir"
 msgstr "HTML-Verzeichnis"
 
-#: ../../HyperSQL.py:1789
+#: ../../HyperSQL.py:1792
 msgid "HyperSQL Reference"
 msgstr "HyperSQL Referenz"
 
-#: ../../HyperSQL.py:2456
+#: ../../HyperSQL.py:2459
 #, python-format
 msgid "HyperSQL v%s exiting normally"
 msgstr "HyperSQL v%s normal beendet"
 
-#: ../../HyperSQL.py:2393
+#: ../../HyperSQL.py:2396
 #, python-format
 msgid "HyperSQL v%s initialized"
 msgstr "HyperSQL v%s initialisiert"
 
-#: ../../HyperSQL.py:960
-#: ../../HyperSQL.py:1787
-#: ../../HyperSQL.py:1798
+#: ../../HyperSQL.py:963
+#: ../../HyperSQL.py:1790
+#: ../../HyperSQL.py:1801
 #, python-format
 msgid "I/O error while copying %(source)s to %(target)s"
 msgstr "Fehler beim Kopieren: Quelle: %(source)s => Ziel: %(target)s"
 
-#: ../../HyperSQL.py:583
+#: ../../HyperSQL.py:586
 msgid "Including strings in where_used scan"
 msgstr "Strings werden beim where_used Scan berücksichtigt"
 
-#: ../../HyperSQL.py:1223
+#: ../../HyperSQL.py:1226
 msgid "Index Of All Files By File Name"
 msgstr "Index aller Dateien nach Dateiname"
 
-#: ../../HyperSQL.py:1226
+#: ../../HyperSQL.py:1229
 msgid "Index Of All Files By Path Name"
 msgstr "Index aller Dateien nach Pfadname"
 
-#: ../../HyperSQL.py:1313
+#: ../../HyperSQL.py:1316
 msgid "Index Of All Functions"
 msgstr "Index aller Funktionen"
 
-#: ../../HyperSQL.py:1507
+#: ../../HyperSQL.py:1510
 msgid "Index Of All Packages"
 msgstr "Index aller Packages"
 
-#: ../../HyperSQL.py:1569
+#: ../../HyperSQL.py:1572
 msgid "Index Of All Packages, Their Functions And Procedures"
 msgstr "Index aller Packages, ihrer Funktionen und Prozeduren"
 
-#: ../../HyperSQL.py:1316
+#: ../../HyperSQL.py:1319
 msgid "Index Of All Procedures"
 msgstr "Index aller Prozeduren"
 
-#: ../../HyperSQL.py:1370
+#: ../../HyperSQL.py:1373
 msgid "Index Of All Sequences"
 msgstr "Index aller Sequenzen"
 
-#: ../../HyperSQL.py:1373
+#: ../../HyperSQL.py:1376
 msgid "Index Of All Synonyms"
 msgstr "Index aller Synonyme"
 
-#: ../../HyperSQL.py:1367
+#: ../../HyperSQL.py:1370
 msgid "Index Of All Views"
 msgstr "Index aller Views"
 
-#: ../../HyperSQL.py:1171
+#: ../../HyperSQL.py:1174
 msgid "JavaDoc Statistics"
 msgstr "JavaDoc Statistiken"
 
-#: ../../HyperSQL.py:1452
+#: ../../HyperSQL.py:1455
 msgid "JavaDoc Validation Report"
 msgstr "Report der JavaDoc Validierung"
 
-#: ../../HyperSQL.py:1200
+#: ../../HyperSQL.py:1203
 msgid "JavaDoc Warnings"
 msgstr "JavaDoc Warnungen"
 
-#: ../../HyperSQL.py:1185
+#: ../../HyperSQL.py:1188
 msgid "JavaDoc validation warnings"
 msgstr "JavaDoc Validierungs Warnungen"
 
-#: ../../HyperSQL.py:1201
+#: ../../HyperSQL.py:1204
 msgid "Known Bugs"
 msgstr "Bekannte Bugs"
 
-#: ../../HyperSQL.py:1186
+#: ../../HyperSQL.py:1189
 msgid "Known Bugs (from your @bug tags)"
 msgstr "Bekannte Bugs (aus den @bug Tags)"
 
-#: ../../HyperSQL.py:1154
+#: ../../HyperSQL.py:1157
 msgid "Largest"
 msgstr "Größte"
 
-#: ../../HyperSQL.py:1825
+#: ../../HyperSQL.py:1828
 msgid "Line"
 msgstr "Zeile"
 
-#: ../../HyperSQL.py:972
+#: ../../HyperSQL.py:975
 msgid "Lines"
 msgstr "Zeilen"
 
-#: ../../HyperSQL.py:971
+#: ../../HyperSQL.py:974
 msgid "Lines of Code"
 msgstr "Lines of Code"
 
-#: ../../HyperSQL.py:997
+#: ../../HyperSQL.py:1000
 msgid "Lines with Code and Comments"
 msgstr "Zeilen mit Code und Kommentaren"
 
-#: ../../HyperSQL.py:1448
+#: ../../HyperSQL.py:1451
 msgid "List of open Bugs"
 msgstr "Liste offener Bugs"
 
-#: ../../HyperSQL.py:1450
+#: ../../HyperSQL.py:1453
 msgid "List of things ToDo"
 msgstr "Todo-Liste"
 
-#: ../../HyperSQL.py:1112
+#: ../../HyperSQL.py:1115
 msgid "Longest"
 msgstr "Längste"
 
-#: ../../HyperSQL.py:822
-#: ../../HyperSQL.py:824
+#: ../../HyperSQL.py:825
+#: ../../HyperSQL.py:827
 msgid "Main Index"
 msgstr "Startseite"
 
-#: ../../HyperSQL.py:997
+#: ../../HyperSQL.py:1000
 msgid "Mixed"
 msgstr "Gemischt"
 
@@ -365,10 +370,10 @@ msgstr "Gemischt"
 msgid "Multiple definitions for function %(package)s.%(function)s, parameters not verified"
 msgstr "Mehrfache Definition der Funktion %(package)s.%(function)s, Parameter wurden nicht überprüft"
 
-#: ../../HyperSQL.py:972
-#: ../../HyperSQL.py:1029
-#: ../../HyperSQL.py:1075
-#: ../../HyperSQL.py:1172
+#: ../../HyperSQL.py:975
+#: ../../HyperSQL.py:1032
+#: ../../HyperSQL.py:1078
+#: ../../HyperSQL.py:1175
 msgid "Name"
 msgstr "Name"
 
@@ -377,25 +382,25 @@ msgstr "Name"
 msgid "No JavaDoc information available"
 msgstr "Keine JavaDoc Informationen verfügbar"
 
-#: ../../HyperSQL.py:2384
-#: ../../HyperSQL.py:2399
+#: ../../HyperSQL.py:2387
+#: ../../HyperSQL.py:2402
 msgid "No config file found, using defaults."
 msgstr "Keine Konfigurationsdatei gefunden, verwende Standardwerte."
 
-#: ../../HyperSQL.py:2053
+#: ../../HyperSQL.py:2056
 #, python-format
 msgid "No dependency data for %s"
 msgstr "Für \"%s\" gibt es keine Abhängigkeits-Daten"
 
-#: ../../HyperSQL.py:1825
+#: ../../HyperSQL.py:1828
 msgid "Object"
 msgstr "Objekt"
 
-#: ../../HyperSQL.py:1028
+#: ../../HyperSQL.py:1031
 msgid "Object Statistics"
 msgstr "Objekt Statistiken"
 
-#: ../../HyperSQL.py:1509
+#: ../../HyperSQL.py:1512
 msgid "Package"
 msgstr "Package"
 
@@ -404,36 +409,36 @@ msgstr "Package"
 msgid "Package %s has no JavaDoc information attached"
 msgstr "Für das Package %s wurden keine JavaDoc Informationen bereitgestellt"
 
-#: ../../HyperSQL.py:1468
+#: ../../HyperSQL.py:1471
 msgid "Package General"
 msgstr "Package allgemein"
 
-#: ../../HyperSQL.py:2168
+#: ../../HyperSQL.py:2171
 #: ../../lib/hyperconf.py:98
 msgid "Package Index"
 msgstr "Packages"
 
-#: ../../HyperSQL.py:1699
+#: ../../HyperSQL.py:1702
 msgid "Package Overview"
 msgstr "Package Übersicht"
 
-#: ../../HyperSQL.py:972
-#: ../../HyperSQL.py:1029
-#: ../../HyperSQL.py:1075
-#: ../../HyperSQL.py:1172
+#: ../../HyperSQL.py:975
+#: ../../HyperSQL.py:1032
+#: ../../HyperSQL.py:1078
+#: ../../HyperSQL.py:1175
 msgid "Pct"
 msgstr "Pct"
 
-#: ../../HyperSQL.py:994
+#: ../../HyperSQL.py:997
 msgid "Plain Code"
 msgstr "Reiner Code"
 
-#: ../../HyperSQL.py:995
+#: ../../HyperSQL.py:998
 msgid "Plain Comments"
 msgstr "Reine Kommentare"
 
-#: ../../HyperSQL.py:1317
-#: ../../HyperSQL.py:1598
+#: ../../HyperSQL.py:1320
+#: ../../HyperSQL.py:1601
 msgid "Procedure"
 msgstr "Prozedur"
 
@@ -442,118 +447,108 @@ msgstr "Prozedur"
 msgid "Procedure %(procedure)s in package %(package)s has no JavaDoc information attached"
 msgstr "Für die Prozedur %(package)s.%(procedure)s wurden keine JavaDoc Informationen bereitgestellt"
 
-#: ../../HyperSQL.py:2171
+#: ../../HyperSQL.py:2174
 #: ../../lib/hyperconf.py:101
 msgid "Procedure Index"
 msgstr "Prozeduren"
 
-#: ../../HyperSQL.py:1043
-#: ../../HyperSQL.py:1064
-#: ../../HyperSQL.py:1474
-#: ../../HyperSQL.py:1598
-#: ../../HyperSQL.py:1718
-#: ../../HyperSQL.py:1719
+#: ../../HyperSQL.py:1046
+#: ../../HyperSQL.py:1067
+#: ../../HyperSQL.py:1477
+#: ../../HyperSQL.py:1601
+#: ../../HyperSQL.py:1721
+#: ../../HyperSQL.py:1722
 msgid "Procedures"
 msgstr "Prozeduren"
 
-#: ../../HyperSQL.py:2340
+#: ../../HyperSQL.py:2343
 msgid "Removing html files from previous run"
 msgstr "Entferne HTML Dateien vom vorigen Lauf"
 
-#: ../../HyperSQL.py:111
+#: ../../HyperSQL.py:142
 msgid "Scanning source files for views and packages"
 msgstr "Scanne Quelldaten nach Views und Packages"
 
-#: ../../HyperSQL.py:580
+#: ../../HyperSQL.py:583
 msgid "Scanning source files for where views and packages are used"
 msgstr "Scanne Quelldaten nach Aufrufen von Views und Packages"
 
-#: ../../HyperSQL.py:1371
-#: ../../HyperSQL.py:1896
+#: ../../HyperSQL.py:1374
+#: ../../HyperSQL.py:1899
 msgid "Sequence"
 msgstr "Sequenz"
 
-#: ../../HyperSQL.py:306
-#, python-format
-msgid "Sequence %s has no JavaDoc information attached"
-msgstr "Für die Sequenz %s wurden keine JavaDoc Informationen bereitgestellt"
-
-#: ../../HyperSQL.py:2167
+#: ../../HyperSQL.py:2170
 #: ../../lib/hyperconf.py:97
 msgid "Sequence Index"
 msgstr "Sequenzen"
 
-#: ../../HyperSQL.py:1045
-#: ../../HyperSQL.py:1066
+#: ../../HyperSQL.py:1048
+#: ../../HyperSQL.py:1069
 msgid "Sequences"
 msgstr "Sequenzen"
 
-#: ../../HyperSQL.py:1110
+#: ../../HyperSQL.py:1113
 msgid "Shortest"
 msgstr "Kürzeste"
 
-#: ../../HyperSQL.py:1152
+#: ../../HyperSQL.py:1155
 msgid "Smallest"
 msgstr "Kleinste"
 
-#: ../../HyperSQL.py:1733
+#: ../../HyperSQL.py:1736
 msgid "Source"
 msgstr "Quellcode"
 
-#: ../../HyperSQL.py:1374
-#: ../../HyperSQL.py:1893
+#: ../../HyperSQL.py:1377
+#: ../../HyperSQL.py:1896
 msgid "Synonym"
 msgstr "Synonym"
 
-#: ../../HyperSQL.py:279
-#, python-format
-msgid "Synonym %s has no JavaDoc information attached"
-msgstr "Für das Synonym %s wurden keine JavaDoc Informationen bereitgestellt"
-
-#: ../../HyperSQL.py:2166
+#: ../../HyperSQL.py:2169
 #: ../../lib/hyperconf.py:96
 msgid "Synonym Index"
 msgstr "Synonyme"
 
-#: ../../HyperSQL.py:1044
-#: ../../HyperSQL.py:1065
-#: ../../HyperSQL.py:1692
+#: ../../HyperSQL.py:1047
+#: ../../HyperSQL.py:1068
+#: ../../HyperSQL.py:1695
 msgid "Synonyms"
 msgstr "Synonyme"
 
-#: ../../HyperSQL.py:1202
+#: ../../HyperSQL.py:1205
 msgid "Todo Items"
 msgstr "Todo Punkte"
 
-#: ../../HyperSQL.py:2173
+#: ../../HyperSQL.py:2176
 #: ../../lib/hyperconf.py:103
 msgid "Todo List"
 msgstr "Todo-Liste"
 
-#: ../../HyperSQL.py:1187
+#: ../../HyperSQL.py:1190
 msgid "Todo items (from your @todo tags)"
 msgstr "Todo Punkte (aus den @todo Tags)"
 
-#: ../../HyperSQL.py:1187
+#: ../../HyperSQL.py:1190
 msgid "Todos"
 msgstr "Todos"
 
-#: ../../HyperSQL.py:1119
+#: ../../HyperSQL.py:1122
 msgid "Total Bytes"
 msgstr "Bytes insgesamt"
 
-#: ../../HyperSQL.py:1098
+#: ../../HyperSQL.py:1101
 msgid "Total Files"
 msgstr "Dateien insgesamt"
 
-#: ../../HyperSQL.py:1331
-#: ../../HyperSQL.py:1396
-#: ../../HyperSQL.py:1509
-#: ../../HyperSQL.py:1537
+#: ../../HyperSQL.py:1334
+#: ../../HyperSQL.py:1399
+#: ../../HyperSQL.py:1512
+#: ../../HyperSQL.py:1540
 msgid "Usage"
 msgstr "Verwendung"
 
-#: ../../HyperSQL.py:2397
+#: ../../HyperSQL.py:2400
 msgid "Using config file(s) "
 msgstr "Verwende Konfigurationsdatei(en)"
 
@@ -561,152 +556,153 @@ msgstr "Verwende Konfigurationsdatei(en)"
 msgid "Validation Report"
 msgstr "Validierungs-Report"
 
-#: ../../HyperSQL.py:1029
-#: ../../HyperSQL.py:1075
-#: ../../HyperSQL.py:1172
+#: ../../HyperSQL.py:1032
+#: ../../HyperSQL.py:1078
+#: ../../HyperSQL.py:1175
 msgid "Value"
 msgstr "Wert"
 
-#: ../../HyperSQL.py:2174
+#: ../../HyperSQL.py:2177
 msgid "Verification Report"
 msgstr "%(from)s bis %(to)s Zeilen"
 
-#: ../../HyperSQL.py:1368
-#: ../../HyperSQL.py:1890
+#: ../../HyperSQL.py:1371
+#: ../../HyperSQL.py:1893
 msgid "View"
 msgstr "View"
 
-#: ../../HyperSQL.py:248
-#, python-format
-msgid "View %s has no JavaDoc information attached"
-msgstr "Für die View %s wurden keine JavaDoc Informationen bereitgestellt"
-
-#: ../../HyperSQL.py:2165
+#: ../../HyperSQL.py:2168
 #: ../../lib/hyperconf.py:95
 msgid "View Index"
 msgstr "Views"
 
-#: ../../HyperSQL.py:1041
-#: ../../HyperSQL.py:1062
-#: ../../HyperSQL.py:1686
+#: ../../HyperSQL.py:1044
+#: ../../HyperSQL.py:1065
+#: ../../HyperSQL.py:1689
 msgid "Views"
 msgstr "Views"
 
-#: ../../HyperSQL.py:1185
+#: ../../HyperSQL.py:1188
 msgid "Warnings"
 msgstr "Warnungen"
 
-#: ../../HyperSQL.py:1823
-#: ../../HyperSQL.py:1885
+#: ../../HyperSQL.py:1826
+#: ../../HyperSQL.py:1888
 #, python-format
 msgid "What Used List for %s"
 msgstr "Von %s verwendete Objekte"
 
-#: ../../HyperSQL.py:1821
-#: ../../HyperSQL.py:1880
+#: ../../HyperSQL.py:1824
+#: ../../HyperSQL.py:1883
 #, python-format
 msgid "Where Used List for %s"
 msgstr "Objekte, die %s verwenden"
 
-#: ../../HyperSQL.py:1476
-#: ../../HyperSQL.py:1763
+#: ../../HyperSQL.py:1479
+#: ../../HyperSQL.py:1766
 msgid "^ Top"
 msgstr "^ Top"
 
-#: ../../HyperSQL.py:2449
+#: ../../HyperSQL.py:2452
 msgid "done"
 msgstr "fertig"
 
-#: ../../HyperSQL.py:2048
-#: ../../HyperSQL.py:2070
+#: ../../HyperSQL.py:2051
+#: ../../HyperSQL.py:2073
 msgid "file to file"
 msgstr "Datei auf Datei"
 
-#: ../../HyperSQL.py:2049
-#: ../../HyperSQL.py:2072
+#: ../../HyperSQL.py:2052
+#: ../../HyperSQL.py:2075
 msgid "file to object"
 msgstr "Datei auf Objekt"
 
-#: ../../HyperSQL.py:1331
-#: ../../HyperSQL.py:1901
+#: ../../HyperSQL.py:1334
 #: ../../HyperSQL.py:1904
+#: ../../HyperSQL.py:1907
 msgid "from Package"
 msgstr "aus dem Package"
 
-#: ../../HyperSQL.py:1902
 #: ../../HyperSQL.py:1905
+#: ../../HyperSQL.py:1908
 msgid "from package"
 msgstr "aus dem Package"
 
-#: ../../HyperSQL.py:1902
+#: ../../HyperSQL.py:1905
 msgid "function"
 msgstr "Funktion"
 
-#: ../../HyperSQL.py:960
+#: ../../HyperSQL.py:963
 msgid "javascript file"
 msgstr "Javascript-Datei"
 
-#: ../../HyperSQL.py:1091
+#: ../../HyperSQL.py:1094
 #, python-format
 msgid "less than %s lines"
 msgstr "weniger als %s Zeilen"
 
-#: ../../HyperSQL.py:1907
+#: ../../HyperSQL.py:1910
 #, python-format
 msgid "makeUsagePage called for undefined type \"%s\""
 msgstr "makeUsagePage mit undefiniertem Typ \"%s\" aufgerufen"
 
-#: ../../HyperSQL.py:1281
+#: ../../HyperSQL.py:1284
 msgid "no use found"
 msgstr "nicht verwendet"
 
-#: ../../HyperSQL.py:2050
-#: ../../HyperSQL.py:2074
+#: ../../HyperSQL.py:2053
+#: ../../HyperSQL.py:2077
 msgid "object to file"
 msgstr "Object auf Datei"
 
-#: ../../HyperSQL.py:2051
-#: ../../HyperSQL.py:2076
+#: ../../HyperSQL.py:2054
+#: ../../HyperSQL.py:2079
 msgid "object to object"
 msgstr "Objekt auf Objekt"
 
-#: ../../HyperSQL.py:1899
+#: ../../HyperSQL.py:1902
 msgid "package"
 msgstr "Package"
 
-#: ../../HyperSQL.py:1905
+#: ../../HyperSQL.py:1908
 msgid "procedure"
 msgstr "Prozedur"
 
-#: ../../HyperSQL.py:1798
+#: ../../HyperSQL.py:1801
 msgid "project logo"
 msgstr "Projektlogo"
 
-#: ../../HyperSQL.py:2407
+#: ../../HyperSQL.py:2410
 #, python-format
 msgid "top_level_directory \"%s\" does not exist - terminating."
 msgstr "top_level_directory \"%s\" existiert nicht - terminiere."
 
-#: ../../HyperSQL.py:2052
+#: ../../HyperSQL.py:2055
 msgid "unknown dependency graph type"
 msgstr "Unbekannter Abhängigkeitsgraph-Typ"
 
-#: ../../HyperSQL.py:1284
+#: ../../HyperSQL.py:1287
 msgid "what used"
 msgstr "ruft auf"
 
-#: ../../HyperSQL.py:1277
+#: ../../HyperSQL.py:1280
 msgid "where used"
 msgstr "benutzt von"
 
-#: ../../HyperSQL.py:2403
+#: ../../HyperSQL.py:2406
 msgid "where_used shortref scan disabled"
 msgstr "where_used shortref Scan deaktiviert"
 
-#: ../../HyperSQL.py:2401
+#: ../../HyperSQL.py:2404
 msgid "where_used shortref scan enabled"
 msgstr "where_used shortref Scan aktiviert"
 
+#~ msgid "Sequence %s has no JavaDoc information attached"
+#~ msgstr ""
+#~ "Für die Sequenz %s wurden keine JavaDoc Informationen bereitgestellt"
+#~ msgid "Synonym %s has no JavaDoc information attached"
+#~ msgstr ""
+#~ "Für das Synonym %s wurden keine JavaDoc Informationen bereitgestellt"
 #~ msgid "Creating view index"
 #~ msgstr "Erstelle View Index"
 #~ msgid "view"
