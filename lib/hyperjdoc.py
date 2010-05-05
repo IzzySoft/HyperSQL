@@ -23,6 +23,7 @@ JavaDocVars = dict(
     javadoc_mandatory = False,
     verification = False,
     verification_log = False,
+    author_in_report = False,
     mandatory_tags = [],
     otypes = {}, # supported object types
     supertypes = [], # object types with subobjects
@@ -374,15 +375,17 @@ class JavaDocParam:
 
 class TaskItem:
     """ Task for Todo / Bug lists """
-    def __init__(self,name='',line=''):
+    def __init__(self,name='',line='',author=''):
         """
         Initializes properties with useful defaults.
         @param self
         @param optional name default ''
         @param optional desc default ''
+        @param optional string author default ''
         """
         self.name = name
         self.desc = line
+        self.author = author
 
 def taskSortDesc(a,b):
     """
@@ -484,24 +487,26 @@ class PackageTaskList(TaskList):
         TaskList.__init__(self,name)
         self.funcs = []
         self.procs = []
-    def addFunc(self,name,desc):
+    def addFunc(self,name,desc,author=''):
         """
         Add an item to this packages function task list
         @param self
         @param string name
         @param string desc
+        @param string author (optional)
         """
-        item = TaskItem(name,desc);
+        item = TaskItem(name,desc,author);
         item.parent = self
         self.funcs.append(item)
-    def addProc(self,name,desc):
+    def addProc(self,name,desc,author=''):
         """
         Add an item to this packages procedure task list
         @param self
         @param string name
         @param string desc
+        @param string author (optional)
         """
-        item = TaskItem(name,desc);
+        item = TaskItem(name,desc,author);
         item.parent = self
         self.procs.append(item)
     def funcCount(self):
@@ -575,18 +580,33 @@ class PackageTaskList(TaskList):
             html = '  <TR><TH CLASS="sub">Procedure</TH><TH CLASS="sub">Task</TH>\n'
         name = ''
         inner = ''
+        author = ''
         for item in items:
             if item.name == name:
                 inner += '<LI>'+item.desc+'</LI>'
             elif inner != '':
-                html += '  <TR><TD VALIGN="top">'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+                if JavaDocVars['author_in_report']:
+                    if author!='':
+                        html += '  <TR><TD VALIGN="top"><B>'+name+'</B><BR>'+author+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+                    else:
+                        html += '  <TR><TD VALIGN="top"><B>'+name+'</B></TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+                else:
+                    html += '  <TR><TD VALIGN="top">'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
                 inner = '<LI>'+item.desc+'</LI>'
                 name  = item.name
             else:
                 inner += '<LI>'+item.desc+'</LI>'
                 name = item.name
+                if len(item.author)>0: author = '('+_('Author')+': '+', '.join(item.author)+')'
+                else: author = ''
         if inner !='':
-            html += '  <TR><TD>'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+            if JavaDocVars['author_in_report']:
+                if author!='':
+                    html += '  <TR><TD VALIGN="top"><B>'+name+'</B><BR>'+author+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+                else:
+                    html += '  <TR><TD VALIGN="top"><B>'+name+'</B></TD><TD><UL>'+inner+'</UL></TD></TR>\n'
+            else:
+                html += '  <TR><TD VALIGN="top">'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
         return html
     def getFuncHtml(self):
         """

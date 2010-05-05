@@ -1,5 +1,9 @@
 # History of Changes for HyperSQL
 
+v3.2.0
+-------------------
++ added option to show author information for the items on bug/todo/verification reports
+
 v3.1.5 (02.05.2010)
 -------------------
 ! Javadoc for sequences was ignored

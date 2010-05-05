@@ -363,15 +363,15 @@ def ScanFilesForViewsAndPackages():
                         ###TODO:### Shouldn't the following two items be in the outer loop to avoid duplicate processing of overloaded functions?
                         if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
                             for ib in range(len(jdoc[j].bug)):
-                                file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug[ib])
+                                file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug[ib],jdoc[j].author)
                         if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
                             for ib in range(len(jdoc[j].todo)):
-                                file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo[ib])
+                                file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo[ib],jdoc[j].author)
                     if not function_info.javadoc.ignore:
                         mname = function_info.javadoc.name or function_info.name
                         mands = function_info.javadoc.verify_mandatory()
                         for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
+                            file_info.packageInfoList[package_count].verification.addFunc(mname,mand,function_info.javadoc.author)
                         if JavaDocVars['javadoc_mandatory'] and function_info.javadoc.isDefault():
                             if JavaDocVars['verification_log']: logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
                             file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'))
@@ -409,15 +409,15 @@ def ScanFilesForViewsAndPackages():
                             procedure_info.javadoc.lndiff = abs(ln)
                         if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
                             for ib in range(len(jdoc[j].bug)):
-                                file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug[ib])
+                                file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug[ib],jdoc[j].author)
                         if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
                             for ib in range(len(jdoc[j].todo)):
-                                file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo[ib])
+                                file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo[ib],jdoc[j].author)
                     if not procedure_info.javadoc.ignore:
                         mname = procedure_info.javadoc.name or procedure_info.name
                         mands = procedure_info.javadoc.verify_mandatory()
                         for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addProc(mname,mand)
+                            file_info.packageInfoList[package_count].verification.addProc(mname,mand,procedure_info.javadoc.author)
                         if JavaDocVars['javadoc_mandatory'] and procedure_info.javadoc.isDefault():
                             if JavaDocVars['verification_log']: logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
                             file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'))
@@ -2204,6 +2204,7 @@ def configRead():
     if metaInfo.cmdOpts.verifyJavadoc is None:
         JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
     else: JavaDocVars['verification'] = metaInfo.cmdOpts.verifyJavadoc
+    JavaDocVars['author_in_report'] = config.getBool('Verification','author_in_report',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
     # Section DEPGRAPH
     metaInfo.graphvizMod   = metaInfo.cmdOpts.graphvizProc or config.get('DepGraph','processor','fdp')

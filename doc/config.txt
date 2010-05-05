@@ -61,20 +61,18 @@ them here!
 In some cases, this might still be useful - handle it with care. The options are
 named similar to their corresponding file names options, so: 
 
- * bug: Index of bugs gathered from the JavaDoc @bug tags
- * depgraph: Dependency graph
- * file: similar for File Index Without Pathnames
  * filepath: the HTML file for the File Index With Pathnames
- * function: guessed right, HTML file for the function index
+ * file: similar for File Index Without Pathnames
+ * view: similar for the views listing
  * package: and for the package index
+ * function: guessed right, HTML file for the function index
  * procedure: procedure index HTML file
  * package_full: Index of packages including all their functions and procedures
- * report: Verification report
- * sequence: sequence listing
- * stat: Some project stats, such as lines of code and file stats
- * synonym: List of synonyms
+ * bug: Index of bugs gathered from the JavaDoc @bug tags
  * todo: Index of todos gathered from the JavaDoc @todo tags
- * view: similar for the views listing
+ * report: Verification report
+ * stat: Some project stats, such as lines of code and file stats
+ * depgraph: Dependency graph
 
 Pages
 -----
@@ -140,7 +138,9 @@ In this section you may setup some JavaDoc verification stuff:
 
  * verify_javadoc: shall JavaDoc be verified at all? (Default: 0)
  * javadoc_mandatory: is JavaDoc mandatory for all your objects? (currently,
-   this does not affect views. Default: 0)
+   this only affects packages) Default: 0 (no)
+ * author_in_report: shall we display @author information for the items in
+   bug/todo/verification reports? Default is 0 (no).
  * mandatory_tags: if JavaDoc is available for an object, which tags (space
    separated) are mandatory? The pseudo-tag "desc" stands for the objects
    description. Default: empty (no mandatory tags).
