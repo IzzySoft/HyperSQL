@@ -145,6 +145,7 @@ class HyperConf(IniParser):
         verification = dict (
             javadoc_mandatory = '0',
             verify_javadoc = '0',
+            author_in_report = '0',
             mandatory_tags = ''
         )
         # Section DEPGRAPH
@@ -163,13 +164,33 @@ class HyperConf(IniParser):
             object2file = '1',
             object2object = '1',
             deltmp = '1',
-            colors_proc = '#ff9933 #000000',
-            colors_view = '#cc3333 #ffffff',
-            colors_func = '#3366ff #ffffff',
-            colors_pkg  = '#33ff00 #000000',
-            colors_synonym = '#ffff00 #000000',
-            colors_file = '#dddddd #000000',
-            colors_sequence = '#993300 #ffffff'
+        )
+        # Section COLORS
+        colors = dict (
+            pkg = '#0000ff #ffffff',
+            proc = '#3366ff #ffffff',
+            func = '#66aaff #000000',
+            tab = '#774411 #ffffff',
+            mview = '#bb6611 #ffffff',
+            view = '#eeaa55 #000000',
+            synonym = '#00ff00 #000000',
+            sequence = '#ffcc00 #000000',
+            typ = '#ffff33 #000000',
+            bug = '#ff0000 #ffffff',
+            warn = '#eeaa55 #000000',
+            todo = '#3366ff #ffffff',
+            code = '#0000ff #ffffff',
+            comment = '#bb6611 #ffffff',
+            mixed = '#eeaa55 #000000',
+            empty = '#dddddd #000000',
+            file = '#dddddd #000000',
+            filebig = '#ff0000 #ffffff',
+            file100k = '#ff4422 #ffffff',
+            file50k = '#dd9944 #000000',
+            file25k = '#ffcc00 #000000',
+            file10k = '#00ff00 #000000',
+            file1000l = '#0000ff #ffffff',
+            file400l = '#ffcc00 #000000'
         )
         # Generate the final dict (dict() allows no nesting)
         vals = {}
@@ -181,4 +202,5 @@ class HyperConf(IniParser):
         vals['Logging']   = logg
         vals['Verification'] = verification
         vals['DepGraph']  = depgraph
+        vals['Colors']    = colors
         self.setVals( vals )

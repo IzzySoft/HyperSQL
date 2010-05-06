@@ -969,16 +969,17 @@ def MakeStatsPage():
 
     outfile.write('<H1>' + metaInfo.indexPageName['stat'] + '</H1>\n')
 
+    c = metaInfo.colors
+
     # LinesOfCode
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('Lines of Code')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Lines')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="6" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
-
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
     js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } MouseOutFS(4); MouseOutO(4); }\n'
-    colors = ['#cc3333','#3366ff','#dddddd','#ff9933','#33ff00']
-    tcols  = ['#ffffff','#ffffff','#000000','#000000','#000000']
+    colors = [col[0] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
+    tcols  = [col[1] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
     pieposx = pie_rad + 2*pie_offset
     pieposy = 0
     # pie = PieChart(name,x,y,offset,rad[,colors[]])
@@ -1010,7 +1011,6 @@ def MakeStatsPage():
     outfile.write("</TABLE>\n")
 
     # Object Stats
-    c = metaInfo.colors
     colors = [col[0] for col in [c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
     tcols  = [col[1] for col in [c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
     posy = 0
@@ -1071,13 +1071,13 @@ def MakeStatsPage():
 
     # FileStats
     barposy = pieposy - 2*pie_rad/3
-    colors = ['#cc3333','#3366ff','#ff9933','#33ff00','#dddddd']
-    tcols  = ['#ffffff','#ffffff','#000000','#000000','#000000']
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('File Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
     totalFiles = metaInfo.getFileStat('files')
     # Lines
+    colors = [col[0] for col in [c['file400l'],c['file1000l'],c['filebig']]]
+    tcols  = [col[1] for col in [c['file400l'],c['file1000l'],c['filebig']]]
     stat = metaInfo.getFileLineStat([400,1000])
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
     limits.sort()
@@ -1116,6 +1116,8 @@ def MakeStatsPage():
         + num_format(metaInfo.getFileStat('max lines')) + '</TD><TD>&nbsp;</TD></TR>\n')
     outfile.write('  <TR><TH COLSPAN="4" CLASS="sub delim">&nbsp;</TH></TR>\n')
     # Sizes
+    colors = [col[0] for col in [c['file10k'],c['file25k'],c['file50k'],c['file100k'],c['filebig']]]
+    tcols  = [col[1] for col in [c['file10k'],c['file25k'],c['file50k'],c['file100k'],c['filebig']]]
     stat = metaInfo.getFileSizeStat([10240,25*1024,50*1024,102400])
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
     limits.sort()
@@ -1162,6 +1164,8 @@ def MakeStatsPage():
     jwarns = 0
     jbugs  = 0
     jtodo  = 0
+    colors = [col[0] for col in [c['warn'],c['bug'],c['todo']]]
+    tcols  = [col[1] for col in [c['warn'],c['bug'],c['todo']]]
     for file_info in metaInfo.fileInfoList:
         for package_info in file_info.packageInfoList:
             jwarns += package_info.verification.taskCount() + package_info.verification.funcCount() + package_info.verification.procCount()
@@ -2116,8 +2120,8 @@ def confColors(name,bg,fg):
     @param string fg text color (Hex HTML color value, e.g. '#ffffff')
     """
     mask = r'#[A-f0-9]{6}'
-    cvals = config.getList('DepGraph','colors_'+name)
-    if re.match(mask,cvals[0]) and re.match(mask,cvals[1]):
+    cvals = config.getList('Colors',name)
+    if cvals and re.match(mask,cvals[0]) and re.match(mask,cvals[1]):
         metaInfo.colors[name] = cvals
     else:
         metaInfo.colors[name] = [bg,fg]
@@ -2235,13 +2239,6 @@ def configRead():
     if metaInfo.makeDepGraph['object2file']:   metaInfo.depGraphCount += 1
     if metaInfo.makeDepGraph['object2object']: metaInfo.depGraphCount += 1
     metaInfo.depGraphDelTmp = config.getBool('DepGraph','deltmp',True)
-    confColors('proc', '#ff9933','#000000')
-    confColors('view', '#cc3333','#ffffff')
-    confColors('func', '#3366ff','#ffffff')
-    confColors('pkg', '#33ff00','#000000')
-    confColors('synonym', '#ffff00','#000000')
-    confColors('sequence', '#993300', '#ffffff')
-    confColors('file', '#dddddd','#000000')
     # Section LOGGING
     if metaInfo.cmdOpts.progress is None:
         metaInfo.printProgress = config.getBool('Logging','progress',True)
@@ -2250,6 +2247,31 @@ def configRead():
         JavaDocVars['verification_log'] = config.getBool('Logging','verification',False)
     else:
         JavaDocVars['verification_log'] = metaInfo.cmdOpts.verificationLog
+    # Section COLORS
+    confColors('pkg', '#0000ff','#ffffff')
+    confColors('proc', '#3366ff','#ffffff')
+    confColors('func', '#66aaff','#000000')
+    confColors('tab', '#774411','#ffffff')
+    confColors('view', '#eeaa55','#000000')
+    confColors('mview', '#bb6611','#ffffff')
+    confColors('synonym', '#00ff00','#000000')
+    confColors('sequence', '#ffcc00', '#000000')
+    confColors('typ', '#ffff33','#000000')
+    confColors('file', '#dddddd','#000000')
+    confColors('empty', '#dddddd','#000000')
+    confColors('code', '#0000ff','#ffffff')
+    confColors('comment', '#bb6611','#ffffff')
+    confColors('mixed', '#eeaa55','#000000')
+    confColors('bug', '#ff0000','#ffffff')
+    confColors('warn', '#eeaa55','#000000')
+    confColors('todo', '#3366ff','#ffffff')
+    confColors('filebig', '#ff0000','#ffffff')
+    confColors('file100k', '#ff4422','#ffffff')
+    confColors('file50k', '#eeaa55','#000000')
+    confColors('file25k', '#ffcc00','#000000')
+    confColors('file10k', '#00ff00','#000000')
+    confColors('file1000l', '#0000ff','#ffffff')
+    confColors('file400l', '#ffcc00','#000000')
     # JavaDoc types for SQL
     JavaDocVars['otypes'] = {
               'function':  dict(name='function',  otags=['param','return','throws']),
@@ -2355,7 +2377,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.1.5"
+    metaInfo.versionString = "3.2.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

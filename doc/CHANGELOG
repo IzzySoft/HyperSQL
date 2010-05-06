@@ -3,6 +3,10 @@
 v3.2.0
 -------------------
 + added option to show author information for the items on bug/todo/verification reports
++ all graph colors are now configurable
+* default graph color scheme has changed (it was far too much red in the old one).
+  Now there are kind of color groups: Blueish for program objects, brownish for
+  data, everything else for the rest.
 
 v3.1.5 (02.05.2010)
 -------------------

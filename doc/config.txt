@@ -178,15 +178,59 @@ Here goes everything for the dependency graphs:
  * file2object: Draw the "file accesses object" graph (default: 0)
  * object2file: Draw the "object accesses file" graph (default: 1)
  * object2object: Draw the "object accesses object" graph (default: 1)
- * colors_proc: Colors to use for procedures in graphs. This must be a pair
-   of hexadecimal HTML colors (e.g. '#ff9933 #000000'), and affects the
-   dependency graph as well as the statistics graph. First color is used for
-   background, second for text.
- * colors_view: Same for views
- * colors_func: Same for functions
- * colors_pkg: Same for packages
- * colors_sequence: Same for sequences
- * colors_synonym: Same for synonyms
+
+Colors
+------
+
+Here goes everything concerning graph colors. The configured values are used for
+both, the statistic and the dependency graphs. Values here are tuples: the first
+defines the background, the second the text color. Notation has to follow the
+hexadecimal HTML definitions for RGB, e.g. #112233 for red=0x11, green=0x22,
+blue=0x33.
+
+The default colors for objects are grouped: Programm objects (packages,
+procedures, functions) have blueish colors assigned, data objects (tables,
+views) brownish to gold. As red signalizes alerts, it is used as such (bugs,
+very large files).
+
+The following settings define colors for database objects, and are used for
+statistic and dependency graphs:
+
+ * pkg: Colors for packages
+ * proc: Colors for procedures
+ * func: Colors for functions
+ * tab: Colors for tables
+ * mview: Colors for materialized views
+ * view: Colors for views
+ * sequence: Colors for sequences
+ * synonym: Colors for synonyms
+ * typ: Colors for types
+ * file: Colors for files
+
+For statistic graphs, we additionally have the following definitions:
+
+Lines of Code:
+
+ * code: Plain code colors
+ * comment: Plain comment colors
+ * mixed: Colors for lines mixing code and (inline) comments
+ * empty: Colors for empty lines
+
+File statistics:
+
+ * filebig: Colors for files larger than 100kb or having more than 1000 lines
+ * file100k: Colors for files smaller than 100kb (but larger than 50kb)
+ * file50k: Colors for files smaller than 50kb (but larger than 25kb)
+ * file25k: Colors for files between 10kb and 25kb
+ * file10k: Colors for files smaller than 10kb
+ * file1000l: Colors for files with 400..1000 lines
+ * file400l: Colors for files with less than 400 lines
+
+JavaDoc statistics:
+
+ * bug: Colors for bugs
+ * warn: Colors for (JavaDoc) verification warnings
+ * todo: Colors for items of the todo list
 
 
 How the configuration works
