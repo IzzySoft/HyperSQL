@@ -2276,7 +2276,7 @@ def configRead():
     JavaDocVars['otypes'] = {
               'function':  dict(name='function',  otags=['param','return','throws']),
               'procedure': dict(name='procedure', otags=['param','throws']),
-              'view':      dict(name='view',      otags=[]),
+              'view':      dict(name='view',      otags=['col']),
               'synonym':   dict(name='synonym',   otags=[]),
               'sequence':  dict(name='sequence',  otags=[]),
               'pkg':       dict(name='package',   otags=[])

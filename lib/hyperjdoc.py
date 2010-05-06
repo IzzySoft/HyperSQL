@@ -30,7 +30,7 @@ JavaDocVars = dict(
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
               'see', 'webpage', 'license', 'ticket', 'wiki', 'since',
-              'uses', 'ignore', 'throws'], # other supported tags
+              'uses', 'ignore', 'throws','col'], # other supported tags
     txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
                'copyright', 'deprecated', 'see', 'webpage', 'license',
                'ticket', 'wiki', 'desc', 'since', 'uses', 'throws'] # values of these tags are plain text
@@ -93,6 +93,7 @@ class JavaDoc(object):
         self.objectType = ''
         self.params = []
         self.retVals = []
+        self.cols = []
         self.desc = []
         self.version = []
         self.author = []
@@ -270,6 +271,16 @@ class JavaDoc(object):
               html += ': ' + self.retVals[p].desc
             html += '</LI>'
           html += '</UL></DD>\n'
+
+        if 'col' in JavaDocVars['otypes'][self.objectType]['otags']:
+          html += ' <DT>'+_('Columns')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
+          for p in range(len(self.cols)):
+            html += '<LI>' + self.cols[p].sqltype + ' <B>' + self.cols[p].name + '</B>'
+            if self.cols[p].desc != '':
+              html += ': ' + self.cols[p].desc
+            html += '</LI>'
+          html += '</UL></DD>\n'
+
         if len(self.example) > 0:
           html += '<DT>'+_('Example Usage')+':</DT>'
           for i in range(len(self.example)):
@@ -723,9 +734,9 @@ def ScanJavaDoc(text,fileName,lineNo=0):
                     p.desc += doc[w] + ' '
                   p.desc = p.desc.strip()
               item.params.append(p)
-          elif tag == 'return': # @return type [name [desc]]
+          elif tag in ['return','col']: # @(return|col) type [name [desc]]
             if len(doc) < 2:
-              logger.info(_('@return requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
+              logger.info(_('@%(tag)s requires at least one parameter, none given in %(file)s line %(line)s'), {'tag':tag,'file':fileName, 'line':lineNumber})
             else:
               p = JavaDocParam()
               p.sqltype = doc[1].upper()
@@ -733,7 +744,8 @@ def ScanJavaDoc(text,fileName,lineNo=0):
                 p.name = doc[2]
                 for w in range(3,len(doc)):
                   p.desc += doc[w] + ' '
-              item.retVals.append(p)
+              if (tag=='return'): item.retVals.append(p)
+              else: item.cols.append(p)
           elif tag == 'private':
             item.private = True
           elif tag == 'ignore':

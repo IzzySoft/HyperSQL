@@ -74,10 +74,15 @@ Object types:
  * @synonym <name>
  * @sequence <name>
 
-Other tags:
+Object properties:
 
  * @param [in|out|inout] <type> [<name> [<description>]
  * @return <type> [<name> [<description>]
+ * @col <type> [<name> [<description>]
+ * @throws <name> [<description>]
+
+Other object information:
+
  * @version <text>
  * @author <text>
  * @info <text>
@@ -89,6 +94,5 @@ Other tags:
  * @private
  * @see <text>
  * @since <text>
- * @throws <name> [<description>]
  * @uses <object> [<object> ...]
  * @webpage <text>
