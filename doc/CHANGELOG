@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.2.0
+v3.2.0 (09.05.2010)
 -------------------
 + added option to show author information for the items on bug/todo/verification reports
 + all graph colors are now configurable
