@@ -63,6 +63,7 @@ named similar to their corresponding file names options, so:
 
  * filepath: the HTML file for the File Index With Pathnames
  * file: similar for File Index Without Pathnames
+ * tab: similar for the tables listing
  * view: similar for the views listing
  * mview: similar for the listing of materialized views
  * package: and for the package index

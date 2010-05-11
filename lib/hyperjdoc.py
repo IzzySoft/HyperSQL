@@ -272,7 +272,7 @@ class JavaDoc(object):
             html += '</LI>'
           html += '</UL></DD>\n'
 
-        if 'col' in JavaDocVars['otypes'][self.objectType]['otags']:
+        if 'col' in JavaDocVars['otypes'][self.objectType]['otags'] and len(self.cols)>0:
           html += ' <DT>'+_('Columns')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
           for p in range(len(self.cols)):
             html += '<LI>' + self.cols[p].sqltype + ' <B>' + self.cols[p].name + '</B>'

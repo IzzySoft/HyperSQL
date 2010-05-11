@@ -69,6 +69,7 @@ Object types:
 
  * @function <name>
  * @procedure <name>
+ * @table <name>
  * @view <name>
  * @mview <name>
  * @pkg <name>

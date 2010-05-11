@@ -251,6 +251,24 @@ def ScanFilesForViewsAndPackages():
                 metaInfo.incLoc('comment') # we had just comments in this line (???)
                 continue
 
+            # find tables.
+            if metaInfo.indexPage['tab'] != '':
+                for token_index in range(len(token_list)):
+                    # look for CREATE [GLOBAL TEMPORARY] TABLE [schema.]table (...), making sure enough tokens exist
+                    if len(token_list) > token_index+1 \
+                    and token_list[token_index+1].upper() == "TABLE" \
+                    and (token_list[token_index].upper() == "CREATE" \
+                        or token_list[token_index].upper() == "TEMPORARY"):
+                        tab_info = ElemInfo()
+                        tab_info.parent = file_info
+                        if len(token_list) > token_index+2:
+                          tab_info.name = token_list[token_index+2]
+                        else:
+                          tab_info.name = token_list1[0]
+                        tab_info.name = fixQuotedName(tab_info.name)
+                        ElemInfoAppendJdoc(tab_info,'table',lineNumber,jdoc)
+                        file_info.tabInfoList.append(tab_info)
+
             # find views.  Loop through looking for the different styles of view definition
             if metaInfo.indexPage['view'] != '':
                 for token_index in range(len(token_list)):
@@ -270,7 +288,7 @@ def ScanFilesForViewsAndPackages():
                         ElemInfoAppendJdoc(view_info,'view',lineNumber,jdoc)
                         file_info.viewInfoList.append(view_info)
 
-            # find mviews.  Loop through looking for the different styles of view definition
+            # find mviews.
             if metaInfo.indexPage['mview'] != '':
                 for token_index in range(len(token_list)):
                     # CREATE MATERIALIZED VIEW [schema.]mview ...
@@ -468,6 +486,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
     def findUsingObject(fInfo,lineNumber):
         vObj = ElemInfo()
         mObj = ElemInfo()
+        tObj = ElemInfo()
         pObj = ElemInfo()
         fObj = ElemInfo()
         sqObj = ElemInfo()
@@ -481,6 +500,10 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             for sInfo in fInfo.synInfoList:
                 if sInfo.lineNumber < lineNumber: syObj = sInfo
                 else: break;
+        if len(fInfo.tabInfoList)!=0:
+            for tInfo in fInfo.tabInfoList:
+                if tInfo.lineNumber < lineNumber: tObj = tInfo
+                else: break
         if len(fInfo.viewInfoList)!=0:
             for vInfo in fInfo.viewInfoList:
                 if vInfo.lineNumber < lineNumber: vObj = vInfo
@@ -501,6 +524,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         sobj = [
                 ['sequence',sqObj.lineNumber,sqObj],
                 ['synonym',syObj.lineNumber,syObj],
+                ['tab',tObj.lineNumber,tObj],
                 ['view',vObj.lineNumber,vObj],
                 ['mview',mObj.lineNumber,mObj],
                 ['pkg',PObj.lineNumber,PObj],
@@ -522,7 +546,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         @param string otype object type of the used object
         """
         uType,uObj = findUsingObject(fileInfo,lineNumber)
-        if uType in ['sequence','table']: # these objects are not using other objects
+        if uType in ['sequence','tab']: # these objects are not using other objects
             return
         if fileInfo.fileName not in objectInfo.whereUsed.keys():
             objectInfo.whereUsed[fileInfo.fileName] = []
@@ -694,6 +718,14 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             usage_flag = 1
             for token_index in range(len(token_list)):
 
+                # look for CREATE [GLOBAL TEMPORARY] TABLE, making sure enough tokens exist
+                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "TABLE" \
+                and (token_list[token_index].upper() == "CREATE" \
+                    or token_list[token_index].upper() == "TEMPORARY"):
+                    # we are creating - not using.  Set flag to 0
+                    usage_flag = 0
+
                 # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
                 if metaInfo.indexPage['view'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "VIEW" \
@@ -756,6 +788,13 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
             # Loop through all previously found views and packages to see if they are used in this line of text
             for inner_file_info in fileInfoList:
+
+                # if this FileInfo instance has tables
+                if len(inner_file_info.tabInfoList) != 0:
+                    for tab_info in inner_file_info.tabInfoList:
+                        # perform case insensitive find
+                        if re.search('\\b'+tab_info.name+'\\b',fileLines[lineNumber],re.I):
+                            addWhereUsed(tab_info, outer_file_info, lineNumber, 'tab')
 
                 # if this FileInfo instance has views
                 if len(inner_file_info.viewInfoList) != 0:
@@ -850,7 +889,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar'>\n"
-    for item in ['package','function','procedure','package_full','view','mview','synonym','sequence','file','filepath','bug','todo','report','stat','depgraph']:
+    for item in ['package','function','procedure','package_full','tab','view','mview','synonym','sequence','file','filepath','bug','todo','report','stat','depgraph']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -1050,9 +1089,10 @@ def MakeStatsPage():
     outfile.write("</TABLE>\n")
 
     # Object Stats
-    colors = [col[0] for col in [c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
-    tcols  = [col[1] for col in [c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
+    colors = [col[0] for col in [c['tab'],c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
+    tcols  = [col[1] for col in [c['tab'],c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
     posy = 0
+    tabs = 0
     views = 0
     mviews = 0
     funcs = 0
@@ -1060,6 +1100,7 @@ def MakeStatsPage():
     synonyms = 0
     sequences = 0
     for file_info in metaInfo.fileInfoList:
+        tabs += len(file_info.tabInfoList)
         views += len(file_info.viewInfoList)
         mviews += len(file_info.mviewInfoList)
         synonyms += len(file_info.synInfoList)
@@ -1067,7 +1108,7 @@ def MakeStatsPage():
         for package_info in file_info.packageInfoList:
             funcs += len(package_info.functionInfoList)
             procs += len(package_info.procedureInfoList)
-    totalObj = views + mviews + synonyms + sequences + funcs + procs
+    totalObj = tabs + views + mviews + synonyms + sequences + funcs + procs
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('Object Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
@@ -1075,6 +1116,7 @@ def MakeStatsPage():
     if totalObj > 0:
         barposy = pieposy - pie_rad
         pie = PieChart('O',pieposx,pieposy,pie_offset,pie_rad,colors)
+        pie.addPiece((float(tabs)/totalObj) * 100)
         pie.addPiece((float(mviews)/totalObj) * 100)
         pie.addPiece((float(views)/totalObj) * 100)
         pie.addPiece((float(funcs)/totalObj) * 100)
@@ -1083,6 +1125,7 @@ def MakeStatsPage():
         pie.addPiece((float(sequences)/totalObj) * 100)
         js += pie.generate();
         bar = ChartLegend('O',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
+        bar.addBar(_('Tables'))
         bar.addBar(_('MViews'))
         bar.addBar(_('Views'))
         bar.addBar(_('Functions'))
@@ -1090,6 +1133,7 @@ def MakeStatsPage():
         bar.addBar(_('Synonyms'))
         bar.addBar(_('Sequences'))
         js += bar.generate()
+        tabPct = num_format((float(tabs)/totalObj) * 100, 2)
         viewPct = num_format((float(views)/totalObj) * 100, 2)
         mviewPct = num_format((float(views)/totalObj) * 100, 2)
         funcPct = num_format((float(funcs)/totalObj) * 100, 2)
@@ -1098,6 +1142,7 @@ def MakeStatsPage():
         sequencePct = num_format((float(sequences)/totalObj) * 100, 2)
     else:
         js += 'function MouseOutO(i) {return;}\n'
+        tabPct = num_format(0.0, 2)
         viewPct = num_format(0.0, 2)
         mviewPct = num_format(0.0, 2)
         synonymPct = num_format(0.0, 2)
@@ -1107,6 +1152,7 @@ def MakeStatsPage():
     js += '</SCRIPT>\n'
     outfile.write(js);
     outfile.write('</DIV></TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Tables')+'</TH><TD ALIGN="right">'+num_format(tabs)+'</TD><TD ALIGN="right">'+tabPct+'%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Materialized Views')+'</TH><TD ALIGN="right">'+num_format(mviews)+'</TD><TD ALIGN="right">'+mviewPct+'%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Views')+'</TH><TD ALIGN="right">'+num_format(views)+'</TD><TD ALIGN="right">'+viewPct+'%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Functions')+'</TH><TD ALIGN="right">'+num_format(funcs)+'</TD><TD ALIGN="right">'+funcPct+'%</TD></TR>\n')
@@ -1406,7 +1452,7 @@ def MakeElemIndex(objectType):
 def MakeElem2Index(objectType):
     """Generate HTML index page for all views or synonyms"""
 
-    if objectType not in ['view','mview','synonym','sequence']: # not a valid/supported objectType
+    if objectType not in ['tab','view','mview','synonym','sequence']: # not a valid/supported objectType
         return
     if metaInfo.indexPage[objectType] == '': # Index was turned off
         return
@@ -1416,7 +1462,10 @@ def MakeElem2Index(objectType):
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage[objectType]
-    if objectType == 'view':
+    if objectType == 'tab':
+      html_title = _('Index Of All Tables')
+      object_name = _('Table')
+    elif objectType == 'view':
       html_title = _('Index Of All Views')
       object_name = _('View')
     elif objectType == 'mview':
@@ -1425,16 +1474,21 @@ def MakeElem2Index(objectType):
     elif objectType == 'sequence':
       html_title = _('Index Of All Sequences')
       object_name = _('Sequence')
-    else:
+    elif objectType == 'synonym':
       html_title = _('Index Of All Synonyms')
       object_name = _('Synonym')
+    else:
+      html_title = _('Index for unknown object type %s', objectType)
+      object_name = _('Object')
 
     objectTupleList = []
     for file_info in fileInfoList:
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
-        if objectType == 'view':
+        if objectType == 'tab':
+          objectList = file_info.tabInfoList
+        elif objectType == 'view':
           objectList = file_info.viewInfoList
         elif objectType == 'mview':
           objectList = file_info.mviewInfoList
@@ -1739,6 +1793,12 @@ def CreateHyperlinkedSourceFilePages():
         file_info.sortLists()
         viewdetails = '\n\n'
 
+        # Do we have tables in this file?
+        if len(file_info.tabInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Tables')+'</H2>\n')
+            for v in range(len(file_info.tabInfoList)):
+                outfile.write(file_info.tabInfoList[v].javadoc.getHtml(file_info.tabInfoList[v].uniqueNumber))
+
         # Do we have views in this file?
         if len(file_info.viewInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Views')+'</H2>\n')
@@ -1949,7 +2009,10 @@ def CreateWhereUsedPages():
             pname = _('What Used List for %s') % obj.name
             fname = metaInfo.htmlDir + 'what_used_' + `unum` + '.html'
         outfile = fopen(fname, 'w', metaInfo.encoding)
-        if otype=='view':
+        if otype=='tab':
+            outfile.write(MakeHTMLHeader(pname))
+            outfile.write( makeUsageTableHead(_('Table'),obj.name,page) )
+        elif otype=='view':
             outfile.write(MakeHTMLHeader(pname))
             outfile.write( makeUsageTableHead(_('View'),obj.name,page) )
         elif otype=='mview':
@@ -1999,6 +2062,12 @@ def CreateWhereUsedPages():
         if file_info.fileType != 'sql':
             continue
 
+        # loop through tables
+        for tab_info in file_info.tabInfoList:
+            #create a "where used" file
+            if len(tab_info.whereUsed.keys()) != 0:
+                makeUsagePage('where','tab',view_info)
+
         # loop through views
         for view_info in file_info.viewInfoList:
             #create a "where used" file
@@ -2022,9 +2091,6 @@ def CreateWhereUsedPages():
             #create a "where used" file
             if len(syn_info.whereUsed.keys()) != 0:
                 makeUsagePage('where','synonym',syn_info)
-            #create a "what used" file
-            if len(syn_info.whatUsed.keys()) != 0:
-                makeUsagePage('what','synonym',syn_info)
 
         # loop through synonyms
         for seq_info in file_info.seqInfoList:
@@ -2240,6 +2306,7 @@ def configRead():
     confPage('file','FileNameIndexNoPathnames.html',_('File Name Index'),True)
     confPage('view','ViewIndex.html',_('View Index'),False)
     confPage('mview','MViewIndex.html',_('MView Index'),False)
+    confPage('tab','TableIndex.html',_('Table Index'),False)
     confPage('synonym','SynonymIndex.html',_('Synonym Index'),False)
     confPage('sequence','SequenceIndex.html',_('Sequence Index'),False)
     confPage('package','PackageIndex.html',_('Package Index'),True)
@@ -2346,6 +2413,7 @@ def configRead():
     JavaDocVars['otypes'] = {
               'function':  dict(name='function',  otags=['param','return','throws']),
               'procedure': dict(name='procedure', otags=['param','throws']),
+              'table':     dict(name='table',     otags=['col']),
               'view':      dict(name='view',      otags=['col']),
               'mview':     dict(name='mview',     otags=['col']),
               'synonym':   dict(name='synonym',   otags=[]),
@@ -2524,6 +2592,7 @@ if __name__ == "__main__":
     # Generating the index pages
     MakeFileIndex('filepath')
     MakeFileIndex('file')
+    MakeElem2Index('tab')
     MakeElem2Index('view')
     MakeElem2Index('mview')
     MakeElem2Index('synonym')

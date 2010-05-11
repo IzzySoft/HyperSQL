@@ -2,7 +2,8 @@
 
 v3.2.5
 -------------------
-+ added support vor materialized views
++ added support vor materialized views and tables
+! columns block was shown in Javadoc HTML even when no cols had been specified
 
 v3.2.0 (09.05.2010)
 -------------------
