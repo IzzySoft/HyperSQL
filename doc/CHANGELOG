@@ -1,5 +1,9 @@
 # History of Changes for HyperSQL
 
+v3.2.5
+-------------------
++ added support vor materialized views
+
 v3.2.0 (09.05.2010)
 -------------------
 + added option to show author information for the items on bug/todo/verification reports

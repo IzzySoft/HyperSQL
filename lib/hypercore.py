@@ -63,6 +63,7 @@ class FileInfo:
         self.fileName = ""
         self.fileType = "" # cpp files are only scanned for sql "where used" information
         self.viewInfoList = []
+        self.mviewInfoList = []
         self.synInfoList = []
         self.seqInfoList = []
         self.packageInfoList = []

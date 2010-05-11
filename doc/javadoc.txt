@@ -70,6 +70,7 @@ Object types:
  * @function <name>
  * @procedure <name>
  * @view <name>
+ * @mview <name>
  * @pkg <name>
  * @synonym <name>
  * @sequence <name>

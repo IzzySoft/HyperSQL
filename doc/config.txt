@@ -64,6 +64,7 @@ named similar to their corresponding file names options, so:
  * filepath: the HTML file for the File Index With Pathnames
  * file: similar for File Index Without Pathnames
  * view: similar for the views listing
+ * mview: similar for the listing of materialized views
  * package: and for the package index
  * function: guessed right, HTML file for the function index
  * procedure: procedure index HTML file
