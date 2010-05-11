@@ -1055,7 +1055,7 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Lines')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="6" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
-    js += 'function initCharts() { for (var i=0;i<4;++i) { MouseOutL(i); MouseOutFS(i); MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } MouseOutFS(4); MouseOutO(4); }\n'
+    js += 'function initCharts() { for (var i=0;i<7;++i) { if (i<4) { MouseOutL(i); MouseOutFS(i); } MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } }\n'
     colors = [col[0] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
     tcols  = [col[1] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
     pieposx = pie_rad + 2*pie_offset
@@ -2066,7 +2066,7 @@ def CreateWhereUsedPages():
         for tab_info in file_info.tabInfoList:
             #create a "where used" file
             if len(tab_info.whereUsed.keys()) != 0:
-                makeUsagePage('where','tab',view_info)
+                makeUsagePage('where','tab',tab_info)
 
         # loop through views
         for view_info in file_info.viewInfoList:
