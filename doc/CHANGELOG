@@ -4,6 +4,11 @@ v3.2.5
 -------------------
 + added support vor materialized views and tables
 ! columns block was shown in Javadoc HTML even when no cols had been specified
+* adjusted legend on object graphs
++ javadoc: made parameter and column lists better readable
+* some adjustments to the dependency graphs and dependency scans
+* CSS file and project logo are now copied to HTML dir at the very beginning
+  (so if processing a large project, already finished files already display correctly)
 
 v3.2.0 (09.05.2010)
 -------------------

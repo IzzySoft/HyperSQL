@@ -255,13 +255,20 @@ class JavaDoc(object):
               html += ', '
           html += ')</DIV></DD>\n'
           if len(self.params) > 0:
-            html += ' <DT>'+_('Parameters')+':</DT><DD>'
+            html += ' <DT>'+_('Parameters')+':</DT><DD><TABLE><TR>'
+            html += '<TH CLASS="sub">' + _('Parameter') + '</TH>'
+            html += '<TH CLASS="sub">In/Out</TH>'
+            html += '<TH CLASS="sub">' + _('Data Type') + '</TH>'
+            html += '<TH CLASS="sub">' + _('Description') + '</TH></TR>'
+            i = 0
             for p in range(len(self.params)):
-              html += '<DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.params[p].inout + ' ' + self.params[p].sqltype + ' <B>' + self.params[p].name + '</B>'
-              if self.params[p].desc != '':
-                html += ': ' + self.params[p].desc
-              html += '</DIV>'
-            html += '</DD>\n'
+              html += '<TR CLASS="tr'+`i`+'"><TD>' + self.params[p].name + '</TD>'
+              html += '<TD>' + self.params[p].inout + '</TD>'
+              html += '<TD>' + self.params[p].sqltype + '</TD>'
+              if self.params[p].desc != '': html += '<TD>' + self.params[p].desc + '</TD></TR>'
+              else: html += '<TD>&nbsp;</TD></TR>'
+              i = (i+1) % 2
+            html += '</TABLE></DD>\n'
 
         if 'return' in JavaDocVars['otypes'][self.objectType]['otags']:
           html += ' <DT>'+_('Return values')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
@@ -273,13 +280,17 @@ class JavaDoc(object):
           html += '</UL></DD>\n'
 
         if 'col' in JavaDocVars['otypes'][self.objectType]['otags'] and len(self.cols)>0:
-          html += ' <DT>'+_('Columns')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
+          html += ' <DT>'+_('Columns')+':</DT><DD><TABLE>'
+          html += '<TR><TH CLASS="sub">'+_('Column')+'</TH><TH CLASS="sub">'
+          html += _('Data Type')+'</TH><TH CLASS="sub">'+_('Description')+'</TH></TR>'
+          i = 0
           for p in range(len(self.cols)):
-            html += '<LI>' + self.cols[p].sqltype + ' <B>' + self.cols[p].name + '</B>'
-            if self.cols[p].desc != '':
-              html += ': ' + self.cols[p].desc
-            html += '</LI>'
-          html += '</UL></DD>\n'
+            html += '<TR CLASS="tr'+`i`+'"><TD>' + self.cols[p].name + '</TD>'
+            html += '<TD>' + self.cols[p].sqltype + '</TD>'
+            if self.cols[p].desc != '': html += '<TD>' + self.cols[p].desc + '</TD></TR>'
+            else: html += '<TD>&nbsp;</TD></TR>'
+            i = (i+1) % 2
+          html += '</TABLE></DD>\n'
 
         if len(self.example) > 0:
           html += '<DT>'+_('Example Usage')+':</DT>'

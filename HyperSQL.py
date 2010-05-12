@@ -546,42 +546,42 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         @param string otype object type of the used object
         """
         uType,uObj = findUsingObject(fileInfo,lineNumber)
-        if uType in ['sequence','tab']: # these objects are not using other objects
-            return
         if fileInfo.fileName not in objectInfo.whereUsed.keys():
             objectInfo.whereUsed[fileInfo.fileName] = []
         objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
         # generate a unique number for use in making where used file if needed
         if objectInfo.uniqueNumber == 0: objectInfo.uniqueNumber = metaInfo.NextIndex()
+        if uType in ['sequence','tab']: # these objects are not using other objects
+            return
         # now care for the what_used
-        if uType != 'file': # sequences and tables are not using other objects
-            if otype in ['view','mview','pkg','synonym','sequence']:
-                fname = objectInfo.parent.fileName
-                finfo = objectInfo.parent
-            elif otype in ['func','proc']:
+        if uType != 'file':
+          if otype in ['view','mview','pkg','synonym','sequence','tab']:
+            fname = objectInfo.parent.fileName
+            finfo = objectInfo.parent
+          elif otype in ['func','proc']:
+            try:
+                fname = objectInfo.parent.parent.fileName
+                finfo = objectInfo.parent.parent
+            except:
                 try:
-                    fname = objectInfo.parent.parent.fileName
-                    finfo = objectInfo.parent.parent
+                    fname = objectInfo.parent.fileName
+                    finfo = objectInfo.parent
                 except:
-                    try:
-                        fname = objectInfo.parent.fileName
-                        finfo = objectInfo.parent
-                    except:
-                        logger.warn(_('Could not find filename for %(otype)s %(name)s'), {'otype':otype, 'name':objectInfo.name})
-                        fname = fileInfo.fileName
-                        finfo = fileInfo
-            else:
-                fname = fileInfo.fileName
-                finfo = fileInfo
-            if fname not in uObj.whatUsed.keys():
-                uObj.whatUsed[fname] = []
-            uObj.whatUsed[fname].append((finfo, objectInfo.lineNumber, otype, objectInfo))
-            if uObj.uniqueNumber == 0: uObj.uniqueNumber = metaInfo.NextIndex()
-            if uType in ['func','proc'] and hasattr(uObj.parent,'whatUsed'): # add the info to pkg as well
-                if finfo.fileName not in uObj.parent.whatUsed.keys():
-                    uObj.parent.whatUsed[finfo.fileName] = []
-                uObj.parent.whatUsed[finfo.fileName].append((finfo, objectInfo.lineNumber, otype, objectInfo))
-                if uObj.parent.uniqueNumber == 0: uObj.parent.uniqueNumber = metaInfo.NextIndex()
+                    logger.warn(_('Could not find filename for %(otype)s %(name)s'), {'otype':otype, 'name':objectInfo.name})
+                    fname = fileInfo.fileName
+                    finfo = fileInfo
+          else:
+            fname = fileInfo.fileName
+            finfo = fileInfo
+          if fname not in uObj.whatUsed.keys():
+            uObj.whatUsed[fname] = []
+          uObj.whatUsed[fname].append((finfo, objectInfo.lineNumber, otype, objectInfo))
+          if uObj.uniqueNumber == 0: uObj.uniqueNumber = metaInfo.NextIndex()
+          if uType in ['func','proc'] and hasattr(uObj.parent,'whatUsed'): # add the info to pkg as well
+            if finfo.fileName not in uObj.parent.whatUsed.keys():
+                uObj.parent.whatUsed[finfo.fileName] = []
+            uObj.parent.whatUsed[finfo.fileName].append((finfo, objectInfo.lineNumber, otype, objectInfo))
+            if uObj.parent.uniqueNumber == 0: uObj.parent.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects \
           and uObj.lineNumber != -1 \
@@ -612,6 +612,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
                 if not props in metaInfo.depGraph['file2object']:
                     metaInfo.depGraph['file2object'].append(props)
+                props = '"' + oto + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
+                if not props in metaInfo.depGraph['file2object']:
+                    metaInfo.depGraph['file2object'].append(props)
             # full: object -> object
             if otype in ['proc','func'] and objectInfo.parent: oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
             else: oname = objectInfo.name.lower()
@@ -624,6 +627,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 props = '"' + oname + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
                 if not props in metaInfo.depGraph['object2object']:
                     metaInfo.depGraph['object2object'].append(props)
+                props = '"' + oto + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
+                if not props in metaInfo.depGraph['file2object']:
+                    metaInfo.depGraph['file2object'].append(props)
 
 
     fileInfoList = metaInfo.fileInfoList
@@ -1114,7 +1120,7 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     if totalObj > 0:
-        barposy = pieposy - pie_rad
+        barposy = pieposy - 4*pie_rad/3
         pie = PieChart('O',pieposx,pieposy,pie_offset,pie_rad,colors)
         pie.addPiece((float(tabs)/totalObj) * 100)
         pie.addPiece((float(mviews)/totalObj) * 100)
@@ -1892,16 +1898,11 @@ def CreateHyperlinkedSourceFilePages():
     # complete line on task completion
     pbarClose()
 
-
-def CreateIndexPage():
-    """Generates the main index page"""
-    printProgress(_('Creating site index page'))
+def CopyStaticFiles():
+    """Copy static files (CSS etc.) to HTML dir"""
+    printProgress(_('Copying static files'))
 
     html_dir = metaInfo.htmlDir
-    script_name = metaInfo.scriptName
-
-    outfile = fopen(html_dir + 'index.html', 'w', metaInfo.encoding)
-    outfile.write(MakeHTMLHeader('Index'))
 
     # Copy the StyleSheet
     if os.path.exists(metaInfo.css_file):
@@ -1910,16 +1911,29 @@ def CreateIndexPage():
       except IOError:
         logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('CSS-File'),'target':_('HTML-Dir')})
 
-    outfile.write('<H1 STYLE="margin-top:100px">' + metaInfo.title_prefix + ' '+_('HyperSQL Reference')+'</H1>\n')
-
-    outfile.write('<BR><BR>\n')
-    outfile.write('<TABLE ID="projectinfo" ALIGN="center"><TR><TD VALIGN="middle" ALIGN="center">\n')
+    # Copy project logo (if any)
     if metaInfo.projectLogo != '':
       logoname = os.path.split(metaInfo.projectLogo)[1]
       try:
         copy2(metaInfo.projectLogo,html_dir + logoname)
       except IOError:
         logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('project logo'),'target':_('HTML-Dir')})
+
+def CreateIndexPage():
+    """Generates the main index page"""
+    printProgress(_('Creating site index page'))
+
+    html_dir = metaInfo.htmlDir
+
+    outfile = fopen(html_dir + 'index.html', 'w', metaInfo.encoding)
+    outfile.write(MakeHTMLHeader('Index'))
+
+    outfile.write('<H1 STYLE="margin-top:100px">' + metaInfo.title_prefix + ' '+_('HyperSQL Reference')+'</H1>\n')
+
+    outfile.write('<BR><BR>\n')
+    outfile.write('<TABLE ID="projectinfo" ALIGN="center"><TR><TD VALIGN="middle" ALIGN="center">\n')
+    if metaInfo.projectLogo != '':
+      logoname = os.path.split(metaInfo.projectLogo)[1]
       outfile.write('  <IMG ALIGN="center" SRC="' + logoname + '" ALT="Logo"><BR><BR><BR>\n')
     outfile.write(metaInfo.projectInfo)
     outfile.write('</TD></TR></TABLE>\n')
@@ -2588,6 +2602,7 @@ if __name__ == "__main__":
     purge_cache()
 
     CreateHTMLDirectory()
+    CopyStaticFiles()
 
     # Generating the index pages
     MakeFileIndex('filepath')
