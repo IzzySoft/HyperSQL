@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.2.5
+v3.2.5 (12.05.2010)
 -------------------
 + added support vor materialized views and tables
 ! columns block was shown in Javadoc HTML even when no cols had been specified
