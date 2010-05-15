@@ -717,6 +717,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             if  len(token_list) == 0:
                 # nothing more on line
                 continue
+            if token_list[0].upper() in ['PROMPT','GRANT']:
+                # that's no usage
+                continue
 
             # usage only, no creates, replace, force views packages functions or procedures
             # we are scanning a LINE for USAGE - so if we find a CREATE on the line, having
@@ -728,8 +731,26 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "TABLE" \
                 and (token_list[token_index].upper() == "CREATE" \
-                    or token_list[token_index].upper() == "TEMPORARY"):
-                    # we are creating - not using.  Set flag to 0
+                    or token_list[token_index].upper() == "TEMPORARY" \
+                    or token_list[token_index].upper() == "DROP" \
+                    or token_list[token_index].upper() == "ALTER" \
+                    or (token_index>1 and token_list[token_index].upper() == 'ON' and token_list[token_index-1].upper() == 'COMMENT')):
+                    # we are creating, dropping, altering, or commenting - not using.  Set flag to 0
+                    usage_flag = 0
+
+                # check for COMMENT ON COLUMN
+                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 and token_index > 1 \
+                and token_list[token_index+1].upper() == "COLUMN" \
+                and token_list[token_index].upper() == "ON" \
+                and token_list[token_index-1].upper() == "COMMENT":
+                    # we are just commenting on a table column
+                    usage_flag = 0
+
+                # look for CREATE INDEX
+                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "INDEX" \
+                and token_list[token_index].upper() == "CREATE":
+                    # we don't consider index creation as usage for tables
                     usage_flag = 0
 
                 # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
@@ -753,8 +774,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 if metaInfo.indexPage['sequence'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "SEQUENCE" \
                 and (token_list[token_index].upper() == "CREATE" \
-                    or token_list[token_index].upper() == "DROP"):
-                    # we are creating, or dropping - not using.  Set flag to 0
+                    or token_list[token_index].upper() == "DROP" \
+                    or token_list[token_index].upper() == "ALTER"):
+                    # we are creating, altering, or dropping - not using.  Set flag to 0
                     usage_flag = 0
 
                 # look for SYNONYMs
@@ -1061,7 +1083,7 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Lines')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="6" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
-    js += 'function initCharts() { for (var i=0;i<7;++i) { if (i<4) { MouseOutL(i); MouseOutFS(i); } MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } }\n'
+    js += 'function initCharts() { for (var i=0;i<7;++i) { if (i<4) { MouseOutL(i); } if (i<5) { MouseOutFS(i); } MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } }\n'
     colors = [col[0] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
     tcols  = [col[1] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
     pieposx = pie_rad + 2*pie_offset
@@ -2530,7 +2552,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.2.5"
+    metaInfo.versionString = "3.2.7"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

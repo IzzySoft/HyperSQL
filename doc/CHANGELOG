@@ -1,5 +1,10 @@
 # History of Changes for HyperSQL
 
+v3.3.0
+-------------------
+* usage scan now ignores ALTER (TABLE|SYNONYM) as this is no real usage. Same
+  for COMMENT ON (TABLE|COLUMN), CREATE INDEX, GRANT, and PROMPT
+
 v3.2.5 (12.05.2010)
 -------------------
 + added support vor materialized views and tables
