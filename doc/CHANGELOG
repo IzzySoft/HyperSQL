@@ -4,6 +4,8 @@ v3.3.0
 -------------------
 * usage scan now ignores ALTER (TABLE|SYNONYM) as this is no real usage. Same
   for COMMENT ON (TABLE|COLUMN), CREATE INDEX, GRANT, and PROMPT
+* bug, todo, and validation items for tables, (m)views, synonyms, and sequences
+  are now added to the global bug/todo/validation lists
 
 v3.2.5 (12.05.2010)
 -------------------

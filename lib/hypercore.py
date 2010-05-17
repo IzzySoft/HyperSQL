@@ -15,7 +15,7 @@ except:
 
 
 class ElemInfo(object):
-    """ Object to hold information about a view, function, or procedure """
+    """ Object to hold information about a function, or procedure """
     def __init__(self):
         """ Initialize the object with useful defaults """
         self.name = ""
@@ -35,16 +35,22 @@ class ElemInfo(object):
         else: ret += ' without parent'
         return ret + ', attached JavaDoc:\n' + self.javadoc
 
-class PackageInfo(ElemInfo):
-    """ Object to hold information about a package """
+class StandAloneElemInfo(ElemInfo):
+    """ Object to hold information about stand-alone elements (tables, views, etc.) """
     def __init__(self):
         """ Initialize the object with useful defaults """
         ElemInfo.__init__(self)
-        self.functionInfoList = []
-        self.procedureInfoList = []
         self.bugs = PackageTaskList()
         self.todo = PackageTaskList()
         self.verification = PackageTaskList()
+
+class PackageInfo(StandAloneElemInfo):
+    """ Object to hold information about a package """
+    def __init__(self):
+        """ Initialize the object with useful defaults """
+        StandAloneElemInfo.__init__(self)
+        self.functionInfoList = []
+        self.procedureInfoList = []
 
 def listCompName(a,b):
     """
@@ -56,7 +62,7 @@ def listCompName(a,b):
     elif a.name > b.name: return 1
     else: return 0
 
-class FileInfo:
+class FileInfo(object):
     """ Object to hold information about a file """
     def __init__(self):
         """ Initialize the object with useful defaults """

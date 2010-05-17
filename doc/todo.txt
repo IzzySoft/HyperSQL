@@ -2,9 +2,6 @@ TO-DO LIST
 ==========
 * C++ files need doxygen hyperlinks for where used pages
 * Scan Java files for where used
-* Check sequences, tables, (m)views and synonyms javadoc for mandatory tags.
-  This includes ElemInfo.verification = TaskList (also required for other
-  stand-alone objects, see below)
 * Handle stand-alone functions/procedures
 * Handle Types
 * Handle Triggers

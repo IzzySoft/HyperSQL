@@ -120,13 +120,23 @@ def ScanFilesForViewsAndPackages():
             ln = jdoc[j].lineNumber - lineNumber
             if (CaseInsensitiveComparison(oInfo.name,jdoc[j].name)==0 and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                 oInfo.javadoc = jdoc[j]
+                if hasattr(oInfo,'bugs'):
+                    if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
+                        for ib in range(len(jdoc[j].bug)):
+                            oInfo.bugs.addItem(jdoc[j].name,jdoc[j].bug[ib])
+                    if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
+                        for ib in range(len(jdoc[j].todo)):
+                            oInfo.todo.addItem(jdoc[j].name,jdoc[j].todo[ib])
+
         if not oInfo.javadoc.ignore:
             mname = oInfo.javadoc.name or oInfo.name
             mands = oInfo.javadoc.verify_mandatory()
-            #for mand in mands: Need to setup report here as well! ###TODO###
+            for mand in mands:
+                oInfo.verification.addItem(mname,mand)
             if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault():
                 logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
-                #oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
+                oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
+
 
     def fixQuotedName(name):
         """
@@ -259,7 +269,7 @@ def ScanFilesForViewsAndPackages():
                     and token_list[token_index+1].upper() == "TABLE" \
                     and (token_list[token_index].upper() == "CREATE" \
                         or token_list[token_index].upper() == "TEMPORARY"):
-                        tab_info = ElemInfo()
+                        tab_info = StandAloneElemInfo()
                         tab_info.parent = file_info
                         if len(token_list) > token_index+2:
                           tab_info.name = token_list[token_index+2]
@@ -278,7 +288,7 @@ def ScanFilesForViewsAndPackages():
                     and (token_list[token_index].upper() == "CREATE" \
                         or token_list[token_index].upper() == "REPLACE" \
                         or token_list[token_index].upper() == "FORCE"):
-                        view_info = ElemInfo()
+                        view_info = StandAloneElemInfo()
                         view_info.parent = file_info
                         if len(token_list) > token_index+2:
                           view_info.name = token_list[token_index+2]
@@ -296,7 +306,7 @@ def ScanFilesForViewsAndPackages():
                     and token_list[token_index+2].upper() == "VIEW" \
                     and token_list[token_index+1].upper() == "MATERIALIZED" \
                     and token_list[token_index].upper() == "CREATE":
-                        view_info = ElemInfo()
+                        view_info = StandAloneElemInfo()
                         view_info.parent = file_info
                         if len(token_list) > token_index+3:
                           view_info.name = token_list[token_index+3]
@@ -316,7 +326,7 @@ def ScanFilesForViewsAndPackages():
                         or token_list[token_index].upper() == "REPLACE" \
                         or token_list[token_index].upper() == "PUBLIC") \
                     and not (token_list[token_index-1].upper()=="DROP" or (token_index>1 and token_list[token_index-2].upper()=="DROP")):
-                        syn_info = ElemInfo()
+                        syn_info = StandAloneElemInfo()
                         syn_info.parent = file_info
                         if len(token_list) > token_index+2:
                             syn_info.name = token_list[token_index+2]
@@ -333,7 +343,7 @@ def ScanFilesForViewsAndPackages():
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "SEQUENCE" \
                     and (token_list[token_index].upper() == "CREATE"):
-                        seq_info = ElemInfo()
+                        seq_info = StandAloneElemInfo()
                         seq_info.parent = file_info
                         if len(token_list) > token_index+2:
                             seq_info.name = token_list[token_index+2]
@@ -730,17 +740,13 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 # look for CREATE [GLOBAL TEMPORARY] TABLE, making sure enough tokens exist
                 if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "TABLE" \
-                and (token_list[token_index].upper() == "CREATE" \
-                    or token_list[token_index].upper() == "TEMPORARY" \
-                    or token_list[token_index].upper() == "DROP" \
-                    or token_list[token_index].upper() == "ALTER" \
-                    or (token_index>1 and token_list[token_index].upper() == 'ON' and token_list[token_index-1].upper() == 'COMMENT')):
+                and token_list[token_index].upper() in ['CREATE','TEMPORARY','DROP','ALTER']:
                     # we are creating, dropping, altering, or commenting - not using.  Set flag to 0
                     usage_flag = 0
 
-                # check for COMMENT ON COLUMN
-                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 and token_index > 1 \
-                and token_list[token_index+1].upper() == "COLUMN" \
+                # check for COMMENT ON (COLUMN | TABLE)
+                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 and token_index > 0 \
+                and token_list[token_index+1].upper() in ['COLUMN','TABLE'] \
                 and token_list[token_index].upper() == "ON" \
                 and token_list[token_index-1].upper() == "COMMENT":
                     # we are just commenting on a table column
@@ -756,36 +762,28 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
                 if metaInfo.indexPage['view'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "VIEW" \
-                and (token_list[token_index].upper() == "CREATE" \
-                    or token_list[token_index].upper() == "REPLACE" \
-                    or token_list[token_index].upper() == "FORCE"):
+                and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE']:
                     # we are creating, forcing, or replacing - not using.  Set flag to 0
                     usage_flag = 0
 
                 # look for CREATE MATERIALIZED VIEW, making sure enough tokens exist
-                if metaInfo.indexPage['mview'] != '' and len(token_list) > token_index+2 \
-                and token_list[token_index+2].upper() == "VIEW" \
-                and token_list[token_index+1].upper() == "MATERIALIZED" \
-                    or token_list[token_index].upper() == "VIEW":
-                    # we are creating - not using.  Set flag to 0
+                if metaInfo.indexPage['mview'] != '' and len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "VIEW" \
+                and token_list[token_index].upper() == "MATERIALIZED":
+                    # we are creating (or possibly dropping) - not using.  Set flag to 0
                     usage_flag = 0
 
                 # look for sequences
                 if metaInfo.indexPage['sequence'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "SEQUENCE" \
-                and (token_list[token_index].upper() == "CREATE" \
-                    or token_list[token_index].upper() == "DROP" \
-                    or token_list[token_index].upper() == "ALTER"):
+                and token_list[token_index].upper() in ['CREATE','DROP','ALTER']:
                     # we are creating, altering, or dropping - not using.  Set flag to 0
                     usage_flag = 0
 
                 # look for SYNONYMs
                 if metaInfo.indexPage['synonym'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "SYNONYM" \
-                and (token_list[token_index].upper() == "CREATE" \
-                    or token_list[token_index].upper() == "REPLACE" \
-                    or token_list[token_index].upper() == "DROP" \
-                    or token_list[token_index].upper() == "PUBLIC"):
+                and token_list[token_index].upper() in ['CREATE','REPLACE','DROP','PUBLIC']:
                     # we are creating, or dropping - not using.  Set flag to 0
                     usage_flag = 0
 
@@ -1291,8 +1289,12 @@ def MakeStatsPage():
             jwarns += package_info.verification.taskCount() + package_info.verification.funcCount() + package_info.verification.procCount()
             jbugs += package_info.bugs.taskCount() + package_info.bugs.funcCount() + package_info.bugs.procCount()
             jtodo += package_info.todo.taskCount() + package_info.todo.funcCount() + package_info.todo.procCount()
-        #for view_info in file_info.viewInfoList: ###TODO: view_info.verification is not yet set up###
-        #    jwarns += view_info.verification.taskCount() + view_info.verification.funcCount() + view_info.verification.procCount()
+        oList = ['tab','view','mview','syn','seq']
+        for oname in oList:
+          for oInfo in file_info.__getattribute__(oname+'InfoList'):
+            jwarns += oInfo.verification.taskCount()
+            jbugs += oInfo.bugs.taskCount()
+            jtodo += oInfo.todo.taskCount()
     totalObj = jwarns + jbugs + jtodo
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('JavaDoc Statistics')+'</TH></TR>\n')
@@ -1573,14 +1575,34 @@ def MakeTaskList(taskType):
     outfilename = metaInfo.indexPage[taskType]
 
     packagetuplelist = []
+    tabletuplelist   = []
+    viewtuplelist    = []
+    mviewtuplelist   = []
+    syntuplelist     = []
+    seqtuplelist     = []
     for file_info in fileInfoList:
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
         for package_info in file_info.packageInfoList:
             packagetuplelist.append((package_info.name.upper(), package_info, file_info)) # append as tuple for case insensitive sort
+        for tabInfo in file_info.tabInfoList:
+            tabletuplelist.append((tabInfo.name.upper(), tabInfo, file_info))
+        for viewInfo in file_info.viewInfoList:
+            viewtuplelist.append((viewInfo.name.upper(), viewInfo, file_info))
+        for mviewInfo in file_info.mviewInfoList:
+            mviewtuplelist.append((mviewInfo.name.upper(), mviewInfo, file_info))
+        for synInfo in file_info.synInfoList:
+            syntuplelist.append((synInfo.name.upper(), synInfo, file_info))
+        for seqInfo in file_info.seqInfoList:
+            seqtuplelist.append((seqInfo.name.upper(), seqInfo, file_info))
 
     packagetuplelist.sort(TupleCompareFirstElements)
+    tabletuplelist.sort(TupleCompareFirstElements)
+    viewtuplelist.sort(TupleCompareFirstElements)
+    mviewtuplelist.sort(TupleCompareFirstElements)
+    syntuplelist.sort(TupleCompareFirstElements)
+    seqtuplelist.sort(TupleCompareFirstElements)
 
     outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(taskType))
@@ -1603,7 +1625,7 @@ def MakeTaskList(taskType):
         if task.allItemCount() < 1:
             continue
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Package') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower()) + '</TH></TR>\n');
         if task.taskCount() > 0:
             outfile.write('  <TR><TD COLSPAN="2" ALIGN="center"><B><I>'+_('Package General')+'</I></B></TD></TR>\n')
             outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
@@ -1613,6 +1635,81 @@ def MakeTaskList(taskType):
         if task.procCount() > 0:
             outfile.write('  <TR><TD COLSPAN="2" ALIGN="center"><B><I>'+_('Procedures')+'</I></B></TD></TR>\n')
             outfile.write( task.getProcHtml() )
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
+    # Walk the tables
+    for tabletuple in tabletuplelist:
+        if taskType == 'bug':
+            task = tabletuple[1].bugs
+        elif taskType == 'todo':
+            task = tabletuple[1].todo
+        else:
+            task = tabletuple[1].verification
+        if task.allItemCount() < 1:
+            continue
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(tabletuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Table') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,tabletuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
+    # Walk the views
+    for viewtuple in viewtuplelist:
+        if taskType == 'bug':
+            task = viewtuple[1].bugs
+        elif taskType == 'todo':
+            task = viewtuple[1].todo
+        else:
+            task = viewtuple[1].verification
+        if task.allItemCount() < 1:
+            continue
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(viewtuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + _('View') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,viewtuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
+    # Walk the mviews
+    for viewtuple in mviewtuplelist:
+        if taskType == 'bug':
+            task = viewtuple[1].bugs
+        elif taskType == 'todo':
+            task = viewtuple[1].todo
+        else:
+            task = viewtuple[1].verification
+        if task.allItemCount() < 1:
+            continue
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(viewtuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + _('MView') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,viewtuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
+    # Walk the sequences
+    for seqtuple in seqtuplelist:
+        if taskType == 'bug':
+            task = seqtuple[1].bugs
+        elif taskType == 'todo':
+            task = seqtuple[1].todo
+        else:
+            task = seqtuple[1].verification
+        if task.allItemCount() < 1:
+            continue
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(seqtuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Sequence') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,seqtuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
+    # Walk the synonyms
+    for seqtuple in syntuplelist:
+        if taskType == 'bug':
+            task = seqtuple[1].bugs
+        elif taskType == 'todo':
+            task = seqtuple[1].todo
+        else:
+            task = seqtuple[1].verification
+        if task.allItemCount() < 1:
+            continue
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(seqtuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Synonym') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,seqtuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
         outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
 
     outfile.write('</TABLE>\n')
@@ -2552,7 +2649,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.2.7"
+    metaInfo.versionString = "3.2.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
