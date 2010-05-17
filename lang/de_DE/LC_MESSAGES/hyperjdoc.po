@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: hyperjdoc\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-05-12 20:20+0200\n"
-"PO-Revision-Date: 2010-05-12 20:22+0100\n"
+"PO-Revision-Date: 2010-05-17 20:25+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -152,7 +152,7 @@ msgstr "Falsche Parameteranzahl für %(otype)s %(name)s in %(file)s Zeile %(line
 #: ../../lib/hyperjdoc.py:188
 #, python-format
 msgid "Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s"
-msgstr "Falsche Parameteranzahl: %(cparms)s im Kode, %(jparms)s in Javadoc"
+msgstr "Falsche Parameteranzahl: %(cparms)s im Code, %(jparms)s in Javadoc"
 
 #: ../../lib/hyperjdoc.py:258
 msgid "Parameters"
