@@ -9,6 +9,7 @@ import os       # for which()
 import sys      # for which()
 from subprocess import Popen,PIPE   # for popen()
 from types import *  # for type checking
+import re       # for getWordLineNo
 
 # prepare for fopen (encoding fallback)
 from locale import getdefaultlocale
@@ -243,3 +244,23 @@ def is_what(obj):
     except:
         return [ str(i) for i in (is_iter(obj),is_gen(obj),is_seq(obj),is_list(obj),is_str(obj),is_mapping(obj),is_file(obj))]
 
+#--------------------------------------[ Finding lineNo with matching text ]---
+def getWordLineNo(text,pattern):
+    """
+    Finding lineNo with matching text
+    example:
+    getWordLineNo(text,'<P>([^<]+)<SUP>')
+    Adapted from: http://snippets.dzone.com/posts/show/1638
+    By: Izzy
+    @param string text to parse
+    @param string pattern RegExp pattern to find
+    @return list of tuples (lineno, offset, word)
+    """
+    res = []
+    for m in re.finditer(pattern, text, re.I):
+        start = m.start()
+        lineno = text.count('\n', 0, start) + 1
+        offset = start - text.rfind('\n', 0, start)
+        word = m.group(0)
+        res.append((lineno, offset, word))
+    return res

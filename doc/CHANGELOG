@@ -6,6 +6,11 @@ v3.3.0
   for COMMENT ON (TABLE|COLUMN), CREATE INDEX, GRANT, and PROMPT
 * bug, todo, and validation items for tables, (m)views, synonyms, and sequences
   are now added to the global bug/todo/validation lists
+* reworked the where_used scan. You may not notice anything with smaller
+  projects - but the speedup factor on larger projects reaches 10+ (with our
+  main project - 192 files, 2.2MB, ~900 objects - processing time decreased from
+  about 38min to less than 2min, which is about factor 20!)
+* shortref scan (process.whereused_scan_shortrefs) is now much more reliable
 
 v3.2.5 (12.05.2010)
 -------------------

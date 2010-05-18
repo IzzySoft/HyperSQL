@@ -585,12 +585,14 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             finfo = fileInfo
           if fname not in uObj.whatUsed.keys():
             uObj.whatUsed[fname] = []
-          uObj.whatUsed[fname].append((finfo, objectInfo.lineNumber, otype, objectInfo))
+          if not (finfo, objectInfo.lineNumber, otype, objectInfo) in uObj.whatUsed[fname]:
+            uObj.whatUsed[fname].append((finfo, objectInfo.lineNumber, otype, objectInfo))
           if uObj.uniqueNumber == 0: uObj.uniqueNumber = metaInfo.NextIndex()
           if uType in ['func','proc'] and hasattr(uObj.parent,'whatUsed'): # add the info to pkg as well
             if finfo.fileName not in uObj.parent.whatUsed.keys():
                 uObj.parent.whatUsed[finfo.fileName] = []
-            uObj.parent.whatUsed[finfo.fileName].append((finfo, objectInfo.lineNumber, otype, objectInfo))
+            if not (finfo, objectInfo.lineNumber, otype, objectInfo) in uObj.parent.whatUsed[finfo.fileName]:
+              uObj.parent.whatUsed[finfo.fileName].append((finfo, objectInfo.lineNumber, otype, objectInfo))
             if uObj.parent.uniqueNumber == 0: uObj.parent.uniqueNumber = metaInfo.NextIndex()
         # handle depgraph info
         if metaInfo.indexPage['depgraph'] and otype in metaInfo.depGraphObjects \
@@ -672,6 +674,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         package_count = -1
         in_block_comment = 0
         new_file = 1
+        new_text = ''
 
 
         for lineNumber in range(len(fileLines)):
@@ -697,10 +700,12 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
             # Skip empty lines
             if len(token_list) < 1:
+                new_text += '\n'
                 continue
 
             # ignore lines that begin with comments
             if token_list[0][:2] == "--" or token_list[0][:2] == "//" or token_list[0][:2] == "##":
+                new_text += '\n'
                 continue
             # ignore block comments
             if token_list[0][:2] == "/*" and token_list[0][len(token_list[0])-2:len(token_list[0])] == "*/":
@@ -726,9 +731,11 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                             token_list.pop(clean_list[clean_index])
             if  len(token_list) == 0:
                 # nothing more on line
+                new_text += '\n'
                 continue
             if token_list[0].upper() in ['PROMPT','GRANT']:
                 # that's no usage
+                new_text += '\n'
                 continue
 
             # usage only, no creates, replace, force views packages functions or procedures
@@ -810,97 +817,94 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
 
             if usage_flag == 0: # this line holds some CREATE statement, no USAGE
-                continue
+                new_text += '\n'
+            else:
+                new_text += fileLines[lineNumber]
 
-            # Loop through all previously found views and packages to see if they are used in this line of text
-            for inner_file_info in fileInfoList:
+        # Loop through all previously found views and packages to see if they are used in this line of text
+        for inner_file_info in fileInfoList:
 
-                # if this FileInfo instance has tables
-                if len(inner_file_info.tabInfoList) != 0:
-                    for tab_info in inner_file_info.tabInfoList:
-                        # perform case insensitive find
-                        if re.search('\\b'+tab_info.name+'\\b',fileLines[lineNumber],re.I):
-                            addWhereUsed(tab_info, outer_file_info, lineNumber, 'tab')
+            # if this FileInfo instance has tables
+            if len(inner_file_info.tabInfoList) != 0:
+                for tab_info in inner_file_info.tabInfoList:
+                    # perform case insensitive find
+                    res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
+                    for ires in res:
+                        addWhereUsed(tab_info, outer_file_info, ires[0], 'tab')
 
-                # if this FileInfo instance has views
-                if len(inner_file_info.viewInfoList) != 0:
-                    for view_info in inner_file_info.viewInfoList:
-                        # perform case insensitive find
-                        if re.search('\\b'+view_info.name+'\\b',fileLines[lineNumber],re.I):
-                            addWhereUsed(view_info, outer_file_info, lineNumber, 'view')
+            # if this FileInfo instance has views
+            if len(inner_file_info.viewInfoList) != 0:
+                for view_info in inner_file_info.viewInfoList:
+                    # perform case insensitive find
+                    res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
+                    for ires in res:
+                        addWhereUsed(view_info, outer_file_info, ires[0], 'view')
 
-                # if this FileInfo instance has materialized views
-                if len(inner_file_info.viewInfoList) != 0:
-                    for view_info in inner_file_info.mviewInfoList:
-                        # perform case insensitive find
-                        if re.search('\\b'+view_info.name+'\\b',fileLines[lineNumber],re.I):
-                            addWhereUsed(view_info, outer_file_info, lineNumber, 'mview')
+            # if this FileInfo instance has materialized views
+            if len(inner_file_info.viewInfoList) != 0:
+                for view_info in inner_file_info.mviewInfoList:
+                    # perform case insensitive find
+                    res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
+                    for ires in res:
+                        addWhereUsed(view_info, outer_file_info, ires[0], 'mview')
 
-                # if this FileInfo instance has synonyms
-                if len(inner_file_info.synInfoList) != 0:
-                    for syn_info in inner_file_info.synInfoList:
-                        # perform case insensitive find
-                        if re.search('\\b'+syn_info.name+'\\b',fileLines[lineNumber],re.I):
-                            addWhereUsed(syn_info, outer_file_info, lineNumber, 'synonym')
+            # if this FileInfo instance has synonyms
+            if len(inner_file_info.synInfoList) != 0:
+                for syn_info in inner_file_info.synInfoList:
+                    # perform case insensitive find
+                    res = getWordLineNo(new_text,'\\b'+syn_info.name+'\\b')
+                    for ires in res:
+                        addWhereUsed(syn_info, outer_file_info, ires[0], 'synonym')
 
-                # if this FileInfo instance has sequences
-                if len(inner_file_info.seqInfoList) != 0:
-                    for seq_info in inner_file_info.seqInfoList:
-                        # perform case insensitive find
-                        if re.search('\\b'+seq_info.name+'\\b',fileLines[lineNumber],re.I):
-                            addWhereUsed(seq_info, outer_file_info, lineNumber, 'sequence')
+            # if this FileInfo instance has sequences
+            if len(inner_file_info.seqInfoList) != 0:
+                for seq_info in inner_file_info.seqInfoList:
+                    # perform case insensitive find
+                    res = getWordLineNo(new_text,'\\b'+seq_info.name+'\\b')
+                    for ires in res:
+                        addWhereUsed(seq_info, outer_file_info, ires[0], 'sequence')
 
 
-                # if this FileInfo instance has packages
-                if len(inner_file_info.packageInfoList) != 0:
-                    for package_info in inner_file_info.packageInfoList:
+            # if this FileInfo instance has packages
+            if len(inner_file_info.packageInfoList) != 0:
+                for package_info in inner_file_info.packageInfoList:
 
-                        # perform case insensitive find, this is "package name"."function or procedure name"
-                        if re.search('\\b'+package_info.name+'\.',fileLines[lineNumber],re.I):
-                            addWhereUsed(package_info, outer_file_info, lineNumber, 'pkg')
+                    # perform case insensitive find, this is "package name"."function or procedure name"
+                    res = getWordLineNo(new_text,'\\b'+package_info.name+'\\.\S')
+                    if len(res):
+                        for ires in res:
+                            addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
 
-                            #look for any of this packages' functions
-                            for function_info in package_info.functionInfoList:
-                                # perform case insensitive find
-                                if re.search('\\b'+package_info.name+'\.'+function_info.name+'\\b',fileLines[lineNumber],re.I):
-                                    addWhereUsed(function_info, outer_file_info, lineNumber, 'func')
+                        #look for any of this packages' functions
+                        for function_info in package_info.functionInfoList:
+                            res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+function_info.name+'\\b')
+                            for ires in res:
+                                addWhereUsed(function_info, outer_file_info, ires[0], 'func')
 
-                            #look for any of this packages procedures
-                            for procedure_info in package_info.procedureInfoList:
-                                # perform case insensitive find
-                                if re.search('\\b'+package_info.name+'\.'+procedure_info.name+'\\b',fileLines[lineNumber],re.I):
-                                    addWhereUsed(procedure_info, outer_file_info, lineNumber, 'proc')
+                        #look for any of this packages procedures
+                        for procedure_info in package_info.procedureInfoList:
+                            res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+procedure_info.name+'\\b')
+                            for ires in res:
+                                addWhereUsed(procedure_info, outer_file_info, ires[0], 'proc')
 
-                        ### File internal references - possible calls without a package_name
-                        elif (outer_file_info.uniqueNumber == inner_file_info.uniqueNumber) \
-                         and metaInfo.scanShortRefs:
+                    ### File internal references - possible calls without a package_name
+                    if outer_file_info.uniqueNumber == inner_file_info.uniqueNumber and metaInfo.scanShortRefs:
 
-                            # check for inline comments to be excluded
-                            if fileLines[lineNumber].find('--') == -1:
-                              epos = sys.maxint
-                            else:
-                              epos = fileLines[lineNumber].find('--')
+                        #look for any of this packages' functions
+                        for function_info in package_info.functionInfoList:
+                            res = getWordLineNo(new_text,'(^|\\s)'+function_info.name+'([ (;]|$)')
+                            for ires in res:
+                                if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
+                                    addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
+                                    addWhereUsed(function_info, outer_file_info, ires[0], 'func')
 
-                            #look for any of this packages' functions
-                            for function_info in package_info.functionInfoList:
-                                # perform case insensitive find
-                                if fileLines[lineNumber].upper().find(function_info.name.upper()) != -1 \
-                                 and (fileLines[lineNumber].upper().find(" " + function_info.name.upper(),0,epos) != -1 \
-                                  or fileLines[lineNumber].upper().find(function_info.name.upper(),0,epos) == 0) \
-                                 and (fileLines[lineNumber].upper().find(function_info.name.upper()+" ",0,epos) != -1 \
-                                  or fileLines[lineNumber].upper().find(function_info.name.upper()+"(",0,epos) != -1):
-                                    addWhereUsed(function_info, outer_file_info, lineNumber, 'func')
-
-                            #look for any of this packages procedures
-                            for procedure_info in package_info.procedureInfoList:
-                                # perform case insensitive find
-                                if fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) != -1 \
-                                 and (fileLines[lineNumber].upper().find(" " + procedure_info.name.upper(),0,epos) != -1 \
-                                  or fileLines[lineNumber].upper().find(procedure_info.name.upper(),0,epos) == 0) \
-                                 and (fileLines[lineNumber].upper().find(procedure_info.name.upper()+" ",0,epos) != -1 \
-                                  or fileLines[lineNumber].upper().find(procedure_info.name.upper()+"(",0,epos) != -1):
-                                    addWhereUsed(procedure_info, outer_file_info, lineNumber, 'proc')
-
+                        #look for any of this packages procedures
+                        for procedure_info in package_info.procedureInfoList:
+                            res = getWordLineNo(new_text,'(^|\\s)'+procedure_info.name+'([ (;]|$)')
+                            for ires in res:
+                                if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
+                                    addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
+                                    addWhereUsed(procedure_info, outer_file_info, ires[0], 'proc')
 
     # complete line on task completion
     pbarClose()
@@ -1457,7 +1461,7 @@ def MakeElemIndex(objectType):
     outfile.write(MakeHTMLHeader(objectType))
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
-    outfile.write("  <TR><TH>"+_(object_name)+"</TH><TH>"+_('from Package')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Usage')+"</TH></TR>\n")
+    outfile.write("  <TR><TH>"+_(object_name)+"</TH><TH>"+_('from package')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Usage')+"</TH></TR>\n")
     i = 0
 
     for object_tuple in objectTupleList: # list of tuples describing every object
@@ -2161,10 +2165,10 @@ def CreateWhereUsedPages():
             outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
             outfile.write( makeUsageTableHead(_('package'),obj.name,page) )
         elif otype=='func':
-            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from Package')+' ' + obj.parent.name))
+            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
             outfile.write( makeUsageTableHead(_('function'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
         elif otype=='proc':
-            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from Package')+' ' + obj.parent.name))
+            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
             outfile.write( makeUsageTableHead(_('procedure'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
         else:
             logger.warn(_('makeUsagePage called for undefined type "%s"'),otype)
@@ -2649,7 +2653,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.2.5"
+    metaInfo.versionString = "3.3.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

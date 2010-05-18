@@ -93,7 +93,7 @@ def hypercode(line_list,keywords,types,cssclass='sql'):
             #if text[len(text)-1:] != '\n':
             #    text += "\n"
         text = text.replace('\n\n','\n')
-        zeroes = (1 + line_number_width - len(`line_number`)) * "0" # leading zeroes for line numbers
-        html += "<A NAME=\"" + `line_number` + "\"></A>" # hyperlink target
-        html += zeroes + `line_number` + ": " + text #text
+        zeroes = (1 + line_number_width - len(`line_number+1`)) * "0" # leading zeroes for line numbers (+1 since we start with 0)
+        html += "<A NAME=\"" + `line_number+1` + "\"></A>" # hyperlink target
+        html += zeroes + `line_number+1` + ": " + text #text
     return html
