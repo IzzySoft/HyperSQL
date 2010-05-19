@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Test\n"
+"Project-Id-Version: hypersql\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-05-18 18:03+0200\n"
 "PO-Revision-Date: 2010-05-18 18:06+0100\n"
@@ -58,12 +58,12 @@ msgstr "CSS-Datei"
 #: ../../HyperSQL.py:1106
 #: ../../HyperSQL.py:1818
 msgid "Code"
-msgstr "Kode"
+msgstr "Code"
 
 #: ../../HyperSQL.py:2456
 #: ../../lib/hyperconf.py:109
 msgid "Code Statistics"
-msgstr "Kode Statistiken"
+msgstr "Code Statistiken"
 
 #: ../../HyperSQL.py:1107
 msgid "Comment"

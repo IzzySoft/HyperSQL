@@ -892,7 +892,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
                         #look for any of this packages' functions
                         for function_info in package_info.functionInfoList:
-                            res = getWordLineNo(new_text,'(^|\\s)'+function_info.name+'([ (;]|$)')
+                            res = getWordLineNo(new_text,'(^|\\s|[(;,])'+function_info.name+'([ (;,)]|$)')
                             for ires in res:
                                 if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
                                     addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
@@ -900,7 +900,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
                         #look for any of this packages procedures
                         for procedure_info in package_info.procedureInfoList:
-                            res = getWordLineNo(new_text,'(^|\\s)'+procedure_info.name+'([ (;]|$)')
+                            res = getWordLineNo(new_text,'(^|\\s|[(;,])'+procedure_info.name+'([ (;,)]|$)')
                             for ires in res:
                                 if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
                                     addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
