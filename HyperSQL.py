@@ -363,6 +363,7 @@ def ScanFilesForViewsAndPackages():
                        and token_list[token_index+1].upper() == "PACKAGE" \
                        and token_list[token_index+2].upper() == "BODY":
                     package_info = PackageInfo()
+                    package_info.uniqueNumber = metaInfo.NextIndex()
                     package_info.parent = file_info
                     package_info.name = fixQuotedName(token_list[token_index+3])
                     package_info.lineNumber = lineNumber
@@ -370,21 +371,23 @@ def ScanFilesForViewsAndPackages():
                       ln = jdoc[j].lineNumber - lineNumber
                       if (CaseInsensitiveComparison(package_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                         package_info.javadoc = jdoc[j]
-                        if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
-                            for ib in range(len(jdoc[j].bug)):
-                                package_info.bugs.addItem(jdoc[j].name,jdoc[j].bug[ib])
-                        if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
-                            for ib in range(len(jdoc[j].todo)):
-                                package_info.todo.addItem(jdoc[j].name,jdoc[j].todo[ib])
                     if not package_info.javadoc.ignore: # ignore items with @ignore tag
-                        mname = package_info.javadoc.name or package_info.name
-                        mands = package_info.javadoc.verify_mandatory()
+                        pi = package_info
+                        jd = pi.javadoc
+                        if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
+                            for ib in range(len(jd.bug)):
+                                package_info.bugs.addItem(jd.name,jd.bug[ib],jd.author,pi.uniqueNumber)
+                        if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
+                            for ib in range(len(jd.todo)):
+                                package_info.todo.addItem(jd.name,jd.todo[ib],jd.author,pi.uniqueNumber)
+                        mname = jd.name or pi.name
+                        mands = jd.verify_mandatory()
                         for mand in mands:
-                            package_info.verification.addItem(mname,mand)
+                            pi.verification.addItem(mname,mand)
                         if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault():
                             logger.warn(_('Package %s has no JavaDoc information attached'), mname)
-                            package_info.verification.addItem(mname,'No JavaDoc information available')
-                        file_info.packageInfoList.append(package_info) # permanent storage
+                            pi.verification.addItem(mname,'No JavaDoc information available')
+                        file_info.packageInfoList.append(pi) # permanent storage
                         package_count += 1 # use this flag below
 
             # if a package definition was found, look for functions and procedures
@@ -393,6 +396,7 @@ def ScanFilesForViewsAndPackages():
                 if len(token_list) > 1 and token_list[0].upper() == "FUNCTION":
                     function_name = token_list[1].split('(')[0] # some are "name(" and some are "name ("
                     function_info = ElemInfo()
+                    function_info.uniqueNumber = metaInfo.NextIndex()
                     function_info.parent = file_info.packageInfoList[package_count]
                     function_info.name = fixQuotedName(function_name)
                     function_info.lineNumber = lineNumber
@@ -406,40 +410,42 @@ def ScanFilesForViewsAndPackages():
                           if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
                             function_info.javadoc = jdoc[j]
                             function_info.javadoc.lndiff = abs(ln)
-                        ###TODO:### Shouldn't the following two items be in the outer loop to avoid duplicate processing of overloaded functions?
-                        if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
-                            for ib in range(len(jdoc[j].bug)):
-                                file_info.packageInfoList[package_count].bugs.addFunc(jdoc[j].name,jdoc[j].bug[ib],jdoc[j].author)
-                        if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
-                            for ib in range(len(jdoc[j].todo)):
-                                file_info.packageInfoList[package_count].todo.addFunc(jdoc[j].name,jdoc[j].todo[ib],jdoc[j].author)
                     if not function_info.javadoc.ignore:
-                        mname = function_info.javadoc.name or function_info.name
-                        mands = function_info.javadoc.verify_mandatory()
+                        fi = function_info
+                        jd = fi.javadoc
+                        if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
+                            for ib in range(len(jd.bug)):
+                                file_info.packageInfoList[package_count].bugs.addFunc(jd.name,jd.bug[ib],jd.author,fi.uniqueNumber)
+                        if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
+                            for ib in range(len(jd.todo)):
+                                file_info.packageInfoList[package_count].todo.addFunc(jd.name,jd.todo[ib],jd.author,fi.uniqueNumber)
+                        mname = jd.name or fi.name
+                        mands = jd.verify_mandatory()
                         for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addFunc(mname,mand,function_info.javadoc.author)
-                        if JavaDocVars['javadoc_mandatory'] and function_info.javadoc.isDefault():
+                            file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
+                        if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
                             if JavaDocVars['verification_log']: logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
-                            file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'))
+                            file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'),jd.author,fi.uniqueNumber)
                         if JavaDocVars['verification']:
                             fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
                             cparms = re.findall(fupatt,filetext)
                             if len(cparms)==0:
-                                mands = function_info.javadoc.verify_params([])
+                                mands = jd.verify_params([])
                             elif len(cparms)==1:
                                 cparms = cparms[0].split(',')
-                                mands = function_info.javadoc.verify_params(cparms)
+                                mands = jd.verify_params(cparms)
                             else:
                                 if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'package': file_info.packageInfoList[package_count].name, 'function': mname})
                             if len(cparms)<2:
                                 for mand in mands:
-                                    file_info.packageInfoList[package_count].verification.addFunc(mname,mand)
-                        file_info.packageInfoList[package_count].functionInfoList.append(function_info)
+                                    file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,function_info.uniqueNumber)
+                        file_info.packageInfoList[package_count].functionInfoList.append(fi)
 
                 # now find procedures
                 if len(token_list) > 1 and token_list[0] == "PROCEDURE":
                     procedure_name = token_list[1].split('(')[0] # some are "name(" and some are "name ("
                     procedure_info = ElemInfo()
+                    procedure_info.uniqueNumber = metaInfo.NextIndex()
                     procedure_info.parent = file_info.packageInfoList[package_count]
                     procedure_info.name = fixQuotedName(procedure_name)
                     procedure_info.lineNumber = lineNumber
@@ -453,34 +459,36 @@ def ScanFilesForViewsAndPackages():
                           if abs(ln) < procedure_info.javadoc.lndiff: # this desc is closer to the object
                             procedure_info.javadoc = jdoc[j]
                             procedure_info.javadoc.lndiff = abs(ln)
-                        if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
-                            for ib in range(len(jdoc[j].bug)):
-                                file_info.packageInfoList[package_count].bugs.addProc(jdoc[j].name,jdoc[j].bug[ib],jdoc[j].author)
-                        if len(jdoc[j].todo) > 0 and metaInfo.indexPage['todo'] != '':
-                            for ib in range(len(jdoc[j].todo)):
-                                file_info.packageInfoList[package_count].todo.addProc(jdoc[j].name,jdoc[j].todo[ib],jdoc[j].author)
                     if not procedure_info.javadoc.ignore:
-                        mname = procedure_info.javadoc.name or procedure_info.name
-                        mands = procedure_info.javadoc.verify_mandatory()
+                        pi = procedure_info
+                        jd = pi.javadoc
+                        if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
+                            for ib in range(len(jd.bug)):
+                                file_info.packageInfoList[package_count].bugs.addProc(jd.name,jd.bug[ib],jd.author,pi.uniqueNumber)
+                        if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
+                            for ib in range(len(jd.todo)):
+                                file_info.packageInfoList[package_count].todo.addProc(jd.name,jd.todo[ib],jd.author,pi.uniqueNumber)
+                        mname = jd.name or pi.name
+                        mands = jd.verify_mandatory()
                         for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addProc(mname,mand,procedure_info.javadoc.author)
-                        if JavaDocVars['javadoc_mandatory'] and procedure_info.javadoc.isDefault():
+                            file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
+                        if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
                             if JavaDocVars['verification_log']: logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
-                            file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'))
+                            file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'),jd.author,pi.uniqueNumber)
                         if JavaDocVars['verification']:
                             fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
                             cparms = re.findall(fupatt,filetext)
                             if len(cparms)==0:
-                                mands = procedure_info.javadoc.verify_params([])
+                                mands = jd.verify_params([])
                             elif len(cparms)==1:
                                 cparms = cparms[0].split(',')
-                                mands = procedure_info.javadoc.verify_params(cparms)
+                                mands = jd.verify_params(cparms)
                             else:
                                 if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
                             if len(cparms)<2:
                                 for mand in mands:
-                                    file_info.packageInfoList[package_count].verification.addProc(mname,mand)
-                        file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
+                                    file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
+                        file_info.packageInfoList[package_count].procedureInfoList.append(pi)
 
     # complete line on task completion
     pbarClose()

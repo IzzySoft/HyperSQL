@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v3.3.5
+-------------------
+* Tasklists (Bug/Todo/Verification) should now be able to tell overloaded
+  functions/procedures apart
+! author in tasklists (if enabled) was not always updated correctly
+
 v3.3.0 (19.05.2010)
 -------------------
 * usage scan now ignores ALTER (TABLE|SYNONYM) as this is no real usage. Same

@@ -397,17 +397,19 @@ class JavaDocParam:
 
 class TaskItem:
     """ Task for Todo / Bug lists """
-    def __init__(self,name='',line='',author=''):
+    def __init__(self,name='',line='',author='',uid=0):
         """
         Initializes properties with useful defaults.
         @param self
         @param optional name default ''
         @param optional desc default ''
         @param optional string author default ''
+        @param optional int uid default 0
         """
         self.name = name
         self.desc = line
         self.author = author
+        self.uid = uid
 
 def taskSortDesc(a,b):
     """
@@ -415,17 +417,15 @@ def taskSortDesc(a,b):
     @param TaskItem a
     @param TaskItem b
     """
-    if a.desc < b.desc:
-        return -1
-    elif a.desc > b.desc:
-        return 1
+    if a.desc < b.desc:   return -1
+    elif a.desc > b.desc: return 1
     else:
-        if a.name < b.name:
-            return -1
-        if a.name > b.name:
-            return 1
+        if a.name < b.name:   return -1
+        elif a.name > b.name: return 1
         else:
-            return 0
+            if a.uid < b.uid:   return -1
+            elif a.uid > b.uid: return 1
+            else: return 0
 
 def taskSortName(a,b):
     """
@@ -436,9 +436,12 @@ def taskSortName(a,b):
     if a.name < b.name:   return -1
     elif a.name > b.name: return 1
     else:
-        if a.desc < b.desc: return -1
-        if a.desc > b.desc: return 1
-        else:               return 0
+        if a.uid < b.uid:   return -1
+        elif a.uid > b.uid: return 1
+        else:
+            if a.desc < b.desc: return -1
+            elif a.desc > b.desc: return 1
+            else:               return 0
 
 class TaskList:
     """
@@ -454,14 +457,16 @@ class TaskList:
         """
         self.name  = name
         self.items = []
-    def addItem(self,name,desc):
+    def addItem(self,name,desc,author='',uid=0):
         """
         Add an item to the tasklist.
         @param self
         @param string name
         @param string desc
+        @param optional string author default ''
+        @param optional int uid default 0
         """
-        self.items.append(TaskItem(name,desc))
+        self.items.append(TaskItem(name,desc,author,uid))
     def taskCount(self):
         """
         Give the number of tasks in this list
@@ -509,26 +514,27 @@ class PackageTaskList(TaskList):
         TaskList.__init__(self,name)
         self.funcs = []
         self.procs = []
-    def addFunc(self,name,desc,author=''):
+    def addFunc(self,name,desc,author='',uid=0):
         """
         Add an item to this packages function task list
         @param self
         @param string name
         @param string desc
-        @param string author (optional)
+        @param optional string author default ''
+        @param optional int uid default 0
         """
-        item = TaskItem(name,desc,author);
+        item = TaskItem(name,desc,author,uid);
         item.parent = self
         self.funcs.append(item)
-    def addProc(self,name,desc,author=''):
+    def addProc(self,name,desc,author='',uid=0):
         """
         Add an item to this packages procedure task list
         @param self
         @param string name
         @param string desc
-        @param string author (optional)
+        @param optional string author default ''
         """
-        item = TaskItem(name,desc,author);
+        item = TaskItem(name,desc,author,uid);
         item.parent = self
         self.procs.append(item)
     def funcCount(self):
@@ -601,10 +607,11 @@ class PackageTaskList(TaskList):
             items = self.procs
             html = '  <TR><TH CLASS="sub">Procedure</TH><TH CLASS="sub">Task</TH>\n'
         name = ''
+        uid = -1
         inner = ''
         author = ''
         for item in items:
-            if item.name == name:
+            if item.name == name and item.uid == uid:
                 inner += '<LI>'+item.desc+'</LI>'
             elif inner != '':
                 if JavaDocVars['author_in_report']:
@@ -614,11 +621,15 @@ class PackageTaskList(TaskList):
                         html += '  <TR><TD VALIGN="top"><B>'+name+'</B></TD><TD><UL>'+inner+'</UL></TD></TR>\n'
                 else:
                     html += '  <TR><TD VALIGN="top">'+name+'</TD><TD><UL>'+inner+'</UL></TD></TR>\n'
-                inner = '<LI>'+item.desc+'</LI>'
-                name  = item.name
+                inner  = '<LI>'+item.desc+'</LI>'
+                name   = item.name
+                uid    = item.uid
+                if len(item.author)>0: author = '('+_('Author')+': '+', '.join(item.author)+')'
+                else: author = ''
             else:
                 inner += '<LI>'+item.desc+'</LI>'
-                name = item.name
+                name   = item.name
+                uid    = item.uid
                 if len(item.author)>0: author = '('+_('Author')+': '+', '.join(item.author)+')'
                 else: author = ''
         if inner !='':
