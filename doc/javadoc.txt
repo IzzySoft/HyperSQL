@@ -96,5 +96,6 @@ Other object information:
  * @private
  * @see <text>
  * @since <text>
+ * @used <object> [<object> ...]
  * @uses <object> [<object> ...]
  * @webpage <text>

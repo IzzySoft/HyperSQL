@@ -1402,7 +1402,7 @@ def MakeFileIndex(objectType):
     outfile.write(MakeHTMLFooter(objectType))
     outfile.close()
 
-def makeUsageCol(where,what,unum,tdatt=''):
+def makeUsageCol(where,what,unum,tdatt='',manused=False,manuses=False):
     """
     Create a table column with usage references.
     This is a helper to several procedures creating element pages.
@@ -1410,21 +1410,22 @@ def makeUsageCol(where,what,unum,tdatt=''):
     @param boolean what do we have what_used?
     @param int unum uniqueNumber for filename
     @param optional string tdatt additional table attributes
+    @param optional boolean manused usage marked manually using @used
+    @param optional boolean manuses usage marked manually using @uses
     @return string html
     """
     s = '<TD CLASS="whereused"'+tdatt+'>'
     if where:
         ref = 'where_used_' + `unum` + '.html'
         s += '<A href="' + ref + '">'+_('where used')+'</A> / '
-    elif what:
-        s += '- / '
-    else:
-        s += _("no use found")
+    elif manused: s += '@ / '
+    elif what or manuses: s += '- / '
+    else: s += _("no use found")
     if what:
         ref = 'what_used_' + `unum` + '.html'
         s += '<A href="' + ref + '">'+_('what used')+'</A>'
-    elif where:
-        s += '-'
+    elif manuses: s += '@'
+    elif where or manused: s += '-'
     s += '</TD>'
     return s
 
@@ -1482,7 +1483,7 @@ def MakeElemIndex(objectType):
         # Write column 3: Short description
         outfile.write("<TD>" + object_tuple[1].javadoc.getShortDesc() + "</TD>")
         # Write column 4: where_used / what_used
-        outfile.write( makeUsageCol(len(object_tuple[1].whereUsed.keys())>0,len(object_tuple[1].whatUsed.keys())>0,object_tuple[1].uniqueNumber) )
+        outfile.write( makeUsageCol(len(object_tuple[1].whereUsed.keys())>0,len(object_tuple[1].whatUsed.keys())>0,object_tuple[1].uniqueNumber,'',len(object_tuple[1].javadoc.used)>0,len(object_tuple[1].javadoc.uses)>0) )
         outfile.write("</TR>\n")
         i += 1
 
@@ -1559,7 +1560,7 @@ def MakeElem2Index(objectType):
         else:
             outfile.write('  <TR'+trclass+'><TD>' + object_tuple[1].name.lower() + '</TD>')
         outfile.write('<TD>' + object_tuple[1].javadoc.getShortDesc() + '</TD>')
-        outfile.write( makeUsageCol(len(object_tuple[1].whereUsed.keys())>0,len(object_tuple[1].whatUsed.keys())>0,object_tuple[1].uniqueNumber) )
+        outfile.write( makeUsageCol(len(object_tuple[1].whereUsed.keys())>0,len(object_tuple[1].whatUsed.keys())>0,object_tuple[1].uniqueNumber,'',len(object_tuple[1].javadoc.used)>0,len(object_tuple[1].javadoc.uses)>0) )
         outfile.write('</TR>\n')
         i += 1
 
@@ -1763,7 +1764,7 @@ def MakePackageIndex():
         trclass = ' CLASS="tr'+`i % 2`+'"'
         outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower()) + '</TD>')
         outfile.write('<TD>' + package_tuple[1].javadoc.getShortDesc() + '</TD>')
-        outfile.write( makeUsageCol(len(package_tuple[1].whereUsed.keys())>0,len(package_tuple[1].whatUsed.keys())>0,package_tuple[1].uniqueNumber) )
+        outfile.write( makeUsageCol(len(package_tuple[1].whereUsed.keys())>0,len(package_tuple[1].whatUsed.keys())>0,package_tuple[1].uniqueNumber,'',len(package_tuple[1].javadoc.used)>0,len(package_tuple[1].javadoc.uses)>0) )
         outfile.write('</TR>\n')
         i += 1
 
@@ -1790,7 +1791,7 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write('    <TR CLASS="tr'+`i % 2`+'"><TD>' + oTuple[1].javadoc.getVisibility() \
               + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower()) + '</TD>\n')
             outfile.write('<TD>' + oTuple[1].javadoc.getShortDesc() + '</TD>')
-            outfile.write( makeUsageCol(len(oTuple[1].whereUsed.keys())>0,len(oTuple[1].whatUsed.keys())>0,oTuple[1].uniqueNumber) )
+            outfile.write( makeUsageCol(len(oTuple[1].whereUsed.keys())>0,len(oTuple[1].whatUsed.keys())>0,oTuple[1].uniqueNumber,'',len(oTuple[1].javadoc.used)>0,len(oTuple[1].javadoc.uses)>0) )
             outfile.write('</TR>\n')
             i += 1
         if len(oTupleList) != 0:
@@ -1831,7 +1832,7 @@ def MakePackagesWithFuncsAndProcsIndex():
             outfile.write('&nbsp;')
         else:
             outfile.write('<A HREF="' + HTMLjref + '">'+_('ApiDoc')+'</A>')
-        outfile.write('</TD>' + makeUsageCol(len(package_tuple[1].whereUsed.keys())>0,len(package_tuple[1].whatUsed.keys())>0,package_tuple[1].uniqueNumber,' WIDTH="33.33%"'))
+        outfile.write('</TD>' + makeUsageCol(len(package_tuple[1].whereUsed.keys())>0,len(package_tuple[1].whatUsed.keys())>0,package_tuple[1].uniqueNumber,' WIDTH="33.33%"',len(package_tuple[1].javadoc.used)>0,len(package_tuple[1].javadoc.uses)>0))
         outfile.write('</TR>\n')
 
         # functions in this package
@@ -1882,7 +1883,7 @@ def CreateHyperlinkedSourceFilePages():
                 ph += ', ' + par.name
             outfile.write(ph[2:])
         outfile.write(')</DIV></TD><TD>'+idesc+'</TD>')
-        outfile.write( makeUsageCol(len(item.whereUsed.keys())>0,len(item.whatUsed.keys())>0,item.uniqueNumber) )
+        outfile.write( makeUsageCol(len(item.whereUsed.keys())>0,len(item.whatUsed.keys())>0,item.uniqueNumber,'',len(item.javadoc.used)>0,len(item.javadoc.uses)>0) )
         outfile.write('</TR>\n')
 
 
@@ -2661,7 +2662,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.3.0"
+    metaInfo.versionString = "3.3.3"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

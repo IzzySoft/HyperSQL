@@ -5,6 +5,9 @@ v3.3.5
 * Tasklists (Bug/Todo/Verification) should now be able to tell overloaded
   functions/procedures apart
 ! author in tasklists (if enabled) was not always updated correctly
++ new javadoc tag @used
+* if no where/what used found, manually marks (@used/@uses) are evaluated and
+  indicated by '@' in the lists
 
 v3.3.0 (19.05.2010)
 -------------------

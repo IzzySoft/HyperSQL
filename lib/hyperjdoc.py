@@ -30,10 +30,11 @@ JavaDocVars = dict(
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
               'see', 'webpage', 'license', 'ticket', 'wiki', 'since',
-              'uses', 'ignore', 'throws','col'], # other supported tags
+              'uses', 'ignore', 'throws', 'col', 'used'], # other supported tags
     txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
                'copyright', 'deprecated', 'see', 'webpage', 'license',
-               'ticket', 'wiki', 'desc', 'since', 'uses', 'throws'] # values of these tags are plain text
+               'ticket', 'wiki', 'desc', 'since', 'uses', 'throws',
+               'used'] # values of these tags are plain text
 )
 
 def setJDocEncoding(encoding):
@@ -112,6 +113,7 @@ class JavaDoc(object):
         self.wiki = []
         self.since = []
         self.uses = []
+        self.used = []
         self.throws = []
 
     def __repr__(self):
@@ -310,6 +312,8 @@ class JavaDoc(object):
           html += '<DT>'+_('Available Since')+':</DT><DD>' + HyperScan(listItemHtml(self.since)) + '</DD>'
         if len(self.uses) > 0:
           html += '<DT>'+_('Uses')+':</DT><DD>' + HyperScan(listItemHtml(self.uses)) + '</DD>'
+        if len(self.used) > 0:
+          html += '<DT>'+_('Used')+':</DT><DD>' + HyperScan(listItemHtml(self.used)) + '</DD>'
         if 'throws' in JavaDocVars['otypes'][self.objectType]['otags'] and len(self.throws) > 0:
           html += '<DT>'+_('Throws Exception')+':</DT><DD>' + HyperScan(listItemHtml(self.throws)) + '</DD>'
         if len(self.bug) > 0:
