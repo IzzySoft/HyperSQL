@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.3.5
+v3.3.3 (23.05.2010)
 -------------------
 * Tasklists (Bug/Todo/Verification) should now be able to tell overloaded
   functions/procedures apart
