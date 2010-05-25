@@ -261,14 +261,30 @@ def ScanFilesForViewsAndPackages():
                 metaInfo.incLoc('comment') # we had just comments in this line (???)
                 continue
 
-            # find tables.
-            if metaInfo.indexPage['tab'] != '':
-                for token_index in range(len(token_list)):
+            for token_index in range(len(token_list)):
+                # find trigger.
+                if metaInfo.indexPage['trigger'] != '':
+                    # look for CREATE [OR REPLACE] TRIGGER [schema.]trigger (...), making sure enough tokens exist
+                    if len(token_list) > token_index+1 \
+                    and token_list[token_index+1].upper() == "TRIGGER" \
+                    and token_list[token_index].upper() in ['CREATE','REPLACE']:
+                        tab_info = StandAloneElemInfo()
+                        tab_info.parent = file_info
+                        if len(token_list) > token_index+2:
+                          tab_info.name = token_list[token_index+2]
+                        else:
+                          tab_info.name = token_list1[0]
+                        tab_info.name = fixQuotedName(tab_info.name)
+                        ElemInfoAppendJdoc(tab_info,'trigger',lineNumber,jdoc)
+                        file_info.triggerInfoList.append(tab_info)
+                        continue
+
+                # find tables.
+                if metaInfo.indexPage['tab'] != '':
                     # look for CREATE [GLOBAL TEMPORARY] TABLE [schema.]table (...), making sure enough tokens exist
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "TABLE" \
-                    and (token_list[token_index].upper() == "CREATE" \
-                        or token_list[token_index].upper() == "TEMPORARY"):
+                    and token_list[token_index].upper() in ['CREATE','TEMPORARY']:
                         tab_info = StandAloneElemInfo()
                         tab_info.parent = file_info
                         if len(token_list) > token_index+2:
@@ -278,16 +294,14 @@ def ScanFilesForViewsAndPackages():
                         tab_info.name = fixQuotedName(tab_info.name)
                         ElemInfoAppendJdoc(tab_info,'table',lineNumber,jdoc)
                         file_info.tabInfoList.append(tab_info)
+                        continue
 
-            # find views.  Loop through looking for the different styles of view definition
-            if metaInfo.indexPage['view'] != '':
-                for token_index in range(len(token_list)):
+                # find views.  Loop through looking for the different styles of view definition
+                if metaInfo.indexPage['view'] != '':
                     # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "VIEW" \
-                    and (token_list[token_index].upper() == "CREATE" \
-                        or token_list[token_index].upper() == "REPLACE" \
-                        or token_list[token_index].upper() == "FORCE"):
+                    and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE']:
                         view_info = StandAloneElemInfo()
                         view_info.parent = file_info
                         if len(token_list) > token_index+2:
@@ -297,10 +311,10 @@ def ScanFilesForViewsAndPackages():
                         view_info.name = fixQuotedName(view_info.name)
                         ElemInfoAppendJdoc(view_info,'view',lineNumber,jdoc)
                         file_info.viewInfoList.append(view_info)
+                        continue
 
-            # find mviews.
-            if metaInfo.indexPage['mview'] != '':
-                for token_index in range(len(token_list)):
+                # find mviews.
+                if metaInfo.indexPage['mview'] != '':
                     # CREATE MATERIALIZED VIEW [schema.]mview ...
                     if len(token_list) > token_index+2 \
                     and token_list[token_index+2].upper() == "VIEW" \
@@ -315,16 +329,14 @@ def ScanFilesForViewsAndPackages():
                         view_info.name = fixQuotedName(view_info.name)
                         ElemInfoAppendJdoc(view_info,'mview',lineNumber,jdoc)
                         file_info.mviewInfoList.append(view_info)
+                        continue
 
-            # find synonym definitions
-            if metaInfo.indexPage['synonym']:
-                for token_index in range(len(token_list)):
+                # find synonym definitions
+                if metaInfo.indexPage['synonym']:
                     # CREATE [OR REPLACE] [PUBLIC] SYNONYM [schema.]synonym FOR [schema.]object [@dblink]
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "SYNONYM" \
-                    and (token_list[token_index].upper() == "CREATE" \
-                        or token_list[token_index].upper() == "REPLACE" \
-                        or token_list[token_index].upper() == "PUBLIC") \
+                    and token_list[token_index].upper() in ['CREATE','REPLACE','PUBLIC'] \
                     and not (token_list[token_index-1].upper()=="DROP" or (token_index>1 and token_list[token_index-2].upper()=="DROP")):
                         syn_info = StandAloneElemInfo()
                         syn_info.parent = file_info
@@ -335,10 +347,10 @@ def ScanFilesForViewsAndPackages():
                         syn_info.name = fixQuotedName(syn_info.name)
                         ElemInfoAppendJdoc(syn_info,'synonym',lineNumber,jdoc)
                         file_info.synInfoList.append(syn_info)
+                        continue
 
-            # find sequence definitions
-            if metaInfo.indexPage['sequence']:
-                for token_index in range(len(token_list)):
+                # find sequence definitions
+                if metaInfo.indexPage['sequence']:
                     # CREATE SEQUENCE [schema.]sequence_name option(s)
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "SEQUENCE" \
@@ -352,14 +364,13 @@ def ScanFilesForViewsAndPackages():
                         seq_info.name = fixQuotedName(seq_info.name)
                         ElemInfoAppendJdoc(seq_info,'sequence',lineNumber,jdoc)
                         file_info.seqInfoList.append(seq_info)
+                        continue
 
             # find package definitions - set flag if found
             # look for CREATE [OR REPLACE] PACKAGE BODY x, making sure enough tokens exist
             for token_index in range(len(token_list)):
                 if len(token_list) > token_index+3 \
-                   and (token_list[token_index].upper() == "CREATE" \
-                        or token_list[token_index].upper() == "REPLACE" \
-                        or token_list[token_index].upper() == "FORCE") \
+                   and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE'] \
                        and token_list[token_index+1].upper() == "PACKAGE" \
                        and token_list[token_index+2].upper() == "BODY":
                     package_info = PackageInfo()
@@ -390,7 +401,8 @@ def ScanFilesForViewsAndPackages():
                         file_info.packageInfoList.append(pi) # permanent storage
                         package_count += 1 # use this flag below
 
-            # if a package definition was found, look for functions and procedures
+            # if a package definition was found, look for functions and procedures.
+            # This does NOT loop over all tokens - it assumes definition starts at the beginning of the line!
             if package_count != -1:
                 # first find functions
                 if len(token_list) > 1 and token_list[0].upper() == "FUNCTION":
@@ -509,7 +521,12 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         fObj = ElemInfo()
         sqObj = ElemInfo()
         syObj = ElemInfo()
+        trObj = ElemInfo()
         PObj = PackageInfo()
+        if len(fInfo.triggerInfoList)!=0:
+            for sInfo in fInfo.triggerInfoList:
+                if sInfo.lineNumber < lineNumber: trObj = sInfo
+                else: break;
         if len(fInfo.seqInfoList)!=0:
             for sInfo in fInfo.seqInfoList:
                 if sInfo.lineNumber < lineNumber: sqObj = sInfo
@@ -547,6 +564,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 ['mview',mObj.lineNumber,mObj],
                 ['pkg',PObj.lineNumber,PObj],
                 ['func',fObj.lineNumber,fObj],
+                ['trigger',trObj.lineNumber,trObj],
                 ['proc',pObj.lineNumber,pObj]
                ]
         sobj.sort(key=lambda obj: obj[1], reverse=True)
@@ -564,16 +582,17 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         @param string otype object type of the used object
         """
         uType,uObj = findUsingObject(fileInfo,lineNumber)
-        if fileInfo.fileName not in objectInfo.whereUsed.keys():
-            objectInfo.whereUsed[fileInfo.fileName] = []
-        objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
+        if uType != 'trigger': # triggers are not "used", they are "fired"
+            if fileInfo.fileName not in objectInfo.whereUsed.keys():
+                objectInfo.whereUsed[fileInfo.fileName] = []
+            objectInfo.whereUsed[fileInfo.fileName].append((fileInfo, lineNumber, uType, uObj))
         # generate a unique number for use in making where used file if needed
         if objectInfo.uniqueNumber == 0: objectInfo.uniqueNumber = metaInfo.NextIndex()
         if uType in ['sequence','tab']: # these objects are not using other objects
             return
         # now care for the what_used
         if uType != 'file':
-          if otype in ['view','mview','pkg','synonym','sequence','tab']:
+          if otype in ['view','mview','pkg','synonym','sequence','tab','trigger']:
             fname = objectInfo.parent.fileName
             finfo = objectInfo.parent
           elif otype in ['func','proc']:
@@ -752,16 +771,23 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             usage_flag = 1
             for token_index in range(len(token_list)):
 
-                # look for CREATE [GLOBAL TEMPORARY] TABLE, making sure enough tokens exist
-                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 \
-                and token_list[token_index+1].upper() == "TABLE" \
-                and token_list[token_index].upper() in ['CREATE','TEMPORARY','DROP','ALTER']:
+                # look for CREATE [OR REPLACE] TRIGGER
+                if metaInfo.indexPage['trigger'] != '' and len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "TRIGGER" \
+                and token_list[token_index].upper() in ['CREATE','REPLACE','DROP','ALTER']:
                     # we are creating, dropping, altering, or commenting - not using.  Set flag to 0
                     usage_flag = 0
 
-                # check for COMMENT ON (COLUMN | TABLE)
+                # look for CREATE [GLOBAL TEMPORARY] TABLE
+                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "TABLE" \
+                and token_list[token_index].upper() in ['CREATE','TEMPORARY','DROP','ALTER']:
+                    # we are creating, dropping, or altering - not using.  Set flag to 0
+                    usage_flag = 0
+
+                # check for COMMENT ON (COLUMN | TABLE | MATERIALIZED VIEW | INDEXTYPE | OPERATOR | MINING MODEL)
                 if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 and token_index > 0 \
-                and token_list[token_index+1].upper() in ['COLUMN','TABLE'] \
+                and token_list[token_index+1].upper() in ['COLUMN','TABLE','INDEXTYPE','OPERATOR','MINING','MATERIALIZED'] \
                 and token_list[token_index].upper() == "ON" \
                 and token_list[token_index-1].upper() == "COMMENT":
                     # we are just commenting on a table column
@@ -774,14 +800,14 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     # we don't consider index creation as usage for tables
                     usage_flag = 0
 
-                # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
+                # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW
                 if metaInfo.indexPage['view'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "VIEW" \
                 and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE']:
                     # we are creating, forcing, or replacing - not using.  Set flag to 0
                     usage_flag = 0
 
-                # look for CREATE MATERIALIZED VIEW, making sure enough tokens exist
+                # look for CREATE MATERIALIZED VIEW
                 if metaInfo.indexPage['mview'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "VIEW" \
                 and token_list[token_index].upper() == "MATERIALIZED":
@@ -802,7 +828,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     # we are creating, or dropping - not using.  Set flag to 0
                     usage_flag = 0
 
-                # look for PACKAGE BODY x IS, making sure enough tokens exist
+                # look for PACKAGE (CREATE|ALTER|DROP)
                 if token_list[token_index].upper() == "PACKAGE" \
                 and len(token_list) > token_index+2:
                     #and token_list[token_index+1].upper() == "BODY": # commented out - creates trouble if package spec is in the same file
@@ -818,7 +844,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                     if token_list[0].upper() == "PROCEDURE" and len(token_list) > 1:
                         usage_flag = 0
 
-                # look for END x, making sure enough tokens exist
+                # look for END x
                 if token_list[token_index].upper() == "END" \
                 and len(token_list) > token_index+1:
                     usage_flag = 0
@@ -831,6 +857,14 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
         # Loop through all previously found views and packages to see if they are used in this line of text
         for inner_file_info in fileInfoList:
+
+            # if this FileInfo instance has triggers
+            if len(inner_file_info.triggerInfoList) != 0:
+                for tab_info in inner_file_info.triggerInfoList:
+                    # perform case insensitive find
+                    res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
+                    for ires in res:
+                        addWhereUsed(tab_info, outer_file_info, ires[0], 'trigger')
 
             # if this FileInfo instance has tables
             if len(inner_file_info.tabInfoList) != 0:
@@ -927,7 +961,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar'>\n"
-    for item in ['package','function','procedure','package_full','tab','view','mview','synonym','sequence','file','filepath','bug','todo','report','stat','depgraph']:
+    for item in ['package','function','procedure','package_full','tab','view','mview','synonym','sequence','trigger','file','filepath','bug','todo','report','stat','depgraph']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -1093,7 +1127,7 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Lines')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="6" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     js += '_BFont="font-family:Verdana;font-weight:bold;font-size:8pt;line-height:10pt;"\n'
-    js += 'function initCharts() { for (var i=0;i<7;++i) { if (i<4) { MouseOutL(i); } if (i<5) { MouseOutFS(i); } MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } }\n'
+    js += 'function initCharts() { for (var i=0;i<8;++i) { if (i<4) { MouseOutL(i); } if (i<5) { MouseOutFS(i); } MouseOutO(i); if (i<3) { MouseOutFL(i); MouseOutJ(i); } } }\n'
     colors = [col[0] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
     tcols  = [col[1] for col in [c['code'],c['comment'],c['empty'],c['mixed']]]
     pieposx = pie_rad + 2*pie_offset
@@ -1127,8 +1161,8 @@ def MakeStatsPage():
     outfile.write("</TABLE>\n")
 
     # Object Stats
-    colors = [col[0] for col in [c['tab'],c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
-    tcols  = [col[1] for col in [c['tab'],c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['pkg']]]
+    colors = [col[0] for col in [c['tab'],c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['trigger'],c['pkg']]]
+    tcols  = [col[1] for col in [c['tab'],c['mview'],c['view'],c['func'],c['proc'],c['synonym'],c['sequence'],c['trigger'],c['pkg']]]
     posy = 0
     tabs = 0
     views = 0
@@ -1137,16 +1171,18 @@ def MakeStatsPage():
     procs = 0
     synonyms = 0
     sequences = 0
+    triggers = 0
     for file_info in metaInfo.fileInfoList:
         tabs += len(file_info.tabInfoList)
         views += len(file_info.viewInfoList)
         mviews += len(file_info.mviewInfoList)
         synonyms += len(file_info.synInfoList)
         sequences += len(file_info.seqInfoList)
+        triggers += len(file_info.triggerInfoList)
         for package_info in file_info.packageInfoList:
             funcs += len(package_info.functionInfoList)
             procs += len(package_info.procedureInfoList)
-    totalObj = tabs + views + mviews + synonyms + sequences + funcs + procs
+    totalObj = tabs + views + mviews + synonyms + sequences + funcs + procs + triggers
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('Object Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
@@ -1161,6 +1197,7 @@ def MakeStatsPage():
         pie.addPiece((float(procs)/totalObj) * 100)
         pie.addPiece((float(synonyms)/totalObj) * 100)
         pie.addPiece((float(sequences)/totalObj) * 100)
+        pie.addPiece((float(triggers)/totalObj) * 100)
         js += pie.generate();
         bar = ChartLegend('O',barposx,barposy,bar_wid,bar_hei,pie_offset,colors,tcols)
         bar.addBar(_('Tables'))
@@ -1170,6 +1207,7 @@ def MakeStatsPage():
         bar.addBar(_('Procedures'))
         bar.addBar(_('Synonyms'))
         bar.addBar(_('Sequences'))
+        bar.addBar(_('Triggers'))
         js += bar.generate()
         tabPct = num_format((float(tabs)/totalObj) * 100, 2)
         viewPct = num_format((float(views)/totalObj) * 100, 2)
@@ -1178,6 +1216,7 @@ def MakeStatsPage():
         procPct = num_format((float(procs)/totalObj) * 100, 2)
         synonymPct = num_format((float(synonyms)/totalObj) * 100, 2)
         sequencePct = num_format((float(sequences)/totalObj) * 100, 2)
+        triggerPct = num_format((float(triggers)/totalObj) * 100, 2)
     else:
         js += 'function MouseOutO(i) {return;}\n'
         tabPct = num_format(0.0, 2)
@@ -1185,6 +1224,7 @@ def MakeStatsPage():
         mviewPct = num_format(0.0, 2)
         synonymPct = num_format(0.0, 2)
         sequencePct = num_format(0.0, 2)
+        triggerPct = num_format(0.0, 2)
         funcPct = num_format(0.0, 2)
         procPct = num_format(0.0, 2)
     js += '</SCRIPT>\n'
@@ -1197,6 +1237,7 @@ def MakeStatsPage():
     outfile.write('  <TR><TH CLASS="sub">'+_('Procedures')+'</TH><TD ALIGN="right">'+num_format(procs)+'</TD><TD ALIGN="right">'+procPct+'%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Synonyms')+'</TH><TD ALIGN="right">'+num_format(synonyms)+'</TD><TD ALIGN="right">'+synonymPct+'%</TD></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Sequences')+'</TH><TD ALIGN="right">'+num_format(sequences)+'</TD><TD ALIGN="right">'+sequencePct+'%</TD></TR>\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Triggers')+'</TH><TD ALIGN="right">'+num_format(triggers)+'</TD><TD ALIGN="right">'+triggerPct+'%</TD></TR>\n')
     outfile.write("</TABLE>\n")
 
     # FileStats
@@ -1301,7 +1342,7 @@ def MakeStatsPage():
             jwarns += package_info.verification.taskCount() + package_info.verification.funcCount() + package_info.verification.procCount()
             jbugs += package_info.bugs.taskCount() + package_info.bugs.funcCount() + package_info.bugs.procCount()
             jtodo += package_info.todo.taskCount() + package_info.todo.funcCount() + package_info.todo.procCount()
-        oList = ['tab','view','mview','syn','seq']
+        oList = ['tab','view','mview','syn','seq','trigger']
         for oname in oList:
           for oInfo in file_info.__getattribute__(oname+'InfoList'):
             jwarns += oInfo.verification.taskCount()
@@ -1441,22 +1482,22 @@ def MakeElemIndex(objectType):
     if metaInfo.indexPage[objectType] == '':       # index for this objectType is turned off
         return
 
-    printProgress(_('Creating %s index') % _(objectType))
+    printProgress(_('Creating %s index') % _(objectType.capitalize()))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage[objectType]
 
     objectTupleList = []
+    if objectType == 'function':
+        html_title   = _('Index Of All Functions')
+        object_name  = _('Function')
+    else:
+        html_title   = _('Index Of All Procedures')
+        object_name  = _('Procedure')
     for file_info in fileInfoList:
         if file_info.fileType != "sql": # skip all non-sql files
             continue
-        if objectType == 'function':
-            html_title   = _('Index Of All Functions')
-            object_name  = _('Function')
-        else:
-            html_title   = _('Index Of All Procedures')
-            object_name  = _('Procedure')
         for package_info in file_info.packageInfoList:
             if objectType == 'function':
                 elemInfoList = package_info.functionInfoList
@@ -1495,17 +1536,23 @@ def MakeElemIndex(objectType):
 def MakeElem2Index(objectType):
     """Generate HTML index page for all views or synonyms"""
 
-    if objectType not in ['tab','view','mview','synonym','sequence']: # not a valid/supported objectType
+    if objectType not in ['tab','view','mview','synonym','sequence','trigger']: # not a valid/supported objectType
         return
     if metaInfo.indexPage[objectType] == '': # Index was turned off
         return
 
-    printProgress(_("Creating %s index") % _(objectType))
+    if objectType == 'tab':
+        printProgress(_("Creating %s index") % _('Table'))
+    else:
+        printProgress(_("Creating %s index") % _(objectType.capitalize()))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage[objectType]
-    if objectType == 'tab':
+    if objectType == 'trigger':
+      html_title = _('Index Of All Triggers')
+      object_name = _('Trigger')
+    elif objectType == 'tab':
       html_title = _('Index Of All Tables')
       object_name = _('Table')
     elif objectType == 'view':
@@ -1529,7 +1576,9 @@ def MakeElem2Index(objectType):
         # skip all non-sql files
         if file_info.fileType != "sql":
             continue        
-        if objectType == 'tab':
+        if objectType == 'trigger':
+          objectList = file_info.triggerInfoList
+        elif objectType == 'tab':
           objectList = file_info.tabInfoList
         elif objectType == 'view':
           objectList = file_info.viewInfoList
@@ -1581,7 +1630,7 @@ def MakeTaskList(taskType):
     if metaInfo.indexPage[taskType] == '':
         return
 
-    printProgress(_("Creating %s list") % _(taskType))
+    printProgress(_("Creating %s list") % _(taskType.capitalize()))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1593,6 +1642,7 @@ def MakeTaskList(taskType):
     mviewtuplelist   = []
     syntuplelist     = []
     seqtuplelist     = []
+    triggertuplelist = []
     for file_info in fileInfoList:
         # skip all non-sql files
         if file_info.fileType != "sql":
@@ -1609,6 +1659,8 @@ def MakeTaskList(taskType):
             syntuplelist.append((synInfo.name.upper(), synInfo, file_info))
         for seqInfo in file_info.seqInfoList:
             seqtuplelist.append((seqInfo.name.upper(), seqInfo, file_info))
+        for triggerInfo in file_info.triggerInfoList:
+            triggertuplelist.append((triggerInfo.name.upper(), triggerInfo, file_info))
 
     packagetuplelist.sort(TupleCompareFirstElements)
     tabletuplelist.sort(TupleCompareFirstElements)
@@ -1616,6 +1668,7 @@ def MakeTaskList(taskType):
     mviewtuplelist.sort(TupleCompareFirstElements)
     syntuplelist.sort(TupleCompareFirstElements)
     seqtuplelist.sort(TupleCompareFirstElements)
+    triggertuplelist.sort(TupleCompareFirstElements)
 
     outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(taskType))
@@ -1722,6 +1775,21 @@ def MakeTaskList(taskType):
             continue
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(seqtuple)
         outfile.write('  <TR><TH COLSPAN="2">' + _('Synonym') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,seqtuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
+    # Walk the triggers
+    for triggertuple in triggertuplelist:
+        if taskType == 'bug':
+            task = triggertuple[1].bugs
+        elif taskType == 'todo':
+            task = triggertuple[1].todo
+        else:
+            task = triggertuple[1].verification
+        if task.allItemCount() < 1:
+            continue
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(seqtuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Trigger') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,triggertuple[1].name.lower()) + '</TH></TR>\n');
         outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
         outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
 
@@ -1955,6 +2023,12 @@ def CreateHyperlinkedSourceFilePages():
             for v in range(len(file_info.synInfoList)):
                 outfile.write(file_info.synInfoList[v].javadoc.getHtml(file_info.synInfoList[v].uniqueNumber))
 
+        # Do we have trigger in this file?
+        if len(file_info.triggerInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Triggers')+'</H2>\n')
+            for v in range(len(file_info.triggerInfoList)):
+                outfile.write(file_info.triggerInfoList[v].javadoc.getHtml(file_info.triggerInfoList[v].uniqueNumber))
+
         # Do we have packages in this file?
         packagedetails = '\n\n'
         if len(file_info.packageInfoList) > 0:
@@ -2170,6 +2244,9 @@ def CreateWhereUsedPages():
         elif otype=='sequence':
             outfile.write(MakeHTMLHeader(pname))
             outfile.write( makeUsageTableHead(_('Sequence'),obj.name,page) )
+        elif otype=='trigger':
+            outfile.write(MakeHTMLHeader(pname))
+            outfile.write( makeUsageTableHead(_('Trigger'),obj.name,page) )
         elif otype=='pkg':
             outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
             outfile.write( makeUsageTableHead(_('package'),obj.name,page) )
@@ -2238,7 +2315,7 @@ def CreateWhereUsedPages():
             if len(syn_info.whereUsed.keys()) != 0:
                 makeUsagePage('where','synonym',syn_info)
 
-        # loop through synonyms
+        # loop through sequences
         for seq_info in file_info.seqInfoList:
             #create a "where used" file
             if len(seq_info.whereUsed.keys()) != 0:
@@ -2246,6 +2323,12 @@ def CreateWhereUsedPages():
             #create a "what used" file
             if len(seq_info.whatUsed.keys()) != 0:
                 makeUsagePage('what','sequence',seq_info)
+
+        # loop through triggers
+        for trigger_info in file_info.triggerInfoList:
+            #create a "what used" file
+            if len(trigger_info.whatUsed.keys()) != 0:
+                makeUsagePage('what','trigger',trigger_info)
 
         # loop through packages
         for package_info in file_info.packageInfoList:
@@ -2453,6 +2536,7 @@ def configRead():
     confPage('view','ViewIndex.html',_('View Index'),False)
     confPage('mview','MViewIndex.html',_('MView Index'),False)
     confPage('tab','TableIndex.html',_('Table Index'),False)
+    confPage('trigger','TriggerIndex.html',_('Trigger Index'),False)
     confPage('synonym','SynonymIndex.html',_('Synonym Index'),False)
     confPage('sequence','SequenceIndex.html',_('Sequence Index'),False)
     confPage('package','PackageIndex.html',_('Package Index'),True)
@@ -2534,6 +2618,7 @@ def configRead():
     confColors('pkg', '#0000ff','#ffffff')
     confColors('proc', '#3366ff','#ffffff')
     confColors('func', '#66aaff','#000000')
+    confColors('trigger', '#33ffff','#000000')
     confColors('tab', '#774411','#ffffff')
     confColors('view', '#eeaa55','#000000')
     confColors('mview', '#bb6611','#ffffff')
@@ -2562,6 +2647,7 @@ def configRead():
               'table':     dict(name='table',     otags=['col']),
               'view':      dict(name='view',      otags=['col']),
               'mview':     dict(name='mview',     otags=['col']),
+              'trigger':   dict(name='trigger',   otags=[]),
               'synonym':   dict(name='synonym',   otags=[]),
               'sequence':  dict(name='sequence',  otags=[]),
               'pkg':       dict(name='package',   otags=[])
@@ -2662,7 +2748,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.3.3"
+    metaInfo.versionString = "3.3.6"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
@@ -2744,6 +2830,7 @@ if __name__ == "__main__":
     MakeElem2Index('mview')
     MakeElem2Index('synonym')
     MakeElem2Index('sequence')
+    MakeElem2Index('trigger')
     MakePackageIndex()
     MakeElemIndex('function')
     MakeElemIndex('procedure')

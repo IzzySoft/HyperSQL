@@ -165,13 +165,24 @@ class JavaDoc(object):
             if param.name == '':
                 faillist.append(_('Missing name for %(type)s parameter (#%(index)s)') % {'type': param.sqltype, 'index': `self.params.index(param)`})
                 self.log(_('Missing name for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
-            if param.desc == '':
+            if param.desc == '' and 'desc' in JavaDocVars['mandatory_tags']:
                 if param.name == '':
                     faillist.append(_('Missing description for %(type)s parameter (#%(index)s)') % {'type':param.sqltype, 'index':`self.params.index(param)`})
                     self.log(_('Missing description for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
                 else:
                     faillist.append(_('Missing description for parameter %s') % param.name)
                     self.log(_('Missing description for parameter "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s') % {'pname':param.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+        for col in self.cols:
+            if col.name == '':
+                faillist.append(_('Missing name for %(type)s column (#%(index)s)') % {'type': col.sqltype, 'index': `self.cols.index(col)`})
+                self.log(_('Missing name for column of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':col.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+            if col.desc == '' and 'desc' in JavaDocVars['mandatory_tags']:
+                if col.name == '':
+                    faillist.append(_('Missing description for %(type)s column (#%(index)s)') % {'type':col.sqltype, 'index':`self.cols.index(col)`})
+                    self.log(_('Missing description for column of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':col.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+                else:
+                    faillist.append(_('Missing description for column %s') % col.name)
+                    self.log(_('Missing description for column "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s') % {'pname':col.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         if 'return' in JavaDocVars['otypes'][self.objectType]['otags'] and len(self.retVals)<1:
             faillist.append(_('Missing return value'))
             self.log(_('Missing return value for %(otype)s %(name)s in %(file)s line %(line)s') % {'otype':JavaDocVars[self.objectType]['name'], 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})

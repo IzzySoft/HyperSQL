@@ -1,5 +1,14 @@
 # History of Changes for HyperSQL
 
+v3.4.0
+-------------------
++ added support for triggers (incl. Javadoc tag @trigger)
+* COMMENT ON ignores for where_used completed (now also ignoring e.g. MViews)
+* some more code cleanup and optimization (scanning source for objects)
+! missing desc for function/procedure parameters was always marked in verification,
+  regardless whether 'desc' should have been checked (mandatory_tags where ignored)
++ columns (@col) are now also checked against mandatory_tags
+
 v3.3.3 (23.05.2010)
 -------------------
 * Tasklists (Bug/Todo/Verification) should now be able to tell overloaded
