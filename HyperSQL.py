@@ -2748,7 +2748,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.3.6"
+    metaInfo.versionString = "3.4.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
