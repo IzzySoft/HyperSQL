@@ -85,16 +85,19 @@ def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
           temp = FileInfo()
           temp.fileName = f1
           temp.fileType = "sql"
-          if temp.uniqueNumber == 0:
-            temp.uniqueNumber = metaInfo.NextIndex()
-          fileInfoList.append(temp)
-        if ext in metaInfo.cpp_file_exts:
+        elif ext in ['xml'] and metaInfo.indexPage['form'] != '':
+          temp = FileInfo()
+          temp.fileName = f1
+          temp.fileType = "xml"
+        elif ext in metaInfo.cpp_file_exts:
           temp = FileInfo()
           temp.fileName = f1
           temp.fileType = "cpp"
-          if temp.uniqueNumber == 0:
+        else:
+          continue
+        if temp.uniqueNumber == 0:
             temp.uniqueNumber = metaInfo.NextIndex()
-          fileInfoList.append(temp)
+        fileInfoList.append(temp)
 
 def ScanFilesForViewsAndPackages():
     """
@@ -106,6 +109,11 @@ def ScanFilesForViewsAndPackages():
     and children) - for functions and procedures contained in packages, a link
     to their parent is stored along.
     """
+    if metaInfo.indexPage['form'] != '':
+        try:
+            from xml_forms import OraForm
+        except:
+            logger.error(_('Cannot process Oracle Forms XML files - SAX API (pyxml) seems to be unavailable.'))
 
     def ElemInfoAppendJdoc(oInfo,oType,lineNumber,jdoc):
         """
@@ -152,6 +160,7 @@ def ScanFilesForViewsAndPackages():
     pbarInit(_("Scanning source files for views and packages"),0,len(fileInfoList))
     i = 0
     strpatt = re.compile("('[^']*')+")    # String-Regexp
+    if metaInfo.indexPage['form'] != '' and metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
 
     # first, find views in files
     dot_count = 1
@@ -162,7 +171,7 @@ def ScanFilesForViewsAndPackages():
         pbarUpdate(i)
 
         # skip all non-sql files
-        if file_info.fileType != "sql":
+        if file_info.fileType not in ['sql','xml']:
             continue
 
         infile = fopen(file_info.fileName, "r", metaInfo.encoding)
@@ -176,6 +185,67 @@ def ScanFilesForViewsAndPackages():
             jdoc = ScanJavaDoc(fileLines, file_info.fileName)
         else:
             jdoc = []
+
+        # Oracle Forms XML files have special processing:
+        if file_info.fileType in ['xml'] and metaInfo.indexPage['form'] != '':
+            proc_mark = config.get('Forms','proc_mark','Procedure').upper()
+            func_mark = config.get('Forms','func_mark','Function').upper()
+            pcks_mark  = config.get('Forms','pcks_mark','Package Body').upper()
+            pck_mark  = config.get('Forms','pck_mark','Package Body').upper()
+            formcode = ''
+
+            form = OraForm(file_info.fileName)
+            modinfo = form.getModuleInfo()
+            libinfo = form.getLibraryInfo()
+            form_info = FormInfo()
+            form_info.parent = file_info
+            if modinfo:
+                form_info.formType = 'module'
+                form_info.title     = modinfo['title']
+            elif libinfo:
+                form_info.formType = 'library'
+                form_info.objects  = libinfo['objects']
+            else:
+                form_info.formType = 'unknown'
+            form_info.name = form.getModuleName()
+            form_info.lineNumber = 0
+
+            for unit in form.getUnits(): # name, type, code
+                if not unit['type']: continue # deleted objects have their type removed
+                linenr = formcode.count('\n') +1
+                if unit['code']: formcode += unit['code'] + '\n'
+                if unit['type'].upper() == proc_mark:
+                    elem = StandAloneElemInfo()
+                    elem.name = unit['name']
+                    elem.lineNumber = linenr
+                    form_info.procedureInfoList.append(elem)
+                elif unit['type'].upper() == func_mark:
+                    elem = StandAloneElemInfo()
+                    elem.name = unit['name']
+                    elem.lineNumber = linenr
+                    form_info.functionInfoList.append(elem)
+                elif unit['type'].upper() == pck_mark:
+                    #pi = PackageInfo ###TODO for more details
+                    elem = StandAloneElemInfo()
+                    elem.name = unit['name']
+                    elem.lineNumber = linenr
+                    form_info.packageInfoList.append(elem)
+                elif unit['type'].upper() == pcks_mark:
+                    continue    # skip package specifications
+                else:
+                    logger.info(_('Skipped unknown form unit type "%(type)s" in %(file)s'),{'type':unit['type'],'file':file_info.fileName})
+            for trigger in form.getTrigger():
+                linenr = formcode.count('\n') +1
+                if trigger['code']: formcode += trigger['code']
+                elem = StandAloneElemInfo()
+                elem.name = trigger['name']
+                elem.lineNumber = linenr
+                form_info.triggerInfoList.append(elem)
+
+            file_info.formInfoList.append(form_info)
+            if metaInfo.useCache and not cache.check(file_info.fileName,'formcode'):
+                cache.put(file_info.fileName, 'formcode', formcode)
+            continue
 
         # if we find a package definition, this flag tells us to also look for
         # functions and procedures.  If we don't find a package definition, there
@@ -523,6 +593,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         syObj = ElemInfo()
         trObj = ElemInfo()
         PObj = PackageInfo()
+        foObj = FormInfo()
         if len(fInfo.triggerInfoList)!=0:
             for sInfo in fInfo.triggerInfoList:
                 if sInfo.lineNumber < lineNumber: trObj = sInfo
@@ -556,6 +627,9 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 for vInfo in pInfo.procedureInfoList:
                     if vInfo.lineNumber < lineNumber: pObj = vInfo
                     else: break
+        if len(fInfo.formInfoList)>0:
+            for foInfo in fInfo.formInfoList:
+                if foInfo.lineNumber < lineNumber: foObj = foInfo
         sobj = [
                 ['sequence',sqObj.lineNumber,sqObj],
                 ['synonym',syObj.lineNumber,syObj],
@@ -565,7 +639,8 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 ['pkg',PObj.lineNumber,PObj],
                 ['func',fObj.lineNumber,fObj],
                 ['trigger',trObj.lineNumber,trObj],
-                ['proc',pObj.lineNumber,pObj]
+                ['proc',pObj.lineNumber,pObj],
+                ['form',foObj.lineNumber,foObj]
                ]
         sobj.sort(key=lambda obj: obj[1], reverse=True)
         if sobj[0][1] < 0: rtype = 'file' # No object found
@@ -672,6 +747,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
 
     fileInfoList = metaInfo.fileInfoList
+    if metaInfo.indexPage['form'] != '' and metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
 
     pbarInit(_("Scanning source files for where views and packages are used"),0,len(fileInfoList))
     scan_instring = metaInfo.scanInString
@@ -691,9 +767,20 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         i += 1
         pbarUpdate(i)
 
-        infile = fopen(outer_file_info.fileName, "r", metaInfo.encoding)
-        fileLines = infile.readlines()
-        infile.close()
+        if outer_file_info.fileType == 'xml':
+            formcode = ''
+            if metaInfo.useCache:
+                try:
+                    formcode = cache.get(outer_file_info.fileName,'formcode')
+                except:
+                    formcode = ''
+            else:
+                formcode = '' ### need to re-create in case caching is turned off
+            fileLines = formcode.split('\n')
+        else:
+            infile = fopen(outer_file_info.fileName, "r", metaInfo.encoding)
+            fileLines = infile.readlines()
+            infile.close()
 
         # if we find a package definition, this flag tells us to also look for
         # functions and procedures.  If we don't find a package definition, there
@@ -703,13 +790,15 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         new_file = 1
         new_text = ''
 
-
         for lineNumber in range(len(fileLines)):
 
             if new_file == 1:
                 token_list = fileLines[lineNumber].split()
             else:
                 token_list = token_list1
+
+            #if outer_file_info.fileType=='xml' and not lineNumber % 100:    # *!*
+                #sys.stdout.write( outer_file_info.fileName+' line '+`lineNumber`+'\r')
 
             # len()-1 because we start with index 0
             if len(fileLines)-1 > lineNumber and not scan_instring:
@@ -961,7 +1050,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar'>\n"
-    for item in ['package','function','procedure','package_full','tab','view','mview','synonym','sequence','trigger','file','filepath','bug','todo','report','stat','depgraph']:
+    for item in ['package','function','procedure','package_full','tab','view','mview','synonym','sequence','trigger','form','file','filepath','bug','todo','report','stat','depgraph']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -1470,6 +1559,89 @@ def makeUsageCol(where,what,unum,tdatt='',manused=False,manuses=False):
     s += '</TD>'
     return s
 
+def MakeFormIndex():
+    """
+    Generate HTML index page for Oracle Forms
+    """
+    if metaInfo.indexPage['form'] == '': return     # Forms disabled = nothing to do here
+    printProgress(_('Creating %s index') % 'Form')
+
+    fileInfoList = metaInfo.fileInfoList
+    html_dir = metaInfo.htmlDir
+    outfilename = metaInfo.indexPage['form']
+
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile.write(MakeHTMLHeader('form'))
+    outfile.write("<H1>"+_('Index Of All Forms')+"</H1>\n")
+    outfile.write("<TABLE CLASS='apilist'>\n")
+    outfile.write("  <TR><TH>"+_('Form')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Usage')+"</TH></TR>\n")
+
+    formtuplelist = []
+    for file_info in fileInfoList:
+        if file_info.fileType != "xml": # skip all non-xml files
+            continue
+
+        for form_info in file_info.formInfoList:
+            formtuplelist.append((form_info.name.upper(), form_info, file_info))
+
+    formtuplelist.sort(TupleCompareFirstElements)
+
+    i = 0
+    for formtuple in formtuplelist:
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(formtuple)
+        trclass = ' CLASS="tr'+`i % 2`+'"'
+        outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,formtuple[1].name.lower()) + '</TD>')
+        detail = formtuple[1].javadoc.getShortDesc() or formtuple[1].title
+        outfile.write('<TD>' + detail + '</TD>')
+        outfile.write( makeUsageCol(len(formtuple[1].whereUsed.keys())>0,len(formtuple[1].whatUsed.keys())>0,formtuple[1].uniqueNumber,'',len(formtuple[1].javadoc.used)>0,len(formtuple[1].javadoc.uses)>0) )
+        outfile.write('</TR>\n')
+        i += 1
+
+    outfile.write("</TABLE>\n")
+    outfile.write(MakeHTMLFooter('form'))
+    outfile.close()
+
+
+def MakeFormIndexWithUnits():
+    """
+    Generate HTML index page for Oracle Forms
+    """
+    if metaInfo.indexPage['form'] == '': return     # Forms disabled = nothing to do here
+    printProgress(_('Creating %s index') % 'Form')
+
+    fileInfoList = metaInfo.fileInfoList
+    html_dir = metaInfo.htmlDir
+    outfilename = metaInfo.indexPage['form']
+
+    outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
+    outfile.write(MakeHTMLHeader('form'))
+    outfile.write("<H1>"+_('Index Of All Forms')+"</H1>\n")
+    outfile.write("<TABLE CLASS='apilist'>\n")
+    outfile.write("  <TR><TH>"+_('Form')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Usage')+"</TH></TR>\n")
+
+    for file_info in fileInfoList:
+        if file_info.fileType != "xml": # skip all non-xml files
+            continue
+
+        for form_info in file_info.formInfoList:
+            print 'FORM FILE: ' + file_info.fileName
+            print '- packages: '+`len(form_info.packageInfoList)`
+            print '- functions: '+`len(form_info.functionInfoList)`
+            print '- procedures: '+`len(form_info.procedureInfoList)`
+            print '- trigger: '+`len(form_info.triggerInfoList)`
+            if len(form_info.packageInfoList):
+                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Packages') + '</TH></TR>')
+            if len(form_info.functionInfoList):
+                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Functions') + '</TH></TR>')
+            if len(form_info.procedureInfoList):
+                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Procedures') + '</TH></TR>')
+            if len(form_info.triggerInfoList):
+                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Triggers') + '</TH></TR>')
+
+    outfile.write("</TABLE>\n")
+    outfile.write(MakeHTMLFooter('form'))
+    outfile.close()
+
 
 def MakeElemIndex(objectType):
     """
@@ -1954,6 +2126,28 @@ def CreateHyperlinkedSourceFilePages():
         outfile.write( makeUsageCol(len(item.whereUsed.keys())>0,len(item.whatUsed.keys())>0,item.uniqueNumber,'',len(item.javadoc.used)>0,len(item.javadoc.uses)>0) )
         outfile.write('</TR>\n')
 
+    def readCodeFromFile(fInfo):
+        """
+        read up the source file
+        @param object fInfo fileInfo object
+        @return list linelist list of code lines
+        """
+        if fInfo.fileType == 'sql':
+            infile = fopen(fInfo.fileName, "r", metaInfo.encoding)
+            infile_line_list = infile.readlines()
+            infile.close()
+        else:
+            if metaInfo.useCache:
+                try:
+                    formcode = cache.get(fInfo.fileName,'formcode')
+                except:
+                    formcode = ''
+            else:
+                formcode = '' ### need to re-create in case caching is turned off
+            infile_line_list = formcode.split('\n')
+            for line in range(len(infile_line_list)): infile_line_list[line] += '\n'
+        return infile_line_list
+
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -1979,13 +2173,8 @@ def CreateHyperlinkedSourceFilePages():
         pbarUpdate(k)
 
         # skip all non-sql files
-        if file_info.fileType != "sql":
+        if file_info.fileType not in ['sql','xml']:
             continue
-
-        # read up the source file
-        infile = fopen(file_info.fileName, "r", metaInfo.encoding)
-        infile_line_list = infile.readlines()
-        infile.close()
 
         # generate a file name for us to write to (+1 for delimiter)
         outfilename = os.path.split(file_info.fileName)[1].replace('.', '_')
@@ -1998,6 +2187,20 @@ def CreateHyperlinkedSourceFilePages():
         # ===[ JAVADOC STARTS HERE ]===
         file_info.sortLists()
         viewdetails = '\n\n'
+
+        # Do we have forms in this file?
+        if len(file_info.formInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Forms')+'</H2>\n')
+            for v in range(len(file_info.formInfoList)):
+                outfile.write('<A NAME="'+file_info.formInfoList[v].name+'_'+str(file_info.formInfoList[v].uniqueNumber)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + file_info.formInfoList[v].name + '</TH></TR>\n')
+                if file_info.formInfoList[v].title:
+                    outfile.write('  <TR><TD><DIV CLASS="jd_desc">' + file_info.formInfoList[v].title + '</DIV></TD></TR>\n')
+                outfile.write('  <TR><TD><DL><DT>Details:</DT><DD>' \
+                    + `len(file_info.formInfoList[v].packageInfoList)` + ' ' + _('Packages') + '</DD><DD>' \
+                    + `len(file_info.formInfoList[v].functionInfoList)` + ' ' + _('Functions') + '</DD><DD>' \
+                    + `len(file_info.formInfoList[v].procedureInfoList)` + ' ' + _('Procedures') + '</DD><DD>' \
+                    + `len(file_info.formInfoList[v].triggerInfoList)` + ' ' + _('Triggers') + '</DD></DL></TD></TR>')
+                outfile.write('</TABLE>\n');
 
         # Do we have tables in this file?
         if len(file_info.tabInfoList) > 0:
@@ -2072,10 +2275,10 @@ def CreateHyperlinkedSourceFilePages():
                 if cache.check(file_info.fileName,'code'):
                     code = cache.get(file_info.fileName,'code')
                 else:
-                    code = hypercode(infile_line_list, sqlkeywords, sqltypes)
+                    code = hypercode(readCodeFromFile(file_info), sqlkeywords, sqltypes)
                     cache.put(file_info.fileName, 'code', code)
             else:
-                code = hypercode(infile_line_list, sqlkeywords, sqltypes)
+                code = hypercode(readCodeFromFile(file_info), sqlkeywords, sqltypes)
             # Shall we hyperlink calls?
             if metaInfo.linkCodeCalls:
                 if len(file_info.packageInfoList) > 0:
@@ -2094,7 +2297,16 @@ def CreateHyperlinkedSourceFilePages():
                                 if code==oricode and file_info.fileName==u[0].fileName: # no match on full name
                                     patt = re.compile('\\b('+oname+')(\\s*\\()')
                                     code = patt.sub('<A HREF="'+href+'">\\1</A>\\2',code)
-            outfile.write( code )
+            try:
+                if len(metaInfo.encoding)>8 and metaInfo.encoding[0:8].lower()=='iso-8859':
+                    # though \xa4 should be '&curren;', it usually is '&euro;'. u'\xa4' does not translate to iso-8859-*
+                    # Other characters are messed up by the Oracle Form converter already beyond repair possibility.
+                    outfile.write( code.replace(u'\xa4','&euro;') )
+                else:
+                    outfile.write( code )
+            except UnicodeEncodeError, detail:
+                logger.error(_('Encoding trouble writing sourcecode of %s:'), file_info.fileName)
+                logger.error(detail)
             outfile.write('</PRE></CODE>\n')
             outfile.write('<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV><BR>\n')
             outfile.write(MakeHTMLFooter(file_info.fileName[len(top_level_directory)+1:]))
@@ -2196,8 +2408,10 @@ def CreateWhereUsedPages():
         html = '  <TR'+trclass+'><TD>' + utype + ' '
 
         # only make hypertext references for SQL files for now
-        if utuple[0].fileType == "sql":
-            if not metaInfo.useJavaDoc or uObj.javadoc.isDefault():
+        if utuple[0].fileType in ['sql','xml']:
+            if utuple[0].fileType == 'xml':
+                html += '<A HREF="' + html_file + '#' + uObj.name + '_' + `uObj.uniqueNumber` + '">' + uObj.name + '</A></TD><TD>'
+            elif not metaInfo.useJavaDoc or uObj.javadoc.isDefault():
                 html += uname + '</TD><TD>'
             else:
                 html += '<A HREF="' + html_file + '#' + uObj.javadoc.name + '_' + `uObj.uniqueNumber` + '">' + uname + '</A></TD><TD>'
@@ -2282,7 +2496,7 @@ def CreateWhereUsedPages():
         pbarUpdate(i)
 
         # skip all non-sql files
-        if file_info.fileType != 'sql':
+        if file_info.fileType not in ['sql','xml']:
             continue
 
         # loop through tables
@@ -2543,6 +2757,7 @@ def configRead():
     confPage('package_full','PackagesWithFuncsAndProcsIndex.html',_('Full Package Listing'),True)
     confPage('function','FunctionIndex.html',_('Function Index'),True)
     confPage('procedure','ProcedureIndex.html',_('Procedure Index'),True)
+    confPage('form','FormIndex.html',_('Form Index'),False)
     confPage('bug','BugIndex.html',_('Bug List'),True)
     confPage('todo','TodoIndex.html',_('Todo List'),True)
     confPage('report','ReportIndex.html',_('Verification Report'),True)
@@ -2619,6 +2834,7 @@ def configRead():
     confColors('proc', '#3366ff','#ffffff')
     confColors('func', '#66aaff','#000000')
     confColors('trigger', '#33ffff','#000000')
+    confColors('form','#0066cc','#ffffff')
     confColors('tab', '#774411','#ffffff')
     confColors('view', '#eeaa55','#000000')
     confColors('mview', '#bb6611','#ffffff')
@@ -2748,7 +2964,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.4.0"
+    metaInfo.versionString = "3.4.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
@@ -2823,6 +3039,7 @@ if __name__ == "__main__":
     CopyStaticFiles()
 
     # Generating the index pages
+    CreateIndexPage()
     MakeFileIndex('filepath')
     MakeFileIndex('file')
     MakeElem2Index('tab')
@@ -2835,11 +3052,11 @@ if __name__ == "__main__":
     MakeElemIndex('function')
     MakeElemIndex('procedure')
     MakePackagesWithFuncsAndProcsIndex()
+    MakeFormIndex()
 
     CreateWhereUsedPages()
     CreateDepGraphIndex()
     CreateHyperlinkedSourceFilePages()
-    CreateIndexPage()
 
     # Bug and Todo lists
     MakeTaskList('bug')

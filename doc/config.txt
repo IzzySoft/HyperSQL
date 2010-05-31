@@ -70,6 +70,7 @@ named similar to their corresponding file names options, so:
  * function: guessed right, HTML file for the function index
  * procedure: procedure index HTML file
  * package_full: Index of packages including all their functions and procedures
+ * form: Oracle Forms (XML converted only!)
  * bug: Index of bugs gathered from the JavaDoc @bug tags
  * todo: Index of todos gathered from the JavaDoc @todo tags
  * report: Verification report

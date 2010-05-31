@@ -52,6 +52,30 @@ class PackageInfo(StandAloneElemInfo):
         self.functionInfoList = []
         self.procedureInfoList = []
 
+class FormInfo(StandAloneElemInfo):
+    """ Object to hold information about an Oracle Form """
+    def __init__(self):
+        """ Initialize the object with useful defaults """
+        StandAloneElemInfo.__init__(self)
+        self.formType = ''
+        self.title = ''
+        self.objects = 0
+        self.packageInfoList = []
+        self.triggerInfoList = []
+        self.functionInfoList = []
+        self.procedureInfoList = []
+    def __repr__(self):
+        """ Basic information for debug """
+        if self.formType == '': return 'empty form'
+        ret = 'Form '+self.formType+' "'+self.name+'":\n' \
+            + '* '+`self.objects`+' objects\n' \
+            + '* '+`len(self.packageInfoList)`+' packages\n' \
+            + '* '+`len(self.functionInfoList)`+' functions\n' \
+            + '* '+`len(self.procedureInfoList)`+' procedures\n' \
+            + '* '+`len(self.triggerInfoList)`+' trigger\n'
+        if self.parent: ret += '* Parent: '+self.parent.fileName
+        return ret
+
 def listCompName(a,b):
     """
     Helper to sort a list of objects by their "name" property using
@@ -75,6 +99,7 @@ class FileInfo(object):
         self.seqInfoList = []
         self.packageInfoList = []
         self.triggerInfoList = []
+        self.formInfoList = []
         self.uniqueNumber = 0 # used to create unique file name for where used list
         self.lines = 0
         self.bytes = 0

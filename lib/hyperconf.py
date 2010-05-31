@@ -85,6 +85,7 @@ class HyperConf(IniParser):
             package_full = 'PackagesWithFuncsAndProcsIndex.html',
             function = 'FunctionIndex.html',
             procedure = 'ProcedureIndex.html',
+            form = 'FormIndex.html',
             bug = 'BugIndex.html',
             todo = 'TodoIndex.html',
             report = 'ReportIndex.html',
@@ -105,6 +106,7 @@ class HyperConf(IniParser):
             package_full = _('Full Package Listing'),
             function = _('Function Index'),
             procedure = _('Procedure Index'),
+            form = _('Form Index'),
             bug = _('Bug List'),
             todo = _('Todo List'),
             report = _('Validation Report'),
@@ -125,6 +127,7 @@ class HyperConf(IniParser):
             package_full = '1',
             function = '1',
             procedure = '1',
+            form = '0',
             bug = '1',
             todo = '1',
             report = '0',
@@ -181,6 +184,7 @@ class HyperConf(IniParser):
             func = '#66aaff #000000',
             tab = '#774411 #ffffff',
             trigger = '#33ffff #000000',
+            form = '#0066cc #ffffff',
             mview = '#bb6611 #ffffff',
             view = '#eeaa55 #000000',
             synonym = '#00ff00 #000000',
@@ -202,6 +206,13 @@ class HyperConf(IniParser):
             file1000l = '#0000ff #ffffff',
             file400l = '#ffcc00 #000000'
         )
+        # Section FORMS
+        forms = dict (
+            pck_mark = 'Package Body',
+            pcks_mark = 'Package-Spez.',
+            proc_mark = 'Prozedur',
+            func_mark = 'Funktion'
+        )
         # Generate the final dict (dict() allows no nesting)
         vals = {}
         vals['General']   = general
@@ -213,4 +224,5 @@ class HyperConf(IniParser):
         vals['Verification'] = verification
         vals['DepGraph']  = depgraph
         vals['Colors']    = colors
+        vals['Forms']     = forms
         self.setVals( vals )

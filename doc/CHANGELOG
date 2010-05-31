@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v3.4.5
+-------------------
++ added very basic (and experimental) support for Oracle Forms, which need to be
+  converted to XML before they can be processed by HyperSQL (for *nix users,
+  doc/frmf2xml.sh is provided for the conversion - which requires the Forms developer
+  being installed)
+
 v3.4.0 (26.05.2010)
 -------------------
 + added support for triggers (incl. Javadoc tag @trigger)
