@@ -22,6 +22,8 @@ class FindUnits(ContentHandler):
         self.modinfo = {}
         self.units = []
         self.trigger = []
+        self.stats = {'Alert':0, 'Block':0, 'Canvas':0, 'LOV':0, 'Menu':0, 'ModuleParameter':0,
+                      'PropertyClass':0, 'RecordGroup':0, 'VisualAttribute':0, 'Window':0}
 
     def error(self, exception):
         """Internal: Skip over recoverable (non-fatal) errors"""
@@ -50,6 +52,8 @@ class FindUnits(ContentHandler):
             ucode = attrs.get('TriggerText', None)
             if ucode: ucode = ucode.replace('&#10;','\n')
             self.trigger.append({'name':uname, 'code':ucode})
+        elif name in self.stats.keys():
+            self.stats[name] += 1
 
 class OraForm:
     """
@@ -74,6 +78,7 @@ class OraForm:
         self.trigger  = []
         self.libinfo  = {}
         self.modinfo  = {}
+        self.stats    = {}
 
     def setFileName(self,filename):
         """ Specify the name of the XML Form to process """
@@ -96,6 +101,7 @@ class OraForm:
         self.trigger = dh.trigger
         self.libinfo = dh.libinfo
         self.modinfo = dh.modinfo
+        self.stats   = dh.stats
 
     def getUnits(self):
         """
@@ -140,6 +146,13 @@ class OraForm:
         """
         return self.trigger
 
+    def getStats(self):
+        """
+        Return stats for the no-code objects of the form
+        @return dict stats
+        """
+        return self.stats
+
 def test(filename,printcode=False):
     """
     Simple test unit to a) test if everything works and/or b) show what kind of
@@ -179,3 +192,4 @@ def test(filename,printcode=False):
             print '-' * len('* ' + uname)
             print ucode
             print ''
+    print '* Stats: ' + `form.stats`

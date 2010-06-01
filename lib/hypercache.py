@@ -41,6 +41,16 @@ class cache(object):
         """
         return os.path.join( self.dirname, fname.replace(os.sep,'%2f') + '.' + ctype )
 
+    def getOName(self,cname,ctype):
+        """
+        Get the name of the original file a cache file belongs to (counter-part to makename)
+        @param self
+        @param strinc cname filename of the cache file
+        @return string fname filename of the original file
+        """
+        #return cname[len(self.dirname):-len(ctype)-1].replace('%2f',os.sep)
+        return cname[0:-len(ctype)-1].replace('%2f',os.sep)
+
     def check(self,fname,ctype,ftim=0):
         """
         Check whether the copy in cache is up-to-date
@@ -63,6 +73,27 @@ class cache(object):
             os.unlink(cname)
             return False
         return True
+
+    def removeObsolete(self,basedir=''):
+        """
+        Cleanup files from cache which do no longer exist in the original location
+        (i.e. which have been deleted/moved, so they would no longer match)
+        @param self
+        @param optional string basedir   base directory of original codebase
+        @return int removed              how many files have been removed
+        """
+        if not os.path.isdir(self.dirname): return 0 # no cache dir
+        names=os.listdir(self.dirname)
+        dc = 0
+        for i in names:
+            splitted = i.split('.')
+            ctype = splitted[len(splitted)-1]
+            if not ctype in ['code','formcode']: continue
+            if not os.path.isfile(self.getOName(i,ctype)):
+                os.unlink( os.path.join(self.dirname, i) )
+                dc += 1
+        return dc
+            
 
     def get(self,fname,ctype):
         """

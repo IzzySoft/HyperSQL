@@ -75,6 +75,7 @@ Object types:
  * @pkg <name>
  * @synonym <name>
  * @sequence <name>
+ * @form
 
 Object properties:
 

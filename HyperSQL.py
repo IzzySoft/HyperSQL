@@ -48,6 +48,16 @@ from progressbar import *
 from hyperopts import hyperopts
 import hypercache
 
+def CleanRemovedFromCache():
+    """
+    Check the cache for copies of already deleted/moved files
+    """
+    if metaInfo.useCache:
+        printProgress(_('Checking cache for copies of already deleted/moved files'))
+        cache = hypercache.cache(metaInfo.cacheDirectory)
+        dc    = cache.removeObsolete(metaInfo.topLevelDirectory)
+        logger.info(_('%s obsolete files removed from cache'), dc)
+
 def FindFilesAndBuildFileList(dir, fileInfoList, init=True):
     """
     Recursively scans the source directory specified for relevant files according
@@ -145,6 +155,17 @@ def ScanFilesForViewsAndPackages():
                 logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
                 oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
 
+    def FormInfoAppendJavadoc(oInfo,oType,jdoc):
+        """
+        Append javadoc to form elements
+        @param object oInfo the form element
+        @param string oType type of the element (form, pkg, func, proc)
+        @param list jdoc JavaDoc object
+        """
+        for j in range(len(jdoc)):
+          ln = jdoc[j].lineNumber - oInfo.lineNumber
+          if (CaseInsensitiveComparison(oInfo.name,jdoc[j].name)==0 and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+            oInfo.javadoc = jdoc[j]
 
     def fixQuotedName(name):
         """
@@ -174,18 +195,6 @@ def ScanFilesForViewsAndPackages():
         if file_info.fileType not in ['sql','xml']:
             continue
 
-        infile = fopen(file_info.fileName, "r", metaInfo.encoding)
-        fileLines = infile.readlines()
-        infile.close()
-        file_info.lines = len(fileLines)
-        file_info.bytes  = os.path.getsize(file_info.fileName)
-
-        # scan this file for possible JavaDoc style comments
-        if metaInfo.useJavaDoc:
-            jdoc = ScanJavaDoc(fileLines, file_info.fileName)
-        else:
-            jdoc = []
-
         # Oracle Forms XML files have special processing:
         if file_info.fileType in ['xml'] and metaInfo.indexPage['form'] != '':
             proc_mark = config.get('Forms','proc_mark','Procedure').upper()
@@ -199,6 +208,7 @@ def ScanFilesForViewsAndPackages():
             libinfo = form.getLibraryInfo()
             form_info = FormInfo()
             form_info.parent = file_info
+            form_info.stats = form.getStats()
             if modinfo:
                 form_info.formType = 'module'
                 form_info.title     = modinfo['title']
@@ -243,9 +253,33 @@ def ScanFilesForViewsAndPackages():
                 form_info.triggerInfoList.append(elem)
 
             file_info.formInfoList.append(form_info)
+            file_info.bytes = os.path.getsize(file_info.fileName)
+            file_info.lines = formcode.count('\n')
             if metaInfo.useCache and not cache.check(file_info.fileName,'formcode'):
                 cache.put(file_info.fileName, 'formcode', formcode)
+            if metaInfo.useJavaDoc:
+                jdoc = ScanJavaDoc(formcode.split('\n'), file_info.fileName)
+                FormInfoAppendJavadoc(form_info,'form',jdoc)
+                for pkg in form_info.packageInfoList:
+                    FormInfoAppendJavadoc(pkg,'pkg',jdoc)
+                for func in form_info.functionInfoList:
+                    FormInfoAppendJavadoc(func,'function',jdoc)
+                for proc in form_info.procedureInfoList:
+                    FormInfoAppendJavadoc(proc,'procedure',jdoc)
             continue
+
+        else:
+            infile = fopen(file_info.fileName, "r", metaInfo.encoding)
+            fileLines = infile.readlines()
+            infile.close()
+            file_info.lines = len(fileLines)
+            file_info.bytes  = os.path.getsize(file_info.fileName)
+
+        # scan this file for possible JavaDoc style comments
+        if metaInfo.useJavaDoc:
+            jdoc = ScanJavaDoc(fileLines, file_info.fileName)
+        else:
+            jdoc = []
 
         # if we find a package definition, this flag tells us to also look for
         # functions and procedures.  If we don't find a package definition, there
@@ -667,7 +701,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             return
         # now care for the what_used
         if uType != 'file':
-          if otype in ['view','mview','pkg','synonym','sequence','tab','trigger']:
+          if otype in ['view','mview','pkg','synonym','sequence','tab','trigger','form']:
             fname = objectInfo.parent.fileName
             finfo = objectInfo.parent
           elif otype in ['func','proc']:
@@ -2186,21 +2220,7 @@ def CreateHyperlinkedSourceFilePages():
 
         # ===[ JAVADOC STARTS HERE ]===
         file_info.sortLists()
-        viewdetails = '\n\n'
-
-        # Do we have forms in this file?
-        if len(file_info.formInfoList) > 0:
-            outfile.write('<H2 CLASS="api">'+_('Forms')+'</H2>\n')
-            for v in range(len(file_info.formInfoList)):
-                outfile.write('<A NAME="'+file_info.formInfoList[v].name+'_'+str(file_info.formInfoList[v].uniqueNumber)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + file_info.formInfoList[v].name + '</TH></TR>\n')
-                if file_info.formInfoList[v].title:
-                    outfile.write('  <TR><TD><DIV CLASS="jd_desc">' + file_info.formInfoList[v].title + '</DIV></TD></TR>\n')
-                outfile.write('  <TR><TD><DL><DT>Details:</DT><DD>' \
-                    + `len(file_info.formInfoList[v].packageInfoList)` + ' ' + _('Packages') + '</DD><DD>' \
-                    + `len(file_info.formInfoList[v].functionInfoList)` + ' ' + _('Functions') + '</DD><DD>' \
-                    + `len(file_info.formInfoList[v].procedureInfoList)` + ' ' + _('Procedures') + '</DD><DD>' \
-                    + `len(file_info.formInfoList[v].triggerInfoList)` + ' ' + _('Triggers') + '</DD></DL></TD></TR>')
-                outfile.write('</TABLE>\n');
+        packagedetails = '\n\n'
 
         # Do we have tables in this file?
         if len(file_info.tabInfoList) > 0:
@@ -2232,8 +2252,70 @@ def CreateHyperlinkedSourceFilePages():
             for v in range(len(file_info.triggerInfoList)):
                 outfile.write(file_info.triggerInfoList[v].javadoc.getHtml(file_info.triggerInfoList[v].uniqueNumber))
 
+        # Do we have forms in this file?
+        if len(file_info.formInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Form Overview')+'</H2>\n')
+            outfile.write('<TABLE CLASS="apilist">\n')
+            for v in range(len(file_info.formInfoList)):
+                fi = file_info.formInfoList[v]
+                jdoc = fi.javadoc
+                outfile.write(' <TR><TH COLSPAN="3">' + fi.name + '</TH></TR>\n')
+                outfile.write(' <TR><TD COLSPAN="3">')
+                if jdoc.isDefault():
+                    outfile.write('<DIV CLASS="jd_desc">' + fi.title + '</DIV>')
+                else:
+                    if len(jdoc.desc)<1 or (len(jdoc.desc)==1 and jdoc.desc[0]==''): jdoc.desc.append(fi.title)
+                    outfile.write( jdoc.getHtml(fi.uniqueNumber) )
+                outfile.write('  <DL><DT>'+_('Statistics')+':</DT><DD><TABLE><TR CLASS="tr0"><TD>' \
+                    + _('Packages') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.packageInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
+                    + _('Functions') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.functionInfoList)` + '</TD></TR><TR CLASS="tr0"><TD>' \
+                    + _('Procedures') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.procedureInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
+                    + _('Triggers') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.triggerInfoList)` + '</TD></TR>')
+                i = 0
+                for s in fi.stats.keys():
+                    if fi.stats[s]>0:
+                        outfile.write('<TR CLASS="tr'+`i%2`+'"><TD>'+s+'</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">'+`fi.stats[s]`+'</TD></TR>')
+                        i += 1
+                outfile.write('</TABLE></DD></TD></TR>\n')
+                # Check form for packages
+                if len(fi.packageInfoList) > 0:
+                    packagedetails += '<A NAME="formpkgs"></A><H2>'+_('Form Packages')+'</H2>\n'
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">'+_('Packages')+'</TH></TR>\n')
+                    i = 0
+                    html = ''
+                    for item in fi.packageInfoList:
+                        ObjectDetailsListItem(item,i)
+                        html += item.javadoc.getHtml(item.uniqueNumber)
+                        i += 1
+                    if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
+                    else: packagedetails += html
+                # Check form for functions
+                if len(fi.functionInfoList) > 0:
+                    packagedetails += '<A NAME="formfuncs"></A><H2>'+_('Form Functions')+'</H2>\n'
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">'+_('Functions')+'</TH></TR>\n')
+                    i = 0
+                    html = ''
+                    for item in fi.functionInfoList:
+                        ObjectDetailsListItem(item,i)
+                        html += item.javadoc.getHtml(item.uniqueNumber)
+                        i += 1
+                    if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
+                    else: packagedetails += html
+                # Check form for procedures
+                if len(fi.procedureInfoList) > 0:
+                    packagedetails += '<A NAME="formprocs"></A><H2>'+_('Form Procedures')+'</H2>\n'
+                    outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">'+_('Procedures')+'</TH></TR>\n')
+                    i = 0
+                    html = ''
+                    for item in fi.procedureInfoList:
+                        ObjectDetailsListItem(item,i)
+                        html += item.javadoc.getHtml(item.uniqueNumber)
+                        i += 1
+                    if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
+                    else: packagedetails += html
+                outfile.write('</TABLE>\n');
+
         # Do we have packages in this file?
-        packagedetails = '\n\n'
         if len(file_info.packageInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Package Overview')+'</H2>\n')
             outfile.write('<TABLE CLASS="apilist">\n')
@@ -2263,7 +2345,6 @@ def CreateHyperlinkedSourceFilePages():
                         i += 1
             outfile.write('</TABLE>\n\n')
 
-        outfile.write(viewdetails)
         outfile.write(packagedetails)
         # ===[ JAVADOC END ]===
 
@@ -2463,13 +2544,16 @@ def CreateWhereUsedPages():
             outfile.write( makeUsageTableHead(_('Trigger'),obj.name,page) )
         elif otype=='pkg':
             outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
-            outfile.write( makeUsageTableHead(_('package'),obj.name,page) )
+            outfile.write( makeUsageTableHead(_('Package'),obj.name,page) )
         elif otype=='func':
             outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
-            outfile.write( makeUsageTableHead(_('function'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
+            outfile.write( makeUsageTableHead(_('Function'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
         elif otype=='proc':
             outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
-            outfile.write( makeUsageTableHead(_('procedure'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
+            outfile.write( makeUsageTableHead(_('Procedure'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
+        elif otype=='form':
+            outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
+            outfile.write( makeUsageTableHead(_('Form'),obj.name,page) )
         else:
             logger.warn(_('makeUsagePage called for undefined type "%s"'),otype)
         used_keys.sort(CaseInsensitiveComparison)
@@ -2570,6 +2654,15 @@ def CreateWhereUsedPages():
                 #create a "what used" file
                 if len(procedure_info.whatUsed.keys()) != 0:
                     makeUsagePage('what','proc',procedure_info)
+
+        # loop through forms
+        for form_info in file_info.formInfoList:
+            # no where_used pages here, so we go straight for the what_used
+            if len(form_info.whatUsed.keys()) > 0:
+                makeUsagePage('what','form',form_info)
+                # check for form packages
+                # check for form functions
+                # check for form procedures
 
     # complete line on task completion
     pbarClose()
@@ -2866,9 +2959,10 @@ def configRead():
               'trigger':   dict(name='trigger',   otags=[]),
               'synonym':   dict(name='synonym',   otags=[]),
               'sequence':  dict(name='sequence',  otags=[]),
-              'pkg':       dict(name='package',   otags=[])
+              'pkg':       dict(name='package',   otags=[]),
+              'form':      dict(name='form',      otags=[])
     } # supported object types
-    JavaDocVars['supertypes'] = ['pkg'] # object types with subobjects
+    JavaDocVars['supertypes'] = ['pkg','form'] # object types with subobjects
 
 def confDeps():
     """ Check dependent options and fix them, if necessary """
@@ -2959,6 +3053,7 @@ def purge_cache():
     if metaInfo.cmdOpts.purge_cache is not None:
         cache = hypercache.cache(metaInfo.cacheDirectory)
         for name in metaInfo.cmdOpts.purge_cache: cache.clear(name)
+    CleanRemovedFromCache()
 
 
 if __name__ == "__main__":
@@ -3028,12 +3123,12 @@ if __name__ == "__main__":
     #print '====================='
     #sys.exit()
 
+    purge_cache()
     FindFilesAndBuildFileList(metaInfo.topLevelDirectory, metaInfo.fileInfoList)
     ScanFilesForViewsAndPackages()
     ScanFilesForWhereViewsAndPackagesAreUsed()
 
     purge_html()
-    purge_cache()
 
     CreateHTMLDirectory()
     CopyStaticFiles()

@@ -6,6 +6,9 @@ v3.4.5
   converted to XML before they can be processed by HyperSQL (for *nix users,
   doc/frmf2xml.sh is provided for the conversion - which requires the Forms developer
   being installed)
++ added javadoc tag @form
++ files removed from their locations in the source tree now also get automatically
+  removed from cache
 
 v3.4.0 (26.05.2010)
 -------------------

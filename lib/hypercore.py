@@ -60,6 +60,7 @@ class FormInfo(StandAloneElemInfo):
         self.formType = ''
         self.title = ''
         self.objects = 0
+        self.stats = {}
         self.packageInfoList = []
         self.triggerInfoList = []
         self.functionInfoList = []
@@ -72,7 +73,8 @@ class FormInfo(StandAloneElemInfo):
             + '* '+`len(self.packageInfoList)`+' packages\n' \
             + '* '+`len(self.functionInfoList)`+' functions\n' \
             + '* '+`len(self.procedureInfoList)`+' procedures\n' \
-            + '* '+`len(self.triggerInfoList)`+' trigger\n'
+            + '* '+`len(self.triggerInfoList)`+' trigger\n' \
+            + '* Stats: '+`self.stats`+'\n'
         if self.parent: ret += '* Parent: '+self.parent.fileName
         return ret
 
