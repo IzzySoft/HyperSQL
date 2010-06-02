@@ -1,14 +1,15 @@
 # History of Changes for HyperSQL
 
-v3.4.5
+v3.5.0 (02.06.2010)
 -------------------
-+ added very basic (and experimental) support for Oracle Forms, which need to be
-  converted to XML before they can be processed by HyperSQL (for *nix users,
-  doc/frmf2xml.sh is provided for the conversion - which requires the Forms developer
++ added basic support for Oracle Forms, which need to be converted to XML before
+  they can be processed by HyperSQL (for *nix users, doc/frmf2xml.sh is provided
+  for the conversion - which requires the Forms developer
   being installed)
 + added javadoc tag @form
 + files removed from their locations in the source tree now also get automatically
   removed from cache
++ added comment on code stats page concerning the non-inclusion of @form stats
 
 v3.4.0 (26.05.2010)
 -------------------

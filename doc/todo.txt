@@ -5,3 +5,6 @@ TO-DO LIST
 * Handle stand-alone functions/procedures
 * Handle Types
 * Handle Jobs
+* Naming of objects HTML files: Switch from <filename>_<uid>.html to e.g.
+  <filepath_with_replaced_separators>_<filename>.html to make "steady links"
+  possible

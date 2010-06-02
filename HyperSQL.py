@@ -1241,6 +1241,8 @@ def MakeStatsPage():
     bar_hei = 15
 
     outfile.write('<H1>' + metaInfo.indexPageName['stat'] + '</H1>\n')
+    if metaInfo.indexPage['form'] != '':
+        outfile.write('<P ALIGN="center">'+_('Oracle Forms are not considered for statistics')+'</P>\n')
 
     c = metaInfo.colors
 
@@ -3059,7 +3061,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.4.5"
+    metaInfo.versionString = "3.5.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
