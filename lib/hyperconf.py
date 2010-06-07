@@ -108,7 +108,7 @@ class HyperConf(IniParser):
             function = _('Function Index'),
             procedure = _('Procedure Index'),
             form = _('Form Index'),
-            form_full = _('Full Form Listing'),
+            form_full = _('Full Forms Listing'),
             bug = _('Bug List'),
             todo = _('Todo List'),
             report = _('Validation Report'),
