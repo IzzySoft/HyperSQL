@@ -1,5 +1,10 @@
 # History of Changes for HyperSQL
 
+v3.5.5
+-------------------
++ added support for stand-alone functions and procedures
++ added full form listing (analogue to the full package listing with funcs etc.)
+
 v3.5.0 (02.06.2010)
 -------------------
 + added basic support for Oracle Forms, which need to be converted to XML before

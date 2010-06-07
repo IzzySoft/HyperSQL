@@ -100,6 +100,8 @@ class FileInfo(object):
         self.synInfoList = []
         self.seqInfoList = []
         self.packageInfoList = []
+        self.functionInfoList = []
+        self.procedureInfoList = []
         self.triggerInfoList = []
         self.formInfoList = []
         self.uniqueNumber = 0 # used to create unique file name for where used list

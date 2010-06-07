@@ -285,6 +285,7 @@ def ScanFilesForViewsAndPackages():
         # functions and procedures.  If we don't find a package definition, there
         # is no reason to look for them
         package_count = -1
+        pks_count = -1
         in_block_comment = 0
         new_file = 1
 
@@ -475,136 +476,158 @@ def ScanFilesForViewsAndPackages():
             for token_index in range(len(token_list)):
                 if len(token_list) > token_index+3 \
                    and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE'] \
-                       and token_list[token_index+1].upper() == "PACKAGE" \
-                       and token_list[token_index+2].upper() == "BODY":
-                    package_info = PackageInfo()
-                    package_info.uniqueNumber = metaInfo.NextIndex()
-                    package_info.parent = file_info
-                    package_info.name = fixQuotedName(token_list[token_index+3])
-                    package_info.lineNumber = lineNumber
-                    for j in range(len(jdoc)):
-                      ln = jdoc[j].lineNumber - lineNumber
-                      if (CaseInsensitiveComparison(package_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                        package_info.javadoc = jdoc[j]
-                    if not package_info.javadoc.ignore: # ignore items with @ignore tag
-                        pi = package_info
-                        jd = pi.javadoc
-                        if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
+                       and token_list[token_index+1].upper() == "PACKAGE":
+                    if token_list[token_index+2].upper() == "BODY":
+                      package_info = PackageInfo()
+                      package_info.uniqueNumber = metaInfo.NextIndex()
+                      package_info.parent = file_info
+                      package_info.name = fixQuotedName(token_list[token_index+3])
+                      package_info.lineNumber = lineNumber
+                      for j in range(len(jdoc)):
+                        ln = jdoc[j].lineNumber - lineNumber
+                        if (CaseInsensitiveComparison(package_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                          package_info.javadoc = jdoc[j]
+                      if not package_info.javadoc.ignore: # ignore items with @ignore tag
+                          pi = package_info
+                          jd = pi.javadoc
+                          if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
                             for ib in range(len(jd.bug)):
                                 package_info.bugs.addItem(jd.name,jd.bug[ib],jd.author,pi.uniqueNumber)
-                        if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
+                          if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
                             for ib in range(len(jd.todo)):
                                 package_info.todo.addItem(jd.name,jd.todo[ib],jd.author,pi.uniqueNumber)
-                        mname = jd.name or pi.name
-                        mands = jd.verify_mandatory()
-                        for mand in mands:
+                          mname = jd.name or pi.name
+                          mands = jd.verify_mandatory()
+                          for mand in mands:
                             pi.verification.addItem(mname,mand)
-                        if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault():
+                          if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault():
                             logger.warn(_('Package %s has no JavaDoc information attached'), mname)
                             pi.verification.addItem(mname,'No JavaDoc information available')
-                        file_info.packageInfoList.append(pi) # permanent storage
-                        package_count += 1 # use this flag below
+                          file_info.packageInfoList.append(pi) # permanent storage
+                          package_count += 1 # use this flag below
+                    else:
+                        pks_count +=1
 
-            # if a package definition was found, look for functions and procedures.
-            # This does NOT loop over all tokens - it assumes definition starts at the beginning of the line!
-            if package_count != -1:
-                # first find functions
-                if len(token_list) > 1 and token_list[0].upper() == "FUNCTION":
-                    function_name = token_list[1].split('(')[0] # some are "name(" and some are "name ("
-                    function_info = ElemInfo()
-                    function_info.uniqueNumber = metaInfo.NextIndex()
+            if pks_count == -1: # ignore functions/procedures in package specifications
+              # find functions
+              for token_index in range(len(token_list)):
+                if token_list[token_index].upper() == 'FUNCTION' \
+                and (package_count != -1 or (token_index>0 and token_list[token_index-1] in ['CREATE','REPLACE'])):
+                  if len(token_list)>token_index+1: function_name = token_list[token_index+1]
+                  else: function_name = token_list1[0]
+                  function_name = function_name.split('(')[0] # some are "name(" and some are "name ("
+                  if package_count != -1: function_info = ElemInfo()
+                  else: function_info = StandAloneElemInfo()
+                  function_info.uniqueNumber = metaInfo.NextIndex()
+                  if package_count != -1:
                     function_info.parent = file_info.packageInfoList[package_count]
-                    function_info.name = fixQuotedName(function_name)
-                    function_info.lineNumber = lineNumber
-                    for j in range(len(jdoc)):
-                      ln = jdoc[j].lineNumber - lineNumber
-                      if (CaseInsensitiveComparison(function_name,jdoc[j].name)==0 and jdoc[j].objectType=='function') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                        if function_info.javadoc.isDefault():
+                  else:
+                    function_info.parent = file_info
+                  function_info.name = fixQuotedName(function_name)
+                  function_info.lineNumber = lineNumber
+                  for j in range(len(jdoc)):
+                    ln = jdoc[j].lineNumber - lineNumber
+                    if (CaseInsensitiveComparison(function_name,jdoc[j].name)==0 and jdoc[j].objectType=='function') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                      if function_info.javadoc.isDefault():
+                        function_info.javadoc = jdoc[j]
+                        function_info.javadoc.lndiff = abs(ln)
+                      else:
+                        if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
                           function_info.javadoc = jdoc[j]
                           function_info.javadoc.lndiff = abs(ln)
+                  if not function_info.javadoc.ignore and package_count != -1: ### need alternative for standalone
+                    fi = function_info
+                    jd = fi.javadoc
+                    if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
+                        for ib in range(len(jd.bug)):
+                            file_info.packageInfoList[package_count].bugs.addFunc(jd.name,jd.bug[ib],jd.author,fi.uniqueNumber)
+                    if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
+                        for ib in range(len(jd.todo)):
+                            file_info.packageInfoList[package_count].todo.addFunc(jd.name,jd.todo[ib],jd.author,fi.uniqueNumber)
+                    mname = jd.name or fi.name
+                    mands = jd.verify_mandatory()
+                    for mand in mands:
+                        file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
+                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
+                        if JavaDocVars['verification_log']: logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
+                        file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'),jd.author,fi.uniqueNumber)
+                    if JavaDocVars['verification']:
+                        fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
+                        cparms = re.findall(fupatt,filetext)
+                        if len(cparms)==0:
+                            mands = jd.verify_params([])
+                        elif len(cparms)==1:
+                            cparms = cparms[0].split(',')
+                            mands = jd.verify_params(cparms)
                         else:
-                          if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
-                            function_info.javadoc = jdoc[j]
-                            function_info.javadoc.lndiff = abs(ln)
-                    if not function_info.javadoc.ignore:
-                        fi = function_info
-                        jd = fi.javadoc
-                        if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
-                            for ib in range(len(jd.bug)):
-                                file_info.packageInfoList[package_count].bugs.addFunc(jd.name,jd.bug[ib],jd.author,fi.uniqueNumber)
-                        if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
-                            for ib in range(len(jd.todo)):
-                                file_info.packageInfoList[package_count].todo.addFunc(jd.name,jd.todo[ib],jd.author,fi.uniqueNumber)
-                        mname = jd.name or fi.name
-                        mands = jd.verify_mandatory()
-                        for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
-                        if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
-                            if JavaDocVars['verification_log']: logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
-                            file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'),jd.author,fi.uniqueNumber)
-                        if JavaDocVars['verification']:
-                            fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
-                            cparms = re.findall(fupatt,filetext)
-                            if len(cparms)==0:
-                                mands = jd.verify_params([])
-                            elif len(cparms)==1:
-                                cparms = cparms[0].split(',')
-                                mands = jd.verify_params(cparms)
-                            else:
-                                if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'package': file_info.packageInfoList[package_count].name, 'function': mname})
-                            if len(cparms)<2:
-                                for mand in mands:
-                                    file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,function_info.uniqueNumber)
-                        file_info.packageInfoList[package_count].functionInfoList.append(fi)
+                            if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'package': file_info.packageInfoList[package_count].name, 'function': mname})
+                        if len(cparms)<2:
+                            for mand in mands:
+                                file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,function_info.uniqueNumber)
+                  if package_count != -1:
+                    if not function_info.javadoc.ignore: file_info.packageInfoList[package_count].functionInfoList.append(function_info)
+                  else:
+                    if not function_info.javadoc.ignore: file_info.functionInfoList.append(function_info)
 
-                # now find procedures
-                if len(token_list) > 1 and token_list[0] == "PROCEDURE":
-                    procedure_name = token_list[1].split('(')[0] # some are "name(" and some are "name ("
-                    procedure_info = ElemInfo()
-                    procedure_info.uniqueNumber = metaInfo.NextIndex()
+              # find procedures
+              for token_index in range(len(token_list)):
+                if token_list[token_index].upper() == 'PROCEDURE' \
+                and (package_count != -1 or (token_index>0 and token_list[token_index-1] in ['CREATE','REPLACE'])):
+                  if len(token_list)>token_index+1: procedure_name = token_list[token_index+1]
+                  else: procedure_name = token_list1[0]
+                  procedure_name = procedure_name.split('(')[0] # some are "name(" and some are "name ("
+                  if package_count == -1: procedure_info = StandAloneElemInfo()
+                  else: procedure_info = ElemInfo()
+                  procedure_info.uniqueNumber = metaInfo.NextIndex()
+                  if package_count != -1:
                     procedure_info.parent = file_info.packageInfoList[package_count]
-                    procedure_info.name = fixQuotedName(procedure_name)
-                    procedure_info.lineNumber = lineNumber
-                    for j in range(len(jdoc)):
-                      ln = jdoc[j].lineNumber - lineNumber
-                      if (CaseInsensitiveComparison(procedure_name,jdoc[j].name)==0 and jdoc[j].objectType=='procedure') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
-                        if procedure_info.javadoc.isDefault():
+                  else:
+                    procedure_info.parent = file_info
+                  procedure_info.name = fixQuotedName(procedure_name)
+                  procedure_info.lineNumber = lineNumber
+                  for j in range(len(jdoc)):
+                    ln = jdoc[j].lineNumber - lineNumber
+                    if (CaseInsensitiveComparison(procedure_name,jdoc[j].name)==0 and jdoc[j].objectType=='procedure') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                      if procedure_info.javadoc.isDefault():
+                        procedure_info.javadoc = jdoc[j]
+                        procedure_info.javadoc.lndiff = abs(ln)
+                      else:
+                        if abs(ln) < procedure_info.javadoc.lndiff: # this desc is closer to the object
                           procedure_info.javadoc = jdoc[j]
                           procedure_info.javadoc.lndiff = abs(ln)
+                  if not procedure_info.javadoc.ignore and package_count != -1: ### need alternative for standalone
+                    pi = procedure_info
+                    jd = pi.javadoc
+                    if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
+                        for ib in range(len(jd.bug)):
+                            file_info.packageInfoList[package_count].bugs.addProc(jd.name,jd.bug[ib],jd.author,pi.uniqueNumber)
+                    if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
+                        for ib in range(len(jd.todo)):
+                            file_info.packageInfoList[package_count].todo.addProc(jd.name,jd.todo[ib],jd.author,pi.uniqueNumber)
+                    mname = jd.name or pi.name
+                    mands = jd.verify_mandatory()
+                    for mand in mands:
+                        file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
+                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
+                        if JavaDocVars['verification_log']: logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
+                        file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'),jd.author,pi.uniqueNumber)
+                    if JavaDocVars['verification']:
+                        fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
+                        cparms = re.findall(fupatt,filetext)
+                        if len(cparms)==0:
+                            mands = jd.verify_params([])
+                        elif len(cparms)==1:
+                            cparms = cparms[0].split(',')
+                            mands = jd.verify_params(cparms)
                         else:
-                          if abs(ln) < procedure_info.javadoc.lndiff: # this desc is closer to the object
-                            procedure_info.javadoc = jdoc[j]
-                            procedure_info.javadoc.lndiff = abs(ln)
-                    if not procedure_info.javadoc.ignore:
-                        pi = procedure_info
-                        jd = pi.javadoc
-                        if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
-                            for ib in range(len(jd.bug)):
-                                file_info.packageInfoList[package_count].bugs.addProc(jd.name,jd.bug[ib],jd.author,pi.uniqueNumber)
-                        if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
-                            for ib in range(len(jd.todo)):
-                                file_info.packageInfoList[package_count].todo.addProc(jd.name,jd.todo[ib],jd.author,pi.uniqueNumber)
-                        mname = jd.name or pi.name
-                        mands = jd.verify_mandatory()
-                        for mand in mands:
-                            file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
-                        if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
-                            if JavaDocVars['verification_log']: logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
-                            file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'),jd.author,pi.uniqueNumber)
-                        if JavaDocVars['verification']:
-                            fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
-                            cparms = re.findall(fupatt,filetext)
-                            if len(cparms)==0:
-                                mands = jd.verify_params([])
-                            elif len(cparms)==1:
-                                cparms = cparms[0].split(',')
-                                mands = jd.verify_params(cparms)
-                            else:
-                                if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
-                            if len(cparms)<2:
-                                for mand in mands:
-                                    file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
-                        file_info.packageInfoList[package_count].procedureInfoList.append(pi)
+                            if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
+                        if len(cparms)<2:
+                            for mand in mands:
+                                file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
+                  if package_count != -1:
+                    if not procedure_info.javadoc.ignore: file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
+                  else:
+                    if not procedure_info.javadoc.ignore: file_info.procedureInfoList.append(procedure_info)
 
     # complete line on task completion
     pbarClose()
@@ -623,6 +646,8 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         tObj = ElemInfo()
         pObj = ElemInfo()
         fObj = ElemInfo()
+        prObj = ElemInfo() # stand-alone
+        fuObj = ElemInfo() # stand-alone
         sqObj = ElemInfo()
         syObj = ElemInfo()
         trObj = ElemInfo()
@@ -652,6 +677,14 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             for mInfo in fInfo.mviewInfoList:
                 if mInfo.lineNumber < lineNumber: mObj = mInfo
                 else: break
+        if len(fInfo.functionInfoList)!=0:
+            for vinfo in fInfo.functionInfoList:
+                if vinfo.lineNumber < lineNumber: fuObj = vinfo
+                else: break
+        if len(fInfo.procedureInfoList)!=0:
+            for vinfo in fInfo.procedureInfoList:
+                if vinfo.lineNumber < lineNumber: prObj = vinfo
+                else: break
         if len(fInfo.packageInfoList)!=0:
             for pInfo in fInfo.packageInfoList:
                 if pInfo.lineNumber < lineNumber: PObj = pInfo
@@ -674,6 +707,8 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 ['func',fObj.lineNumber,fObj],
                 ['trigger',trObj.lineNumber,trObj],
                 ['proc',pObj.lineNumber,pObj],
+                ['func',fuObj.lineNumber,fuObj],
+                ['proc',prObj.lineNumber,prObj],
                 ['form',foObj.lineNumber,foObj]
                ]
         sobj.sort(key=lambda obj: obj[1], reverse=True)
@@ -705,10 +740,10 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             fname = objectInfo.parent.fileName
             finfo = objectInfo.parent
           elif otype in ['func','proc']:
-            try:
+            try: # pkg
                 fname = objectInfo.parent.parent.fileName
                 finfo = objectInfo.parent.parent
-            except:
+            except: # stand-alone
                 try:
                     fname = objectInfo.parent.fileName
                     finfo = objectInfo.parent
@@ -735,7 +770,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
           and uObj.lineNumber != -1 \
           and not objectInfo.javadoc.private and not uObj.javadoc.private:
             # basic: file -> file
-            if otype in ['proc','func'] and objectInfo.parent: oto = objectInfo.parent.parent.fileName
+            if otype in ['proc','func'] and type(objectInfo.parent).__name__=='PackageInfo': oto = objectInfo.parent.parent.fileName
             else: oto = objectInfo.parent.fileName
             oto = os.path.split(oto)[1]
             ofrom = os.path.split(fileInfo.fileName)[1]
@@ -743,7 +778,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             if not dep in metaInfo.depGraph['file2file']:
                 metaInfo.depGraph['file2file'].append(dep)
             # medium: object -> file
-            if uType in ['proc','func'] and uObj.parent: uname = uObj.parent.name.lower() + '.' + uObj.name.lower()
+            if uType in ['proc','func'] and type(uObj.parent).__name__=='PackageInfo': uname = uObj.parent.name.lower() + '.' + uObj.name.lower()
             else: uname = uObj.name.lower()
             dep = '"' + uname + '" -> "' + oto + '";'
             if not dep in metaInfo.depGraph['object2file']:
@@ -752,7 +787,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 if not props in metaInfo.depGraph['object2file']:
                     metaInfo.depGraph['object2file'].append(props)
             # medium: file -> object
-            if otype in ['proc','func']: oto = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
+            if otype in ['proc','func'] and type(objectInfo.parent).__name__=='PackageInfo': oto = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
             else: oto = objectInfo.name.lower()
             dep = '"' + ofrom + '" -> "' + oto + '";'
             if not dep in metaInfo.depGraph['file2object']:
@@ -764,7 +799,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 if not props in metaInfo.depGraph['file2object']:
                     metaInfo.depGraph['file2object'].append(props)
             # full: object -> object
-            if otype in ['proc','func'] and objectInfo.parent: oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
+            if otype in ['proc','func'] and type(objectInfo.parent).__name__=='PackageInfo': oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
             else: oname = objectInfo.name.lower()
             dep = '"' + uname + '" -> "' + oname + '";'
             if not dep in metaInfo.depGraph['object2object']:
@@ -830,9 +865,6 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 token_list = fileLines[lineNumber].split()
             else:
                 token_list = token_list1
-
-            #if outer_file_info.fileType=='xml' and not lineNumber % 100:    # *!*
-                #sys.stdout.write( outer_file_info.fileName+' line '+`lineNumber`+'\r')
 
             # len()-1 because we start with index 0
             if len(fileLines)-1 > lineNumber and not scan_instring:
@@ -955,17 +987,15 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
                 if token_list[token_index].upper() == "PACKAGE" \
                 and len(token_list) > token_index+2:
                     #and token_list[token_index+1].upper() == "BODY": # commented out - creates trouble if package spec is in the same file
-                    package_count += 1 # set flag
                     usage_flag = 0
 
-                # if a package definition was found, look for functions and procedures
-                if package_count != -1:
-                    # first find functions
-                    if token_list[0].upper() == "FUNCTION" and len(token_list) > 1:
-                        usage_flag = 0
-                    # now find procedures
-                    if token_list[0].upper() == "PROCEDURE" and len(token_list) > 1:
-                        usage_flag = 0
+                # look for stand-alone functions and procedures (those of the packages are
+                # already excluded in the previous step)
+                if token_index>0 and token_list[token_index].upper() == "FUNCTION" and token_list[token_index-1] in ['CREATE','REPLACE']:
+                    usage_flag = 0
+                # look for procedures
+                if token_index>0 and token_list[token_index].upper() == "PROCEDURE" and token_list[token_index-1] in ['CREATE','REPLACE']:
+                    usage_flag = 0
 
                 # look for END x
                 if token_list[token_index].upper() == "END" \
@@ -982,94 +1012,98 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
         for inner_file_info in fileInfoList:
 
             # if this FileInfo instance has triggers
-            if len(inner_file_info.triggerInfoList) != 0:
-                for tab_info in inner_file_info.triggerInfoList:
-                    # perform case insensitive find
-                    res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
-                    for ires in res:
-                        addWhereUsed(tab_info, outer_file_info, ires[0], 'trigger')
+            for tab_info in inner_file_info.triggerInfoList:
+                # perform case insensitive find
+                res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(tab_info, outer_file_info, ires[0], 'trigger')
 
             # if this FileInfo instance has tables
-            if len(inner_file_info.tabInfoList) != 0:
-                for tab_info in inner_file_info.tabInfoList:
-                    # perform case insensitive find
-                    res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
-                    for ires in res:
-                        addWhereUsed(tab_info, outer_file_info, ires[0], 'tab')
+            for tab_info in inner_file_info.tabInfoList:
+                # perform case insensitive find
+                res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(tab_info, outer_file_info, ires[0], 'tab')
 
             # if this FileInfo instance has views
-            if len(inner_file_info.viewInfoList) != 0:
-                for view_info in inner_file_info.viewInfoList:
-                    # perform case insensitive find
-                    res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
-                    for ires in res:
-                        addWhereUsed(view_info, outer_file_info, ires[0], 'view')
+            for view_info in inner_file_info.viewInfoList:
+                # perform case insensitive find
+                res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(view_info, outer_file_info, ires[0], 'view')
 
             # if this FileInfo instance has materialized views
-            if len(inner_file_info.viewInfoList) != 0:
-                for view_info in inner_file_info.mviewInfoList:
-                    # perform case insensitive find
-                    res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
-                    for ires in res:
-                        addWhereUsed(view_info, outer_file_info, ires[0], 'mview')
+            for view_info in inner_file_info.mviewInfoList:
+                # perform case insensitive find
+                res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(view_info, outer_file_info, ires[0], 'mview')
 
             # if this FileInfo instance has synonyms
-            if len(inner_file_info.synInfoList) != 0:
-                for syn_info in inner_file_info.synInfoList:
-                    # perform case insensitive find
-                    res = getWordLineNo(new_text,'\\b'+syn_info.name+'\\b')
-                    for ires in res:
-                        addWhereUsed(syn_info, outer_file_info, ires[0], 'synonym')
+            for syn_info in inner_file_info.synInfoList:
+                # perform case insensitive find
+                res = getWordLineNo(new_text,'\\b'+syn_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(syn_info, outer_file_info, ires[0], 'synonym')
 
             # if this FileInfo instance has sequences
-            if len(inner_file_info.seqInfoList) != 0:
-                for seq_info in inner_file_info.seqInfoList:
-                    # perform case insensitive find
-                    res = getWordLineNo(new_text,'\\b'+seq_info.name+'\\b')
-                    for ires in res:
-                        addWhereUsed(seq_info, outer_file_info, ires[0], 'sequence')
+            for seq_info in inner_file_info.seqInfoList:
+                # perform case insensitive find
+                res = getWordLineNo(new_text,'\\b'+seq_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(seq_info, outer_file_info, ires[0], 'sequence')
 
+            # if this FileInfo instance has stand-alone functions
+            for func_info in inner_file_info.functionInfoList:
+                res = getWordLineNo(new_text,'\\b'+func_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(func_info, outer_file_info, ires[0], 'function')
+
+            # if this FileInfo instance has stand-alone procedures
+            for func_info in inner_file_info.procedureInfoList:
+                res = getWordLineNo(new_text,'\\b'+func_info.name+'\\b')
+                for ires in res:
+                    addWhereUsed(func_info, outer_file_info, ires[0], 'procedure')
 
             # if this FileInfo instance has packages
-            if len(inner_file_info.packageInfoList) != 0:
-                for package_info in inner_file_info.packageInfoList:
+            for package_info in inner_file_info.packageInfoList:
 
-                    # perform case insensitive find, this is "package name"."function or procedure name"
-                    res = getWordLineNo(new_text,'\\b'+package_info.name+'\\.\S')
-                    if len(res):
+                # perform case insensitive find, this is "package name"."function or procedure name"
+                res = getWordLineNo(new_text,'\\b'+package_info.name+'\\.\S')
+                if len(res):
+                    for ires in res:
+                        addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
+
+                    #look for any of this packages' functions
+                    for function_info in package_info.functionInfoList:
+                        res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+function_info.name+'\\b')
                         for ires in res:
-                            addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
+                            addWhereUsed(function_info, outer_file_info, ires[0], 'func')
 
-                        #look for any of this packages' functions
-                        for function_info in package_info.functionInfoList:
-                            res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+function_info.name+'\\b')
-                            for ires in res:
+                    #look for any of this packages procedures
+                    for procedure_info in package_info.procedureInfoList:
+                        res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+procedure_info.name+'\\b')
+                        for ires in res:
+                            addWhereUsed(procedure_info, outer_file_info, ires[0], 'proc')
+
+                ### File internal references - possible calls without a package_name
+                if outer_file_info.uniqueNumber == inner_file_info.uniqueNumber and metaInfo.scanShortRefs:
+
+                    #look for any of this packages' functions
+                    for function_info in package_info.functionInfoList:
+                        res = getWordLineNo(new_text,'(^|\\s|[(;,])'+function_info.name+'([ (;,)]|$)')
+                        for ires in res:
+                            if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
+                                addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
                                 addWhereUsed(function_info, outer_file_info, ires[0], 'func')
 
-                        #look for any of this packages procedures
-                        for procedure_info in package_info.procedureInfoList:
-                            res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+procedure_info.name+'\\b')
-                            for ires in res:
+                    #look for any of this packages procedures
+                    for procedure_info in package_info.procedureInfoList:
+                        res = getWordLineNo(new_text,'(^|\\s|[(;,])'+procedure_info.name+'([ (;,)]|$)')
+                        for ires in res:
+                            if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
+                                addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
                                 addWhereUsed(procedure_info, outer_file_info, ires[0], 'proc')
-
-                    ### File internal references - possible calls without a package_name
-                    if outer_file_info.uniqueNumber == inner_file_info.uniqueNumber and metaInfo.scanShortRefs:
-
-                        #look for any of this packages' functions
-                        for function_info in package_info.functionInfoList:
-                            res = getWordLineNo(new_text,'(^|\\s|[(;,])'+function_info.name+'([ (;,)]|$)')
-                            for ires in res:
-                                if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
-                                    addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
-                                    addWhereUsed(function_info, outer_file_info, ires[0], 'func')
-
-                        #look for any of this packages procedures
-                        for procedure_info in package_info.procedureInfoList:
-                            res = getWordLineNo(new_text,'(^|\\s|[(;,])'+procedure_info.name+'([ (;,)]|$)')
-                            for ires in res:
-                                if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
-                                    addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
-                                    addWhereUsed(procedure_info, outer_file_info, ires[0], 'proc')
 
     # complete line on task completion
     pbarClose()
@@ -1084,7 +1118,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar'>\n"
-    for item in ['package','function','procedure','package_full','tab','view','mview','synonym','sequence','trigger','form','file','filepath','bug','todo','report','stat','depgraph']:
+    for item in ['package','package_full','function','procedure','tab','view','mview','synonym','sequence','trigger','form','form_full','file','filepath','bug','todo','report','stat','depgraph']:
         if metaInfo.indexPage[item] == '':
             continue
         if current_page == item:
@@ -1183,7 +1217,7 @@ def getDualCodeLink(otuple):
     else:
         HTMLjref = HTMLref + '#' + otuple[1].javadoc.name + '_' + `otuple[1].uniqueNumber`
     # HTMLp[j]ref links to package Code [ApiDoc]
-    if len(otuple) > 3: # otuple[3] is package_info
+    if len(otuple) > 3 and otuple[3]: # otuple[3] is package_info
         if otuple[3].javadoc.isDefault():
             HTMLpjref = ''
         else:
@@ -1304,6 +1338,8 @@ def MakeStatsPage():
         synonyms += len(file_info.synInfoList)
         sequences += len(file_info.seqInfoList)
         triggers += len(file_info.triggerInfoList)
+        funcs += len(file_info.functionInfoList)
+        procs += len(file_info.procedureInfoList)
         for package_info in file_info.packageInfoList:
             funcs += len(package_info.functionInfoList)
             procs += len(package_info.procedureInfoList)
@@ -1637,45 +1673,95 @@ def MakeFormIndex():
     outfile.write(MakeHTMLFooter('form'))
     outfile.close()
 
+def WriteObjectList(oTupleList, listName, objectName, outfile):
+    """
+    Write info for objects contained in packages/forms on full_list pages
+    (helper to MakeFormIndexWithUnits and MakePackagesWithFuncsAndProcsIndex)
+    @param list oTupleList list of tuples (name,object,file_info)
+    @param string listName name for the table heading
+    @param string objectName same in singular form for the object itself
+    @param object outfile handler to the output HTML file
+    """
+    oTupleList.sort(TupleCompareFirstElements)
+    if len(oTupleList) != 0:
+        outfile.write('  <TR><TH class="sub" COLSPAN="3">' + listName + '</TH></TR>\n  <TR><TD COLSPAN="3">')
+        outfile.write('<TABLE ALIGN="center">\n')
+        outfile.write('    <TR><TD ALIGN="center"><B>' + objectName + '</B></TD><TD ALIGN="center"><B>Details</B></TD><TD ALIGN="center"><B>'+_('Usage')+'</B></TD></TR>\n')
+    i = 0
+    for oTuple in oTupleList:
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
+        outfile.write('    <TR CLASS="tr'+`i % 2`+'"><TD>' + oTuple[1].javadoc.getVisibility() \
+          + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower()) + '</TD>\n')
+        outfile.write('<TD>' + oTuple[1].javadoc.getShortDesc() + '</TD>')
+        outfile.write( makeUsageCol(len(oTuple[1].whereUsed.keys())>0,len(oTuple[1].whatUsed.keys())>0,oTuple[1].uniqueNumber,'',len(oTuple[1].javadoc.used)>0,len(oTuple[1].javadoc.uses)>0) )
+        outfile.write('</TR>\n')
+        i += 1
+    if len(oTupleList) != 0:
+        outfile.write('</TABLE></TD></TR>\n')
+
+
 
 def MakeFormIndexWithUnits():
     """
     Generate HTML index page for Oracle Forms
+    ### not yet working
     """
-    if metaInfo.indexPage['form'] == '': return     # Forms disabled = nothing to do here
+    if metaInfo.indexPage['form_full'] == '': return     # Forms disabled = nothing to do here
     printProgress(_('Creating %s index') % 'Form')
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
-    outfilename = metaInfo.indexPage['form']
+    outfilename = metaInfo.indexPage['form_full']
+
+    packagetuplelist   = []
+    functiontuplelist  = []
+    proceduretuplelist = []
+    triggertuplelist   = []
 
     outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
-    outfile.write(MakeHTMLHeader('form'))
-    outfile.write("<H1>"+_('Index Of All Forms')+"</H1>\n")
+    outfile.write(MakeHTMLHeader('form_full'))
+    outfile.write("<H1>"+_('Index of all Forms including their ProgramUnits')+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
-    outfile.write("  <TR><TH>"+_('Form')+"</TH><TH>"+_('Details')+"</TH><TH>"+_('Usage')+"</TH></TR>\n")
 
     for file_info in fileInfoList:
         if file_info.fileType != "xml": # skip all non-xml files
             continue
 
-        for form_info in file_info.formInfoList:
-            print 'FORM FILE: ' + file_info.fileName
-            print '- packages: '+`len(form_info.packageInfoList)`
-            print '- functions: '+`len(form_info.functionInfoList)`
-            print '- procedures: '+`len(form_info.procedureInfoList)`
-            print '- trigger: '+`len(form_info.triggerInfoList)`
-            if len(form_info.packageInfoList):
-                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Packages') + '</TH></TR>')
-            if len(form_info.functionInfoList):
-                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Functions') + '</TH></TR>')
-            if len(form_info.procedureInfoList):
-                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Procedures') + '</TH></TR>')
-            if len(form_info.triggerInfoList):
-                outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">' + _('Triggers') + '</TH></TR>')
+        form_info = file_info.formInfoList[0] # there is only one form per file
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink((form_info.name.upper(),form_info,file_info))
+        outfile.write(' <TR><TH COLSPAN="3">' + form_info.name.lower() + '</TH></TR>\n')
+        outfile.write('  <TR><TD ALIGN="center" WIDTH="33.33%">')
+        if metaInfo.includeSource:
+            outfile.write('<A href="' + HTMLref + '">'+_('Code')+'</A>')
+        else:
+            outfile.write('&nbsp;')
+        outfile.write('</TD><TD ALIGN="center" WIDTH="33.34%">')
+        if HTMLjref == '':
+            outfile.write('&nbsp;')
+        else:
+            outfile.write('<A HREF="' + HTMLjref + '">'+_('ApiDoc')+'</A>')
+        outfile.write('</TD>' + makeUsageCol(len(form_info.whereUsed.keys())>0,len(form_info.whatUsed.keys())>0,form_info.uniqueNumber,' WIDTH="33.33%"',len(form_info.javadoc.used)>0,len(form_info.javadoc.uses)>0))
+        outfile.write('</TR>\n')
+
+        if len(form_info.packageInfoList) > 0:
+          for itemInfo in form_info.packageInfoList:
+            packagetuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
+          WriteObjectList(functiontuplelist, _('Packages'), _('Package'), outfile)
+        if len(form_info.functionInfoList) > 0:
+          for itemInfo in form_info.functionInfoList:
+            functiontuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
+          WriteObjectList(functiontuplelist, _('Functions'), _('Function'), outfile)
+        if len(form_info.procedureInfoList) > 0:
+          for itemInfo in form_info.procedureInfoList:
+            proceduretuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
+          WriteObjectList(functiontuplelist, _('Procedures'), _('Procedure'), outfile)
+        if len(form_info.triggerInfoList) > 0:
+          for itemInfo in form_info.triggerInfoList:
+            triggertuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
+          WriteObjectList(functiontuplelist, _('Triggers'), _('Trigger'), outfile)
 
     outfile.write("</TABLE>\n")
-    outfile.write(MakeHTMLFooter('form'))
+    outfile.write(MakeHTMLFooter('form_full'))
     outfile.close()
 
 
@@ -1706,6 +1792,12 @@ def MakeElemIndex(objectType):
     for file_info in fileInfoList:
         if file_info.fileType != "sql": # skip all non-sql files
             continue
+        if objectType == 'function':
+            for fi in file_info.functionInfoList:
+                objectTupleList.append((fi.name.upper(), fi, file_info, None))
+        else:
+            for fi in file_info.procedureInfoList:
+                objectTupleList.append((fi.name.upper(), fi, file_info, None))
         for package_info in file_info.packageInfoList:
             if objectType == 'function':
                 elemInfoList = package_info.functionInfoList
@@ -1728,7 +1820,10 @@ def MakeElemIndex(objectType):
         # Write column 1: Object name w/ links
         outfile.write("  <TR"+trclass+"><TD>" + object_tuple[1].javadoc.getVisibility() + makeDualCodeRef(HTMLref,HTMLjref,object_tuple[1].name.lower()) + "</TD>")
         # Write column 2: Package name w/ links
-        outfile.write("<TD>" + makeDualCodeRef(HTMLpref,HTMLpjref,object_tuple[3].name.lower()) + "</TD>")
+        if object_tuple[3] is None:
+          outfile.write("<TD>&nbsp;</TD>")
+        else:
+          outfile.write("<TD>" + makeDualCodeRef(HTMLpref,HTMLpjref,object_tuple[3].name.lower()) + "</TD>")
         # Write column 3: Short description
         outfile.write("<TD>" + object_tuple[1].javadoc.getShortDesc() + "</TD>")
         # Write column 4: where_used / what_used
@@ -1840,17 +1935,33 @@ def MakeTaskList(taskType):
 
     printProgress(_("Creating %s list") % _(taskType.capitalize()))
 
+    def appendStandAloneItems(xtuple,headname):
+        if taskType == 'bug':
+            task = xtuple[1].bugs
+        elif taskType == 'todo':
+            task = xtuple[1].todo
+        else:
+            task = xtuple[1].verification
+        if task.allItemCount() < 1:
+            return
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(xtuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + headname + ' ' + makeDualCodeRef(HTMLref,HTMLjref,xtuple[1].name.lower()) + '</TH></TR>\n');
+        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage[taskType]
 
-    packagetuplelist = []
-    tabletuplelist   = []
-    viewtuplelist    = []
-    mviewtuplelist   = []
-    syntuplelist     = []
-    seqtuplelist     = []
-    triggertuplelist = []
+    packagetuplelist   = []
+    tabletuplelist     = []
+    viewtuplelist      = []
+    mviewtuplelist     = []
+    syntuplelist       = []
+    seqtuplelist       = []
+    triggertuplelist   = []
+    functiontuplelist  = []
+    proceduretuplelist = []
     for file_info in fileInfoList:
         # skip all non-sql files
         if file_info.fileType != "sql":
@@ -1869,6 +1980,10 @@ def MakeTaskList(taskType):
             seqtuplelist.append((seqInfo.name.upper(), seqInfo, file_info))
         for triggerInfo in file_info.triggerInfoList:
             triggertuplelist.append((triggerInfo.name.upper(), triggerInfo, file_info))
+        for functionInfo in file_info.functionInfoList:
+            functioninfolist.append((functionInfo.name.upper(), functionInfo, file_info))
+        for procInfo in file_info.procedureInfoList:
+            proceduretuplelist.append((procInfo.name.upper(), procInfo, file_info))
 
     packagetuplelist.sort(TupleCompareFirstElements)
     tabletuplelist.sort(TupleCompareFirstElements)
@@ -1877,6 +1992,8 @@ def MakeTaskList(taskType):
     syntuplelist.sort(TupleCompareFirstElements)
     seqtuplelist.sort(TupleCompareFirstElements)
     triggertuplelist.sort(TupleCompareFirstElements)
+    functiontuplelist.sort(TupleCompareFirstElements)
+    proceduretuplelist.sort(TupleCompareFirstElements)
 
     outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(taskType))
@@ -1911,95 +2028,15 @@ def MakeTaskList(taskType):
             outfile.write( task.getProcHtml() )
         outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
 
-    # Walk the tables
-    for tabletuple in tabletuplelist:
-        if taskType == 'bug':
-            task = tabletuple[1].bugs
-        elif taskType == 'todo':
-            task = tabletuple[1].todo
-        else:
-            task = tabletuple[1].verification
-        if task.allItemCount() < 1:
-            continue
-        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(tabletuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('Table') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,tabletuple[1].name.lower()) + '</TH></TR>\n');
-        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
-        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
-
-    # Walk the views
-    for viewtuple in viewtuplelist:
-        if taskType == 'bug':
-            task = viewtuple[1].bugs
-        elif taskType == 'todo':
-            task = viewtuple[1].todo
-        else:
-            task = viewtuple[1].verification
-        if task.allItemCount() < 1:
-            continue
-        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(viewtuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('View') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,viewtuple[1].name.lower()) + '</TH></TR>\n');
-        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
-        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
-
-    # Walk the mviews
-    for viewtuple in mviewtuplelist:
-        if taskType == 'bug':
-            task = viewtuple[1].bugs
-        elif taskType == 'todo':
-            task = viewtuple[1].todo
-        else:
-            task = viewtuple[1].verification
-        if task.allItemCount() < 1:
-            continue
-        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(viewtuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('MView') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,viewtuple[1].name.lower()) + '</TH></TR>\n');
-        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
-        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
-
-    # Walk the sequences
-    for seqtuple in seqtuplelist:
-        if taskType == 'bug':
-            task = seqtuple[1].bugs
-        elif taskType == 'todo':
-            task = seqtuple[1].todo
-        else:
-            task = seqtuple[1].verification
-        if task.allItemCount() < 1:
-            continue
-        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(seqtuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('Sequence') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,seqtuple[1].name.lower()) + '</TH></TR>\n');
-        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
-        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
-
-    # Walk the synonyms
-    for seqtuple in syntuplelist:
-        if taskType == 'bug':
-            task = seqtuple[1].bugs
-        elif taskType == 'todo':
-            task = seqtuple[1].todo
-        else:
-            task = seqtuple[1].verification
-        if task.allItemCount() < 1:
-            continue
-        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(seqtuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('Synonym') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,seqtuple[1].name.lower()) + '</TH></TR>\n');
-        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
-        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
-
-    # Walk the triggers
-    for triggertuple in triggertuplelist:
-        if taskType == 'bug':
-            task = triggertuple[1].bugs
-        elif taskType == 'todo':
-            task = triggertuple[1].todo
-        else:
-            task = triggertuple[1].verification
-        if task.allItemCount() < 1:
-            continue
-        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(seqtuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('Trigger') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,triggertuple[1].name.lower()) + '</TH></TR>\n');
-        outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
-        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+    # Walk the stand-alone elements
+    for functuple in functiontuplelist: appendStandAloneItems(functuple,_('Function'))
+    for proctuple in proceduretuplelist: appendStandAloneItems(proctuple,_('Procedure'))
+    for tabletuple in tabletuplelist: appendStandAloneItems(tabletuple,_('Table'))
+    for viewtuple in viewtuplelist: appendStandAloneItems(viewtuple,_('View'))
+    for viewtuple in mviewtuplelist: appendStandAloneItems(viewtuple,_('MView'))
+    for seqtuple in seqtuplelist: appendStandAloneItems(seqtuple,_('Sequence'))
+    for seqtuple in syntuplelist: appendStandAloneItems(seqtuple,_('Synonym'))
+    for triggertuple in triggertuplelist: appendStandAloneItems(triggertuple,_('Trigger'))
 
     outfile.write('</TABLE>\n')
     outfile.write(MakeHTMLFooter(taskType))
@@ -2055,25 +2092,6 @@ def MakePackagesWithFuncsAndProcsIndex():
     if metaInfo.indexPage['package_full'] == '':
         return
 
-    def WriteObjectList(oTupleList, listName, objectName):
-        oTupleList.sort(TupleCompareFirstElements)
-        if len(oTupleList) != 0:
-            outfile.write('  <TR><TH class="sub" COLSPAN="3">' + listName + '</TH></TR>\n  <TR><TD COLSPAN="3">')
-            outfile.write('<TABLE ALIGN="center">\n')
-            outfile.write('    <TR><TD ALIGN="center"><B>' + objectName + '</B></TD><TD ALIGN="center"><B>Details</B></TD><TD ALIGN="center"><B>'+_('Usage')+'</B></TD></TR>\n')
-        i = 0
-        for oTuple in oTupleList:
-            HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
-            outfile.write('    <TR CLASS="tr'+`i % 2`+'"><TD>' + oTuple[1].javadoc.getVisibility() \
-              + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower()) + '</TD>\n')
-            outfile.write('<TD>' + oTuple[1].javadoc.getShortDesc() + '</TD>')
-            outfile.write( makeUsageCol(len(oTuple[1].whereUsed.keys())>0,len(oTuple[1].whatUsed.keys())>0,oTuple[1].uniqueNumber,'',len(oTuple[1].javadoc.used)>0,len(oTuple[1].javadoc.uses)>0) )
-            outfile.write('</TR>\n')
-            i += 1
-        if len(oTupleList) != 0:
-            outfile.write('</TABLE></TD></TR>\n')
-
-
     printProgress(_('Creating "package with functions and procedures" index'))
 
     fileInfoList = metaInfo.fileInfoList
@@ -2115,13 +2133,13 @@ def MakePackagesWithFuncsAndProcsIndex():
         functiontuplelist = []
         for function_info in package_tuple[1].functionInfoList:
             functiontuplelist.append((function_info.name.upper(), function_info, package_tuple[2])) # append as tuple for case insensitive sort
-        WriteObjectList(functiontuplelist, _('Functions'), _('Function'))
+        WriteObjectList(functiontuplelist, _('Functions'), _('Function'), outfile)
 
         # procedures in this package
         proceduretuplelist = []
         for procedure_info in package_tuple[1].procedureInfoList:
             proceduretuplelist.append((procedure_info.name.upper(), procedure_info, package_tuple[2])) # append as tuple for case insensitive sort
-        WriteObjectList(proceduretuplelist, _('Procedures'), _('Procedure'))
+        WriteObjectList(proceduretuplelist, _('Procedures'), _('Procedure'), outfile)
 
         outfile.write("</TABLE>\n")
 
@@ -2254,6 +2272,18 @@ def CreateHyperlinkedSourceFilePages():
             for v in range(len(file_info.triggerInfoList)):
                 outfile.write(file_info.triggerInfoList[v].javadoc.getHtml(file_info.triggerInfoList[v].uniqueNumber))
 
+        # Do we have stand-alone functions?
+        if len(file_info.functionInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Functions')+'</H2>\n')
+            for v in range(len(file_info.functionInfoList)):
+                outfile.write(file_info.functionInfoList[v].javadoc.getHtml(file_info.functionInfoList[v].uniqueNumber))
+            
+        # Do we have stand-alone procedures?
+        if len(file_info.procedureInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Procedures')+'</H2>\n')
+            for v in range(len(file_info.procedureInfoList)):
+                outfile.write(file_info.procedureInfoList[v].javadoc.getHtml(file_info.procedureInfoList[v].uniqueNumber))
+            
         # Do we have forms in this file?
         if len(file_info.formInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Form Overview')+'</H2>\n')
@@ -2316,6 +2346,7 @@ def CreateHyperlinkedSourceFilePages():
                     if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
                     else: packagedetails += html
                 outfile.write('</TABLE>\n');
+
 
         # Do we have packages in this file?
         if len(file_info.packageInfoList) > 0:
@@ -2478,7 +2509,7 @@ def CreateWhereUsedPages():
         html_file = os.path.split(filename)[1].replace(".", "_") + "_" + `unique_number` + ".html"
         utype = utuple[2]
         uObj = utuple[3]
-        if utype in ['func','proc']: uname = uObj.parent.name + '.'
+        if utype in ['func','proc'] and type(uObj.parent).__name__=='PackageInfo': uname = uObj.parent.name + '.'
         else: uname = ''
         if utype=='file': uname = filename[len(top_level_directory)+1:]
         elif uObj.javadoc.isDefault(): uname += uObj.name.lower()
@@ -2547,12 +2578,19 @@ def CreateWhereUsedPages():
         elif otype=='pkg':
             outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
             outfile.write( makeUsageTableHead(_('Package'),obj.name,page) )
+        elif type(obj.parent).__name__=='PackageInfo':
+            if otype=='func':
+                outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
+                outfile.write( makeUsageTableHead(_('Function'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
+            elif otype=='proc':
+                outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
+                outfile.write( makeUsageTableHead(_('Procedure'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
         elif otype=='func':
-            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
-            outfile.write( makeUsageTableHead(_('Function'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
+            outfile.write(MakeHTMLHeader(obj.name.lower()))
+            outfile.write( makeUsageTableHead(_('Function'),obj.name.lower(), page) )
         elif otype=='proc':
-            outfile.write(MakeHTMLHeader(obj.name.lower() + ' '+_('from package')+' ' + obj.parent.name))
-            outfile.write( makeUsageTableHead(_('Procedure'),obj.name.lower() + ' <I>'+_('from package')+' ' + obj.parent.name + ' </I>', page) )
+            outfile.write(MakeHTMLHeader(obj.name.lower()))
+            outfile.write( makeUsageTableHead(_('Procedure'),obj.name.lower(), page) )
         elif otype=='form':
             outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
             outfile.write( makeUsageTableHead(_('Form'),obj.name,page) )
@@ -2568,6 +2606,12 @@ def CreateWhereUsedPages():
         outfile.write(MakeHTMLFooter(pname))
         outfile.close()
 
+    def makeWhat(obj,otype):
+        if len(obj.whatUsed.keys()) != 0:
+            makeUsagePage('what',otype,obj)
+    def makeWhere(obj,otype):
+        if len(obj.whereUsed.keys()) != 0:
+            makeUsagePage('where',otype,obj)
 
     html_dir = metaInfo.htmlDir
     fileInfoList = metaInfo.fileInfoList
@@ -2586,85 +2630,63 @@ def CreateWhereUsedPages():
             continue
 
         # loop through tables
-        for tab_info in file_info.tabInfoList:
-            #create a "where used" file
-            if len(tab_info.whereUsed.keys()) != 0:
-                makeUsagePage('where','tab',tab_info)
+        for tab_info in file_info.tabInfoList: makeWhere(tab_info,'tab')
 
         # loop through views
         for view_info in file_info.viewInfoList:
-            #create a "where used" file
-            if len(view_info.whereUsed.keys()) != 0:
-                makeUsagePage('where','view',view_info)
-            #create a "what used" file
-            if len(view_info.whatUsed.keys()) != 0:
-                makeUsagePage('what','view',view_info)
+            makeWhere(view_info,'view')
+            makeWhat(view_info,'view')
 
         # loop through mviews
         for view_info in file_info.mviewInfoList:
-            #create a "where used" file
-            if len(view_info.whereUsed.keys()) != 0:
-                makeUsagePage('where','mview',view_info)
-            #create a "what used" file
-            if len(view_info.whatUsed.keys()) != 0:
-                makeUsagePage('what','mview',view_info)
+            makeWhere(view_info,'mview')
+            makeWhat(view_info,'mview')
 
         # loop through synonyms
         for syn_info in file_info.synInfoList:
-            #create a "where used" file
-            if len(syn_info.whereUsed.keys()) != 0:
-                makeUsagePage('where','synonym',syn_info)
+            makeWhere(syn_info,'synonym')
 
         # loop through sequences
         for seq_info in file_info.seqInfoList:
-            #create a "where used" file
-            if len(seq_info.whereUsed.keys()) != 0:
-                makeUsagePage('where','sequence',seq_info)
-            #create a "what used" file
-            if len(seq_info.whatUsed.keys()) != 0:
-                makeUsagePage('what','sequence',seq_info)
+            makeWhere(seq_info,'sequence')
+            makeWhat(seq_info,'sequence')
 
         # loop through triggers
         for trigger_info in file_info.triggerInfoList:
-            #create a "what used" file
-            if len(trigger_info.whatUsed.keys()) != 0:
-                makeUsagePage('what','trigger',trigger_info)
+            makeWhat(trigger_info,'trigger')
+
+        # loop through stand-alone functions
+        for func_info in file_info.functionInfoList:
+            makeWhere(func_info,'func')
+            makeWhat(func_info,'func')
+
+        # loop through standAlone procedures
+        for proc_info in file_info.procedureInfoList:
+            makeWhere(proc_info,'proc')
+            makeWhat(proc_info,'proc')
 
         # loop through packages
         for package_info in file_info.packageInfoList:
-            #create a "where used" file
-            if len(package_info.whereUsed.keys()) != 0:
-                makeUsagePage('where','pkg',package_info)
-            #create a "what used" file
-            if len(package_info.whatUsed.keys()) != 0:
-                makeUsagePage('what','pkg',package_info)
+            makeWhere(package_info,'pkg')
+            makeWhat(package_info,'pkg')
 
             #look for any of this packages' functions
             for function_info in package_info.functionInfoList:
-                #create a "where used" file
-                if len(function_info.whereUsed.keys()) != 0:
-                    makeUsagePage('where','func',function_info)
-                #create a "what used" file
-                if len(function_info.whatUsed.keys()) != 0:
-                    makeUsagePage('what','func',function_info)
+                makeWhere(function_info,'func')
+                makeWhat(function_info,'func')
 
             #look for any of this packages procedures
             for procedure_info in package_info.procedureInfoList:
-                #create a "where used" file
-                if len(procedure_info.whereUsed.keys()) != 0:
-                    makeUsagePage('where','proc',procedure_info)
-                #create a "what used" file
-                if len(procedure_info.whatUsed.keys()) != 0:
-                    makeUsagePage('what','proc',procedure_info)
+                makeWhere(procedure_info,'proc')
+                makeWhat(procedure_info,'proc')
 
         # loop through forms
         for form_info in file_info.formInfoList:
             # no where_used pages here, so we go straight for the what_used
-            if len(form_info.whatUsed.keys()) > 0:
-                makeUsagePage('what','form',form_info)
-                # check for form packages
-                # check for form functions
-                # check for form procedures
+            makeWhat(form_info,'form')
+            # check for form packages
+            # check for form functions
+            # check for form procedures
 
     # complete line on task completion
     pbarClose()
@@ -2853,6 +2875,7 @@ def configRead():
     confPage('function','FunctionIndex.html',_('Function Index'),True)
     confPage('procedure','ProcedureIndex.html',_('Procedure Index'),True)
     confPage('form','FormIndex.html',_('Form Index'),False)
+    confPage('form_full','FormFullIndex.html',_('Full Forms Listing'),False)
     confPage('bug','BugIndex.html',_('Bug List'),True)
     confPage('todo','TodoIndex.html',_('Todo List'),True)
     confPage('report','ReportIndex.html',_('Verification Report'),True)
@@ -3061,7 +3084,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.5.0"
+    metaInfo.versionString = "3.5.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
@@ -3150,6 +3173,7 @@ if __name__ == "__main__":
     MakeElemIndex('procedure')
     MakePackagesWithFuncsAndProcsIndex()
     MakeFormIndex()
+    MakeFormIndexWithUnits()
 
     CreateWhereUsedPages()
     CreateDepGraphIndex()

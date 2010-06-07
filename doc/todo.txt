@@ -2,9 +2,9 @@ TO-DO LIST
 ==========
 * C++ files need doxygen hyperlinks for where used pages
 * Scan Java files for where used
-* Handle stand-alone functions/procedures
 * Handle Types
 * Handle Jobs
 * Naming of objects HTML files: Switch from <filename>_<uid>.html to e.g.
   <filepath_with_replaced_separators>_<filename>.html to make "steady links"
   possible
+* JavaDoc verification for stand-alone and forms objects
