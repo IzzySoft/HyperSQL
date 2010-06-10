@@ -99,6 +99,9 @@ Here come processing options:
  * cache: whether caching should be enabled (1, default) or not (0)
  * include_source: whether to include the (highlighted) sourcecode and link to it.
    The value must evaluate to a Boolean (, e.g. 0 for no, 1 for yes)
+ * include_source_limit: limit source inclusion by file size in kilobytes
+   (default: '0' = no limit). Files exceeding this limit will have their
+   source not included at all.
  * javadoc: whether to process javadoc at all. If your project does not use
    JavaDoc, setting this to '0' will speed up processing, as the JavaDoc scan
    is skipped.

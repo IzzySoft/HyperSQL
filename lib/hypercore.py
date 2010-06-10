@@ -7,6 +7,7 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 
 from hyperjdoc import JavaDoc, PackageTaskList
 from locale import format as loc_format, setlocale, LC_NUMERIC
+import re # for eatStrings
 
 try:
     setlocale(LC_NUMERIC, '')
@@ -312,3 +313,19 @@ def size_format(size,decs=2):
         else:
             return num_format( round(size/float(lim/2**10),decs), decs )+suf
 
+def eatStrings(text):
+    """
+    eat (single-quoted) string contents and return remaining text
+    @param string text text to parse
+    @return string text text with strings removed
+    @return boolean matched_string whether any strings where encountered
+    """
+    strpatt = re.compile("('[^']*')+")    # String-Regexp
+    result = strpatt.search(text)
+    matched_string = False
+    while result != None:
+        matched_string = True
+        for g in range(len(result.groups())):
+            text = text.replace(result.group(g) , "")
+        result = strpatt.search(text)
+    return text, matched_string
