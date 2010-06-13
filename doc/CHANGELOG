@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.5.5
+v3.5.5 (13.06.2010)
 -------------------
 + added support for stand-alone functions and procedures
 + added full form listing (analogue to the full package listing with funcs etc.)
