@@ -1,5 +1,5 @@
+# $Id$
 """
-$Id$
 Progress bar
 Original Source: http://code.activestate.com/recipes/168639-progress-bar-class/
 Modified by: Izzy

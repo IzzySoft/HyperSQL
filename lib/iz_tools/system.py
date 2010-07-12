@@ -1,15 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# $Id$
 """
-Some useful system functions
+Some useful system functions which mostly mimic PHP (or Shell) equivalents
 """
 
 #====================================================[ Imports and Presets ]===
 import os       # for which()
 import sys      # for which()
 from subprocess import Popen,PIPE   # for popen()
-from types import *  # for type checking
-import re       # for getWordLineNo
+from typecheck import *             # for file_put_contents (local module typecheck)
 
 # prepare for fopen (encoding fallback)
 from locale import getdefaultlocale
@@ -23,10 +23,11 @@ except:
 #==============================================================[ Functions ]===
 #------------------------------------------------------------------[ which ]---
 def which(executable, path=None):
-    """Try to find 'executable' in the directories listed in 'path' (a
+    """
+    Try to find 'executable' in the directories listed in 'path' (a
     string listing directories separated by 'os.pathsep'; defaults to
-    os.environ['PATH']).  Returns the complete filename or None if not
-    found
+    os.environ['PATH']). Mimics the shell command "which".
+    Returns the complete filename or None if not found
     Original Source: http://snippets.dzone.com/posts/show/6313
     @param string executable to look for
     @param optional string path to look in
@@ -62,8 +63,10 @@ def which(executable, path=None):
 #------------------------------------------------------------------[ popen ]---
 def popen(command):
     """
-    Run a command and return its output as string. Example call:
-    mylist = run('ls -l')
+    Run a command and return its output as string. Mimics he PHP function
+    "shell_exec" - with the difference of returning a touple, so stderr is
+    also available to evaluation.
+    Example call:  mylist, myerr = run('ls -l')
     @param string command
     @return string stdout, string stderr
     """
@@ -72,6 +75,18 @@ def popen(command):
     outerr = ''.join(p.stderr.readlines() )
     return out, outerr
 
+#-------------------------------------------------------------[ shell_exec ]---
+def shell_exec(command):
+    """
+    Run a command and return its output as string. Mimics he PHP function
+    "shell_exec".
+    Example call:  mylist = run('ls -l')
+    @param string command
+    @return string stdout
+    """
+    out, err = popen(command)
+    return out
+
 #------------------------------------------------------------------[ fopen ]---
 def fopen(filename,mode,enc=None):
     """
@@ -79,6 +94,8 @@ def fopen(filename,mode,enc=None):
     (if codecs==None). If the third parameter is not set, it tries to read the
     global variable "encoding" instead. If that's not set either, fallback to
     open()
+    This rawly mimics the PHP function fopen() up to the mandatory parameters,
+    but differs with the optionals.
     @param string filename
     @param string mode
     @param optional string encoding
@@ -96,171 +113,59 @@ def fopen(filename,mode,enc=None):
     else:
         return codecs.open(filename,mode,enc)
 
-#----------------------------------------------------------[ Type checking ]---
-"""
-Type checking functions have been taken from:
-http://code.activestate.com/recipes/305888-a-way-to-deal-with-checking-for-types/
-"""
-def check_type(obj,atts=[],callables=[]):
+#------------------------------------------------------[ file_get_contents ]---
+def file_get_contents(filename,enc=None):
     """
-    Helper for is_mapping(), is_list(), is_str() and is_file()
-    @param object object to check
-    @param optional list atts attributes the object must have (default: empty list)
-    @param optional list callables callables the object must have (default: empty list)
+    Get the content of the specified file and return it as string. Mimics the
+    PHP function with the same name up to the mandatory parameter - but differs
+    when it comes to the optionals.
+    @param string filename name of the file to read
+    @param optional string enc encoding of the file (defaults to system standard
+           evaluated via locale settings)
+    @return string text
     """
-    got_atts=True
-    for att in atts:
-      if not hasattr(obj,att):
-        got_atts=False;break
-    got_callables=True
-    for call in callables:
-      if not hasattr(obj,call):
-        got_callables=False;break
-        the_attr=getattr(obj,call)
-        if not callable(the_attr):
-          got_callables=False;break
-    if got_atts and got_callables: return -1
-    return 0
+    infile = fopen(filename,'rb',enc)
+    text = infile.read()
+    infile.close()
+    return text
 
-def is_iter(obj):
+#---------------------------------------------------------[ file_get_lines ]---
+def file_get_lines(filename,enc=None):
     """
-    Check whether the object is iterable
-    @param object object to check
-    @return int 1 if True, 0 if False, -1 if iterable but neither list, tuple, dict or file
+    Get the content of the specified file and return it as list. To be used
+    like the PHP function file() - except for the optional parameter(s).
+    @param string filename name of the file to read
+    @param optional string enc encoding of the file (defaults to system standard
+           evaluated via locale settings)
+    @return list text
     """
-    if isinstance(obj,ListType): return 1
-    if isinstance(obj,TupleType): return 1
-    if isinstance(obj,DictType): return 1
-    if isinstance(obj,FileType): return 1
-    if hasattr(obj,'__iter__') : return -1
-    return 0
+    infile = fopen(filename,'rb',enc)
+    list = infile.readlines()
+    infile.close()
+    return list
 
-def is_gen(obj):
+#------------------------------------------------------[ file_put_contents ]---
+def file_put_contents(filename,content,enc=None,append=False):
     """
-    Is the object a generator?
-    @param object object to check
-    @return int 1 if True, 0 if False
+    Write the content to the specified file. To be used like the PHP function
+    with the same name - except for the optional parameters.
+    @param string filename name of the file to be written
+    @param mixed content what should be written to the file. This can be either
+           a string or a list
+    @param optional string enc encoding of the file (defaults to system standard
+           evaluated via locale settings)
+    @param optional boolean append whether content shall be appended if the file
+           already exists. By default, an existing file will be simply replaced.
     """
-    if isinstance(obj,GeneratorType): return 1
-    return 0
+    if is_string(content): pass
+    elif is_list(content): content = '\n'.join(content)
+    else:
+        raise TypeError, 'Second argument to file_put_contents must be either str or list, %s given' % is_what(content)
+    if append: mode = 'ab'
+    else: mode = 'wb'
+    outfile = fopen(filename,mode)
+    outfile.write(content)
+    bytes = outfile.tell()
+    outfile.close()
+    return bytes
 
-def is_seq(obj):
-    """
-    Is the object a sequence?
-    @param object object to check
-    @return int 1 if True, 0 if False, -1 if obj[0:0] works but it's neither list nor tuple (but e.g. str)
-    """
-    if isinstance(obj,ListType): return 1
-    if isinstance(obj,TupleType): return 1
-    if is_iter(obj):
-      try: 
-         obj[0:0]
-         return -1
-      except TypeError:
-         pass
-    return 0  
-   
-def is_mapping(obj):
-    """
-    Is the object a mapping type (e.g. dictionary)?
-    @param object object to check
-    @return int 1 if True, 0 if False, -1 if it's not a dict but has callables
-    """
-    if isinstance(obj,DictType): return 1
-    if is_iter(obj):
-      return check_type(obj,callables=['iteritems','has_key'])
-    return 0
-
-def is_dict(obj):
-    """
-    Is it a dictionary?
-    @param object object to check
-    @return int 1 if True, 0 if False, -1 if it's not a dict but has callables
-    """
-    return is_mapping(obj)
-
-def is_list(obj):
-    """
-    Is the object a list?
-    @param object object to check
-    @return int 1 if True, 0 if False, -1 if it's not a list, but has callables append, extend, and pop
-    """
-    if isinstance(obj,ListType): return 1
-    if is_seq(obj):
-      if check_type(obj,callables=['append','extend','pop']): return -1
-    return 0
-
-def is_str(obj):
-    """
-    Is the object a string?
-    @param object object to check
-    @return int 1 if True, 0 if False, -1 not str but has callables index, count, and replace
-    """
-    if isinstance(obj, basestring): return 1
-    if is_iter(obj):
-      if check_type(obj,callables=['index','count','replace']): return -1
-    return 0
-
-def is_string(obj):
-    """ alias for is_str """
-    return is_str(obj)
-
-def is_int(obj):
-    """
-    Is it an integer?
-    """
-    if isinstance(var, int) : return 1
-    return 0
-
-def is_numeric(var):
-    """
-    Is it a number - i.e. an integer or float?
-    """
-    try:
-        float(var)
-        return 1
-    except ValueError:
-        pass
-    return 0
-
-def is_file(obj):
-    """
-    Is the object a file?
-    @param object object to check
-    @return int 1 if True, 0 if False, -1 if it's not FileType but has callables read and close
-    """
-    if isinstance(obj,FileType): return 1
-    if check_type(obj,callables=['read','close']): return -1
-    return 0
-
-def is_what(obj):
-    """
-    Get the type of the passed object
-    @param object object to check
-    @return mixed string category (if we have a direct match) or list of 0/1 [iter,gen,seq,list,str,dict,file]
-    """
-    try:
-        if obj.__class__.__name__: return obj.__class__.__name__
-    except:
-        return [ str(i) for i in (is_iter(obj),is_gen(obj),is_seq(obj),is_list(obj),is_str(obj),is_mapping(obj),is_file(obj))]
-
-#--------------------------------------[ Finding lineNo with matching text ]---
-def getWordLineNo(text,pattern):
-    """
-    Finding lineNo with matching text
-    example:
-    getWordLineNo(text,'<P>([^<]+)<SUP>')
-    Adapted from: http://snippets.dzone.com/posts/show/1638
-    By: Izzy
-    @param string text to parse
-    @param string pattern RegExp pattern to find
-    @return list of tuples (lineno, offset, word)
-    """
-    res = []
-    for m in re.finditer(pattern, text, re.I):
-        start = m.start()
-        lineno = text.count('\n', 0, start) + 1
-        offset = start - text.rfind('\n', 0, start)
-        word = m.group(0)
-        res.append((lineno, offset, word))
-    return res
