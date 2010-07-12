@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # see main function at bottom of file
@@ -36,17 +36,20 @@ from shutil import copy2
 
 # now import our own modules
 sys.path.insert(0,os.path.split(sys.argv[0])[0] + os.sep + 'lib')
-from hypercore import *
-from hyperjdoc import *
-from hypercode import *
-from hyperconf import *
-from hyperconf import _ # needs explicit call
-from hypercharts import *
-from systools import *
+from hypercore.elements import *
+from hypercore.helpers import *
+from hypercore.javadoc import *
+from hypercore.codeformatter import *
+from hypercore.config import *
+from hypercore.config import _ # needs explicit call
+from hypercore.charts import *
+from iz_tools.text import *
+from iz_tools.typecheck import *
+from iz_tools.system import *
+from iz_tools.progressbar import *
 from depgraph import *
-from progressbar import *
-from hyperopts import hyperopts
-import hypercache
+from hypercore.options import hyperopts
+import hypercore.cache
 
 def CleanRemovedFromCache():
     """
@@ -54,7 +57,7 @@ def CleanRemovedFromCache():
     """
     if metaInfo.useCache:
         printProgress(_('Checking cache for copies of already deleted/moved files'))
-        cache = hypercache.cache(metaInfo.cacheDirectory)
+        cache = hypercore.cache.cache(metaInfo.cacheDirectory)
         dc    = cache.removeObsolete(metaInfo.topLevelDirectory)
         logger.info(_('%s obsolete files removed from cache'), dc)
 
@@ -121,7 +124,7 @@ def ScanFilesForViewsAndPackages():
     """
     if metaInfo.indexPage['form'] != '':
         try:
-            from xml_forms import OraForm
+            from hypercore.xml_forms import OraForm
         except:
             logger.error(_('Cannot process Oracle Forms XML files - SAX API (pyxml) seems to be unavailable.'))
 
@@ -180,7 +183,7 @@ def ScanFilesForViewsAndPackages():
     fileInfoList = metaInfo.fileInfoList
     pbarInit(_("Scanning source files for views and packages"),0,len(fileInfoList))
     i = 0
-    if metaInfo.indexPage['form'] != '' and metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
+    if metaInfo.indexPage['form'] != '' and metaInfo.useCache: cache = hypercore.cache.cache(metaInfo.cacheDirectory)
 
     # first, find views in files
     dot_count = 1
@@ -806,7 +809,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
 
     fileInfoList = metaInfo.fileInfoList
-    if metaInfo.indexPage['form'] != '' and metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
+    if metaInfo.indexPage['form'] != '' and metaInfo.useCache: cache = hypercore.cache.cache(metaInfo.cacheDirectory)
 
     pbarInit(_("Scanning source files for where views and packages are used"),0,len(fileInfoList))
     scan_instring = metaInfo.scanInString
@@ -2202,7 +2205,7 @@ def CreateHyperlinkedSourceFilePages():
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
     top_level_directory = metaInfo.topLevelDirectory
-    if metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
+    if metaInfo.useCache: cache = hypercore.cache.cache(metaInfo.cacheDirectory)
     pbarInit(_("Creating hyperlinked source file pages"),0,len(fileInfoList))
     if metaInfo.includeSourceLimit > 0:
         logger.info( _('Source code inclusion is limited to files smaller than %s'), size_format(metaInfo.includeSourceLimit,0) )
@@ -2745,7 +2748,7 @@ def CreateDepGraphIndex():
     g.set_ranksep(metaInfo.graphLenNeato,'neato')
     g.set_ranksep(metaInfo.graphDistCirco,'circo')
 
-    if metaInfo.useCache: cache = hypercache.cache(metaInfo.cacheDirectory)
+    if metaInfo.useCache: cache = hypercore.cache.cache(metaInfo.cacheDirectory)
 
     def makePng(gtyp,i):
         """
@@ -3108,7 +3111,7 @@ def purge_html():
 
 def purge_cache():
     if metaInfo.cmdOpts.purge_cache is not None:
-        cache = hypercache.cache(metaInfo.cacheDirectory)
+        cache = hypercore.cache.cache(metaInfo.cacheDirectory)
         for name in metaInfo.cmdOpts.purge_cache: cache.clear(name)
     CleanRemovedFromCache()
 
@@ -3116,7 +3119,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.5.5"
+    metaInfo.versionString = "3.5.6"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

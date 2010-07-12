@@ -1,5 +1,5 @@
+# $Id$
 """
-$Id$
 IniParser - an extention to ConfigParser
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
