@@ -14,8 +14,9 @@ if g.deps_ok:
 """
 
 #====================================================[ Imports and Presets ]===
-from systools import *
-from gettext_init import langpath, langs
+from iz_tools.typecheck import *
+from iz_tools.system import *
+from hypercore.gettext_init import langpath, langs
 from os import sep as os_sep, path as os_path, access as os_access, unlink as os_unlink
 from tempfile import NamedTemporaryFile
 import logging
