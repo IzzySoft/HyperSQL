@@ -237,7 +237,7 @@ def ScanFilesForViewsAndPackages():
                     elem.lineNumber = linenr
                     form_info.functionInfoList.append(elem)
                 elif unit['type'].upper() == pck_mark:
-                    elem = PackageInfo() ###TODO: Go for more details
+                    elem = PackageInfo() ###TODO: Go for more details (pkg.proc/func/...)
                     elem.name = unit['name']
                     elem.lineNumber = linenr
                     form_info.packageInfoList.append(elem)
@@ -262,7 +262,7 @@ def ScanFilesForViewsAndPackages():
                 jdoc = ScanJavaDoc(formcode.split('\n'), file_info.fileName)
                 FormInfoAppendJavadoc(form_info,'form',jdoc)
                 for pkg in form_info.packageInfoList:
-                    FormInfoAppendJavadoc(pkg,'pkg',jdoc)
+                    FormInfoAppendJavadoc(pkg,'pkg',jdoc) ###TODO: Contained proc/func/...
                 for func in form_info.functionInfoList:
                     FormInfoAppendJavadoc(func,'function',jdoc)
                 for proc in form_info.procedureInfoList:
@@ -2147,11 +2147,11 @@ def CreateHyperlinkedSourceFilePages():
         @param int i counter for odd/even row alternation
         """
         iname = item.javadoc.getVisibility()
-        if item.javadoc.name != '':
+        if item.javadoc.name != '' and not item.javadoc.ignore:
             iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
             idesc = item.javadoc.getShortDesc()
         else:
-            iname += item.name
+            iname += (item.javadoc.name or item.name)
             idesc = ''
         outfile.write(' <TR CLASS="tr'+`i % 2`+'"><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
         if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or fsize <= metaInfo.includeSourceLimit ):
@@ -2330,7 +2330,7 @@ def CreateHyperlinkedSourceFilePages():
                         html += item.javadoc.getHtml(item.uniqueNumber)
                         html += '</TD></TR>\n'
                         i += 1
-                        # check package for functions
+                        # check package for functions ###TODO: See above, they must be detected first
                         if len(item.functionInfoList) > 0:
                             fhtml = ''
                             for fu in item.functionInfoList:
@@ -2343,7 +2343,8 @@ def CreateHyperlinkedSourceFilePages():
                         if len(item.procedureInfoList) > 0:
                             fhtml = ''
                             for fu in item.procedureInfoList:
-                                if not fu.javadoc.isDefault(): html += formPkgFuncDetails(fu)
+                                if not fu.javadoc.isDefault():
+                                  fhtml += formPkgFuncDetails(fu)
                             if fhtml != '':
                                 html += ' <TR><TD HEIGHT="0.5em"></TH></TR>\n'
                                 html += ' <TR><TH CLASS="sub">'+_('Procedures')+'</TH></TR>\n' + fhtml
@@ -3119,7 +3120,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.5.6"
+    metaInfo.versionString = "3.5.8"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

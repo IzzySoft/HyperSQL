@@ -6,6 +6,9 @@ v3.6.0
   iz_tools, as they contain quite generic stuff only
 * changed the previously hardcoded hash-bang python from "/usr/bin/python" to
   "/usr/bin/env python", to let the (*nix) system decide which executable to run
++ bunch of keywords and types added for syntax highlighting (requires cleaning
+  the code cache to have effect for unchanged files if using the cache)
++ some improvements concerning the processing Oracle Forms
 
 v3.5.5 (13.06.2010)
 -------------------
