@@ -5,7 +5,7 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
 from cgi import escape # for htmlspecialchars
-from systools import is_numeric
+from iz_tools.typecheck import is_numeric
 import re
 
 def hypercode(line_list,keywords,types,cssclass='sql'):

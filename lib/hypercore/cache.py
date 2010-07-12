@@ -7,7 +7,7 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 import os
 from dircache import listdir
 import cPickle
-from systools import fopen
+from iz_tools.system import fopen
 
 class cache(object):
     """ A simple caching mechanism """

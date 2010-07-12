@@ -5,15 +5,8 @@ Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
-from hyperjdoc import JavaDoc, PackageTaskList
-from locale import format as loc_format, setlocale, LC_NUMERIC
-import re # for eatStrings
-
-try:
-    setlocale(LC_NUMERIC, '')
-except:
-    None
-
+from .javadoc import JavaDoc, PackageTaskList
+from .helpers import listCompName
 
 class ElemInfo(object):
     """ Object to hold information about a function, or procedure """
@@ -78,16 +71,6 @@ class FormInfo(StandAloneElemInfo):
             + '* Stats: '+`self.stats`+'\n'
         if self.parent: ret += '* Parent: '+self.parent.fileName
         return ret
-
-def listCompName(a,b):
-    """
-    Helper to sort a list of objects by their "name" property using
-    list.sort(listCompName)
-    used by FileInfo.sortLists
-    """
-    if a.name < b.name: return -1
-    elif a.name > b.name: return 1
-    else: return 0
 
 class FileInfo(object):
     """ Object to hold information about a file """
@@ -279,53 +262,3 @@ class MetaInfo:
         return stat
 
 
-def TupleCompareFirstElements(a, b):
-    """
-    used for sorting list of tuples by values of first elements in the tuples
-    @param tuple a
-    @param tuple b
-    @return int 0 for equal, -1 if a is less, 1 if a is greater than b
-    """
-    if a[0] < b[0]: return -1
-    if a[0] > b[0]: return 1
-    return 0
-
-
-def CaseInsensitiveComparison(a, b):
-    """
-    used for case insensitive string sorts
-    @param string a
-    @param string b
-    @return int 0 for equal, -1 if a is less, 1 if a is greater than b
-    """
-    if a.upper() < b.upper(): return -1
-    if a.upper() > b.upper(): return 1
-    return 0
-
-def num_format(num, places=0):
-    return loc_format("%.*f", (places, num), True)
-
-def size_format(size,decs=2):
-    suffixes = [("B",2**10), ("K",2**20), ("M",2**30), ("G",2**40), ("T",2**50)]
-    for suf, lim in suffixes:
-        if size > lim:
-            continue
-        else:
-            return num_format( round(size/float(lim/2**10),decs), decs )+suf
-
-def eatStrings(text):
-    """
-    eat (single-quoted) string contents and return remaining text
-    @param string text text to parse
-    @return string text text with strings removed
-    @return boolean matched_string whether any strings where encountered
-    """
-    strpatt = re.compile("('[^']*')+")    # String-Regexp
-    result = strpatt.search(text)
-    matched_string = False
-    while result != None:
-        matched_string = True
-        for g in range(len(result.groups())):
-            text = text.replace(result.group(g) , "")
-        result = strpatt.search(text)
-    return text, matched_string

@@ -5,7 +5,7 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
 from optparse import OptionParser, OptionGroup
-from gettext_init import langpath, langs
+from .gettext_init import langpath, langs
 import gettext
 
 gettext.bindtextdomain('hyperopts', langpath)

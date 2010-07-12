@@ -4,7 +4,7 @@ HyperSQL Configuration Class
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
-from IniParser import IniParser
+from iz_tools.IniParser import IniParser
 from locale import getdefaultlocale
 from os import environ, path as ospath, sep as ossep
 from sys import argv as sysargv

@@ -4,7 +4,7 @@ HyperSQL Javadoc support
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
-from gettext_init import langpath, langs
+from .gettext_init import langpath, langs
 from sys import maxint, argv as pargs
 import logging, re, gettext, locale, os
 logger = logging.getLogger('main.jdoc')
