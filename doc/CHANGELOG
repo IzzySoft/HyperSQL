@@ -9,6 +9,9 @@ v3.6.0
 + bunch of keywords and types added for syntax highlighting (requires cleaning
   the code cache to have effect for unchanged files if using the cache)
 + some improvements concerning the processing Oracle Forms
+* links on form details page fixed up
++ more details on forms: package functions/procedures are now listed - provided
+  they have javadoc information attached
 
 v3.5.5 (13.06.2010)
 -------------------

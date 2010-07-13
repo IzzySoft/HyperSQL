@@ -237,9 +237,23 @@ def ScanFilesForViewsAndPackages():
                     elem.lineNumber = linenr
                     form_info.functionInfoList.append(elem)
                 elif unit['type'].upper() == pck_mark:
-                    elem = PackageInfo() ###TODO: Go for more details (pkg.proc/func/...)
+                    elem = PackageInfo()
                     elem.name = unit['name']
                     elem.lineNumber = linenr
+                    ###TODO: Go for more details (pkg.proc/func/...)
+                    # temporary: Obtain the child elements via javadoc
+                    for jd in ScanJavaDoc(unit['code'].split('\n'),file_info.fileName):
+                      if jd.objectType not in ['function','procedure']: continue
+                      if not jd.name: continue
+                      fu = ElemInfo()
+                      fu.name   = jd.name
+                      fu.parent = elem
+                      fu.lineNumber = jd.lineNumber
+                      fu.javadoc = jd
+                      if jd.objectType == 'function':
+                        elem.functionInfoList.append(fu)
+                      elif jd.objectType == 'procedure':
+                        elem.procedureInfoList.append(fu)
                     form_info.packageInfoList.append(elem)
                 elif unit['type'].upper() == pcks_mark:
                     continue    # skip package specifications
@@ -2196,11 +2210,10 @@ def CreateHyperlinkedSourceFilePages():
         """
         html  = ' <TR><TD STYLE="text-align:center;font-weight:bold;"><A NAME="'
         html += (fu.javadoc.name or fu.name.lower())
-        html += '"></A>'
-        html += (fu.javadoc.name or fu.name)
-        html += '"</TD></TR>\n <TR><TD>'
+        html += '"></A></TD></TR>\n <TR><TD>'
         html += fu.javadoc.getHtml(fu.uniqueNumber)
         html += '</TD></TR>\n'
+        return html
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -2323,7 +2336,7 @@ def CreateHyperlinkedSourceFilePages():
                         ObjectDetailsListItem(item,i,file_info.bytes)
                         html += '<A NAME="'
                         html += (item.javadoc.name or item.name.lower())
-                        html += '"></A><TABLE CLASS="apilist" STYLE="margin-bottom: 10px;" WIDTH="95%">\n'
+                        html += '_'+`item.uniqueNumber`+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom: 10px;" WIDTH="95%">\n'
                         html += ' <TR><TH>'
                         html += (item.javadoc.name or item.name)
                         html += '</TH></TR>\n <TR><TD>'
@@ -2334,7 +2347,7 @@ def CreateHyperlinkedSourceFilePages():
                         if len(item.functionInfoList) > 0:
                             fhtml = ''
                             for fu in item.functionInfoList:
-                                if not fu.javadoc.isDefault(): fhtml += formPkgFuncDetails(fu)
+                                if not fu.javadoc.isDefault(): fhtml += (formPkgFuncDetails(fu) or '')
                             if fhtml != '':
                                 html += ' <TR><TD HEIGHT="0.5em"></TH></TR>\n'
                                 html += ' <TR><TH CLASS="sub" STYLE="margin-top:0.5em;">'+_('Functions')+'</TH></TR>\n' + fhtml
@@ -2344,7 +2357,7 @@ def CreateHyperlinkedSourceFilePages():
                             fhtml = ''
                             for fu in item.procedureInfoList:
                                 if not fu.javadoc.isDefault():
-                                  fhtml += formPkgFuncDetails(fu)
+                                  fhtml += (formPkgFuncDetails(fu) or '')
                             if fhtml != '':
                                 html += ' <TR><TD HEIGHT="0.5em"></TH></TR>\n'
                                 html += ' <TR><TH CLASS="sub">'+_('Procedures')+'</TH></TR>\n' + fhtml
@@ -3120,7 +3133,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.5.8"
+    metaInfo.versionString = "3.6.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
