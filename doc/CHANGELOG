@@ -12,6 +12,8 @@ v3.6.0
 * links on form details page fixed up
 + more details on forms: package functions/procedures are now listed - provided
   they have javadoc information attached
+! lists on full-form-index were messed up
+- removed trigger listings from full-form-index (they make no sense here)
 
 v3.5.5 (13.06.2010)
 -------------------

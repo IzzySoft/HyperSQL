@@ -1713,11 +1713,6 @@ def MakeFormIndexWithUnits():
     html_dir = metaInfo.htmlDir
     outfilename = metaInfo.indexPage['form_full']
 
-    packagetuplelist   = []
-    functiontuplelist  = []
-    proceduretuplelist = []
-    triggertuplelist   = []
-
     outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('form_full'))
     outfile.write("<H1>"+_('Index of all Forms including their ProgramUnits')+"</H1>\n")
@@ -1726,6 +1721,10 @@ def MakeFormIndexWithUnits():
     for file_info in fileInfoList:
         if file_info.fileType != "xml": # skip all non-xml files
             continue
+
+        packagetuplelist   = []
+        functiontuplelist  = []
+        proceduretuplelist = []
 
         form_info = file_info.formInfoList[0] # there is only one form per file
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink((form_info.name.upper(),form_info,file_info))
@@ -1746,7 +1745,7 @@ def MakeFormIndexWithUnits():
         if len(form_info.packageInfoList) > 0:
           for itemInfo in form_info.packageInfoList:
             packagetuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
-          WriteObjectList(functiontuplelist, _('Packages'), _('Package'), outfile)
+          WriteObjectList(packagetuplelist, _('Packages'), _('Package'), outfile)
         if len(form_info.functionInfoList) > 0:
           for itemInfo in form_info.functionInfoList:
             functiontuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
@@ -1754,11 +1753,7 @@ def MakeFormIndexWithUnits():
         if len(form_info.procedureInfoList) > 0:
           for itemInfo in form_info.procedureInfoList:
             proceduretuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
-          WriteObjectList(functiontuplelist, _('Procedures'), _('Procedure'), outfile)
-        if len(form_info.triggerInfoList) > 0:
-          for itemInfo in form_info.triggerInfoList:
-            triggertuplelist.append((itemInfo.name.upper(),itemInfo,file_info))
-          WriteObjectList(functiontuplelist, _('Triggers'), _('Trigger'), outfile)
+          WriteObjectList(proceduretuplelist, _('Procedures'), _('Procedure'), outfile)
 
     outfile.write("</TABLE>\n")
     outfile.write(MakeHTMLFooter('form_full'))
