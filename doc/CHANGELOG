@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.6.0
+v3.6.0 (14.07.2010)
 -------------------
 * reorganized core libraries. Some have been outsourced to a separate package
   iz_tools, as they contain quite generic stuff only
