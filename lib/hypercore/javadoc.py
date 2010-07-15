@@ -472,6 +472,14 @@ class TaskList:
         """
         self.name  = name
         self.items = []
+    def __repr__(self):
+        """
+        Debug helper
+        """
+        desc = '<hypercore.javadoc.TaskList>:\n' \
+             + '* name:  '+self.name+'\n' \
+             + '* items: '+`len(self.items)`
+        return desc
     def addItem(self,name,desc,author='',uid=0):
         """
         Add an item to the tasklist.
@@ -529,6 +537,21 @@ class PackageTaskList(TaskList):
         TaskList.__init__(self,name)
         self.funcs = []
         self.procs = []
+        self.pkgs  = [] # for form pkgs
+        self.parent = None
+    def __repr__(self):
+        """
+        Debug helper
+        """
+        desc = '<hypercore.javadoc.PackageTaskList>:\n' \
+             + '* name  : '+self.name+'\n' \
+             + '* items : '+`len(self.items)`+'\n' \
+             + '* funcs : '+`len(self.funcs)`+'\n' \
+             + '* procs : '+`len(self.procs)`+'\n' \
+             + '* pkgs  : '+`len(self.pkgs)`
+        #if self.parent: desc += '* parent: '+self.parent+'\n'
+        #else: desc += '* parent: None'
+        return desc
     def addFunc(self,name,desc,author='',uid=0):
         """
         Add an item to this packages function task list
@@ -572,7 +595,10 @@ class PackageTaskList(TaskList):
         @param self
         @return number tasks
         """
-        return self.taskCount() + self.funcCount() + self.procCount()
+        allcount = 0
+        for tlist in self.pkgs:
+            allcount += ( tlist.allItemCount() )
+        return allcount + self.taskCount() + self.funcCount() + self.procCount()
     def sortAll(self,orderBy='name'):
         """
         Sort all task lists of this package
@@ -615,12 +641,12 @@ class PackageTaskList(TaskList):
             if len(self.funcs) < 1: return ''
             self.sortFuncs('name')
             items = self.funcs
-            html = '  <TR><TH CLASS="sub">Function</TH><TH CLASS="sub">Task</TH>\n'
+            html = '  <TR><TH CLASS="sub">'+_('Function')+'</TH><TH CLASS="sub">'+_('Task')+'</TH>\n'
         else:
             if len(self.procs) < 1: return ''
             self.sortProcs('name')
             items = self.procs
-            html = '  <TR><TH CLASS="sub">Procedure</TH><TH CLASS="sub">Task</TH>\n'
+            html = '  <TR><TH CLASS="sub">'+_('Procedure')+'</TH><TH CLASS="sub">'+_('Task')+'</TH>\n'
         name = ''
         uid = -1
         inner = ''
@@ -670,6 +696,24 @@ class PackageTaskList(TaskList):
         @return string html
         """
         return self.getSubHtml('procs')
+    def getSubPkgHtml(self):
+        """
+        Generate HTML for sub-packages (e.g. Oracle Forms packages)
+        @param self
+        @return string html
+        """
+        if len(self.pkgs)==0: return ''
+        html = ''
+        for pkg in self.pkgs:
+          if pkg.allItemCount()<1: continue
+          html += '  <TR><TD CLASS="sub" COLSPAN="2"><B><I>'+_('Package')+' '+pkg.name.lower()+'</I></B></TD></TR>\n'
+          if pkg.taskCount()>0:
+            html += '  <TR><TD COLSPAN="2"><UL>'
+            for item in pkg.items: html += '<LI>'+item.desc+'</LI>'
+            html += '</UL></TD></TR>\n'
+          html += pkg.getFuncHtml()
+          html += pkg.getProcHtml()
+        return html
 
 
 def ScanJavaDoc(text,fileName,lineNo=0):

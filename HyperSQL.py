@@ -180,6 +180,29 @@ def ScanFilesForViewsAndPackages():
         if name[0]=='"' and name[len(name)-1]=='"': return name[1:len(name)-1]
         return name
 
+    def appendGlobalTasks(otype,master,jd,uid=0):
+        """
+        Append items from object bug/todo to their parents master list
+        @param string otype    type of the object processed ('func','proc','pkg','formpkg','formpkgfunc','formpkgproc')
+        @param object master   the FormInfo/PackageInfo element
+        @param list   jd       the local javadoc element list
+        """
+        if otype not in ['func','proc','pkg','formpkg','formpkgfunc','formpkgproc']:
+            logger.warn(_('Invalid object type "%(otype)s" passed to appendGlobalTasks for %(jotype)s %(name)s'), {'otype':otype, 'jotype':jd.objectType, 'name':jd.name or '[unknown]'})
+            return
+        if len(jd.bug)>0 and metaInfo.indexPage['bug'] != '':
+            for ib in range(len(jd.bug)):
+                if otype in ['pkg','formpkg']: master.bugs.addItem(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
+                elif otype == 'func'      : master.bugs.addFunc(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
+                elif otype == 'proc'      : master.bugs.addProc(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
+                elif otype == 'formpkg'   : pass ###TODO: Need special TaksList for forms - and then remove formpkg from IF
+        if len(jd.todo)>0 and metaInfo.indexPage['todo'] != '':
+            for ib in range(len(jd.todo)):
+                if otype in ['pkg','formpkg']: master.todo.addItem(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
+                elif otype == 'func'      : master.todo.addFunc(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
+                elif otype == 'proc'      : master.todo.addProc(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
+                elif otype == 'formpkg'   : pass ###TODO: Need special TaksList for forms - and then remove formpkg from IF
+
     fileInfoList = metaInfo.fileInfoList
     pbarInit(_("Scanning source files for views and packages"),0,len(fileInfoList))
     i = 0
@@ -276,11 +299,23 @@ def ScanFilesForViewsAndPackages():
                 jdoc = ScanJavaDoc(formcode.split('\n'), file_info.fileName)
                 FormInfoAppendJavadoc(form_info,'form',jdoc)
                 for pkg in form_info.packageInfoList:
-                    FormInfoAppendJavadoc(pkg,'pkg',jdoc) ###TODO: Contained proc/func/...
+                    FormInfoAppendJavadoc(pkg,'pkg',jdoc)
+                    ptl = StandAloneElemInfo()
+                    ptl.bugs = PackageTaskList(pkg.name)
+                    ptl.todo = PackageTaskList(pkg.name)
+                    appendGlobalTasks('formpkg',ptl,pkg.javadoc)
+                    for func in pkg.functionInfoList:
+                        appendGlobalTasks('func',ptl,func.javadoc)
+                    for func in pkg.procedureInfoList:
+                        appendGlobalTasks('proc',ptl,func.javadoc)
+                    form_info.bugs.pkgs.append(ptl.bugs)
+                    form_info.todo.pkgs.append(ptl.todo)
                 for func in form_info.functionInfoList:
                     FormInfoAppendJavadoc(func,'function',jdoc)
+                    appendGlobalTasks('func',form_info,func.javadoc)
                 for proc in form_info.procedureInfoList:
                     FormInfoAppendJavadoc(proc,'procedure',jdoc)
+                    appendGlobalTasks('func',form_info,proc.javadoc)
             continue
 
         else:
@@ -497,12 +532,7 @@ def ScanFilesForViewsAndPackages():
                       if not package_info.javadoc.ignore: # ignore items with @ignore tag
                           pi = package_info
                           jd = pi.javadoc
-                          if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
-                            for ib in range(len(jd.bug)):
-                                package_info.bugs.addItem(jd.name,jd.bug[ib],jd.author,pi.uniqueNumber)
-                          if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
-                            for ib in range(len(jd.todo)):
-                                package_info.todo.addItem(jd.name,jd.todo[ib],jd.author,pi.uniqueNumber)
+                          appendGlobalTasks('pkg',pi,jd,pi.uniqueNumber)
                           mname = jd.name or pi.name
                           mands = jd.verify_mandatory()
                           for mand in mands:
@@ -542,15 +572,10 @@ def ScanFilesForViewsAndPackages():
                         if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
                           function_info.javadoc = jdoc[j]
                           function_info.javadoc.lndiff = abs(ln)
-                  if not function_info.javadoc.ignore and package_count != -1: ### need alternative for standalone
+                  if not function_info.javadoc.ignore and package_count != -1: ###TODO: need alternative for standalone
                     fi = function_info
                     jd = fi.javadoc
-                    if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
-                        for ib in range(len(jd.bug)):
-                            file_info.packageInfoList[package_count].bugs.addFunc(jd.name,jd.bug[ib],jd.author,fi.uniqueNumber)
-                    if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
-                        for ib in range(len(jd.todo)):
-                            file_info.packageInfoList[package_count].todo.addFunc(jd.name,jd.todo[ib],jd.author,fi.uniqueNumber)
+                    appendGlobalTasks('func',file_info.packageInfoList[package_count],jd,fi.uniqueNumber)
                     mname = jd.name or fi.name
                     mands = jd.verify_mandatory()
                     for mand in mands:
@@ -602,15 +627,10 @@ def ScanFilesForViewsAndPackages():
                         if abs(ln) < procedure_info.javadoc.lndiff: # this desc is closer to the object
                           procedure_info.javadoc = jdoc[j]
                           procedure_info.javadoc.lndiff = abs(ln)
-                  if not procedure_info.javadoc.ignore and package_count != -1: ### need alternative for standalone
+                  if not procedure_info.javadoc.ignore and package_count != -1: ###TODO: need alternative for standalone
                     pi = procedure_info
                     jd = pi.javadoc
-                    if len(jd.bug) > 0 and metaInfo.indexPage['bug'] != '':
-                        for ib in range(len(jd.bug)):
-                            file_info.packageInfoList[package_count].bugs.addProc(jd.name,jd.bug[ib],jd.author,pi.uniqueNumber)
-                    if len(jd.todo) > 0 and metaInfo.indexPage['todo'] != '':
-                        for ib in range(len(jd.todo)):
-                            file_info.packageInfoList[package_count].todo.addProc(jd.name,jd.todo[ib],jd.author,pi.uniqueNumber)
+                    appendGlobalTasks('proc',file_info.packageInfoList[package_count],jd,pi.uniqueNumber)
                     mname = jd.name or pi.name
                     mands = jd.verify_mandatory()
                     for mand in mands:
@@ -1957,9 +1977,10 @@ def MakeTaskList(taskType):
     triggertuplelist   = []
     functiontuplelist  = []
     proceduretuplelist = []
+    formtuplelist      = []
     for file_info in fileInfoList:
         # skip all non-sql files
-        if file_info.fileType != "sql":
+        if file_info.fileType not in ['sql','xml']:
             continue        
         for package_info in file_info.packageInfoList:
             packagetuplelist.append((package_info.name.upper(), package_info, file_info)) # append as tuple for case insensitive sort
@@ -1979,6 +2000,8 @@ def MakeTaskList(taskType):
             functioninfolist.append((functionInfo.name.upper(), functionInfo, file_info))
         for procInfo in file_info.procedureInfoList:
             proceduretuplelist.append((procInfo.name.upper(), procInfo, file_info))
+        for formInfo in file_info.formInfoList:
+            formtuplelist.append((formInfo.name.upper(), formInfo, file_info))
 
     packagetuplelist.sort(TupleCompareFirstElements)
     tabletuplelist.sort(TupleCompareFirstElements)
@@ -1989,6 +2012,7 @@ def MakeTaskList(taskType):
     triggertuplelist.sort(TupleCompareFirstElements)
     functiontuplelist.sort(TupleCompareFirstElements)
     proceduretuplelist.sort(TupleCompareFirstElements)
+    formtuplelist.sort(TupleCompareFirstElements)
 
     outfile = fopen(html_dir + outfilename, "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(taskType))
@@ -2032,6 +2056,31 @@ def MakeTaskList(taskType):
     for seqtuple in seqtuplelist: appendStandAloneItems(seqtuple,_('Sequence'))
     for seqtuple in syntuplelist: appendStandAloneItems(seqtuple,_('Synonym'))
     for triggertuple in triggertuplelist: appendStandAloneItems(triggertuple,_('Trigger'))
+
+    # Walk the forms
+    for formtuple in formtuplelist:
+        if taskType == 'bug':
+            task = formtuple[1].bugs
+        elif taskType == 'todo':
+            task = formtuple[1].todo
+        else:
+            task = formtuple[1].verification
+        if task.allItemCount() < 1:
+            continue
+        HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(formtuple)
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Form') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,formtuple[1].name.lower(),formtuple[2].bytes) + '</TH></TR>\n');
+        if task.taskCount() > 0:
+            outfile.write('  <TR><TD COLSPAN="2" ALIGN="center"><B><I>'+_('Form General')+'</I></B></TD></TR>\n')
+            outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
+        if task.funcCount() > 0:
+            outfile.write('  <TR><TD COLSPAN="2" ALIGN="center"><B><I>'+_('Functions')+'</I></B></TD></TR>\n')
+            outfile.write( task.getFuncHtml() )
+        if task.procCount() > 0:
+            outfile.write('  <TR><TD COLSPAN="2" ALIGN="center"><B><I>'+_('Procedures')+'</I></B></TD></TR>\n')
+            outfile.write( task.getProcHtml() )
+        outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
+
+        if len(task.pkgs)>0: outfile.write( task.getSubPkgHtml() )
 
     outfile.write('</TABLE>\n')
     outfile.write(MakeHTMLFooter(taskType))
@@ -3128,7 +3177,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.6.0"
+    metaInfo.versionString = "3.6.2"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

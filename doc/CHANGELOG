@@ -1,5 +1,9 @@
 # History of Changes for HyperSQL
 
+v3.6.5
+-------------------
++ Todos/Bugs are now also collected from forms
+
 v3.6.0 (14.07.2010)
 -------------------
 * reorganized core libraries. Some have been outsourced to a separate package

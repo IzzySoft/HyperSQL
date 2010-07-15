@@ -8,5 +8,4 @@ TO-DO LIST
   <filepath_with_replaced_separators>_<filename>.html to make "steady links"
   possible
 * JavaDoc verification for stand-alone and forms objects
-* Todo output for forms needs to be improved
 * file_size_limit for forms needs to be bound to the PL/SQL code size instead of file size
