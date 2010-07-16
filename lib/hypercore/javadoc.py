@@ -185,7 +185,7 @@ class JavaDoc(object):
                     self.log(_('Missing description for column "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s') % {'pname':col.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         if 'return' in JavaDocVars['otypes'][self.objectType]['otags'] and len(self.retVals)<1:
             faillist.append(_('Missing return value'))
-            self.log(_('Missing return value for %(otype)s %(name)s in %(file)s line %(line)s') % {'otype':JavaDocVars[self.objectType]['name'], 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
+            self.log(_('Missing return value for %(otype)s %(name)s in %(file)s line %(line)s') % {'otype':JavaDocVars['otypes'][self.objectType]['name'], 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         return faillist
     def verify_params(self,cparms):
         """

@@ -170,6 +170,16 @@ def ScanFilesForViewsAndPackages():
           if (CaseInsensitiveComparison(oInfo.name,jdoc[j].name)==0 and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
             oInfo.javadoc = jdoc[j]
 
+        if JavaDocVars['verify_forms'] and not oInfo.javadoc.ignore:
+          mname = oInfo.javadoc.name or oInfo.name
+          mands = oInfo.javadoc.verify_mandatory()
+          oInfo.verification = PackageTaskList(oInfo.name.lower())
+          for mand in mands:
+              oInfo.verification.addItem(mname,mand)
+          if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault():
+              logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
+              oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
+
     def fixQuotedName(name):
         """
         Remove possible double-quotes around object names
@@ -180,28 +190,41 @@ def ScanFilesForViewsAndPackages():
         if name[0]=='"' and name[len(name)-1]=='"': return name[1:len(name)-1]
         return name
 
-    def appendGlobalTasks(otype,master,jd,uid=0):
+    def appendGlobalTasks(otype,master,jd,uid=0,jdverify=None):
         """
         Append items from object bug/todo to their parents master list
         @param string otype    type of the object processed ('func','proc','pkg','formpkg','formpkgfunc','formpkgproc')
         @param object master   the FormInfo/PackageInfo element
         @param list   jd       the local javadoc element list
+        @param object jdverify optional ElemInfo to update the javadoc verification report for. Needed for Oracle Forms
         """
         if otype not in ['func','proc','pkg','formpkg','formpkgfunc','formpkgproc']:
             logger.warn(_('Invalid object type "%(otype)s" passed to appendGlobalTasks for %(jotype)s %(name)s'), {'otype':otype, 'jotype':jd.objectType, 'name':jd.name or '[unknown]'})
             return
         if len(jd.bug)>0 and metaInfo.indexPage['bug'] != '':
             for ib in range(len(jd.bug)):
-                if otype in ['pkg','formpkg']: master.bugs.addItem(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
-                elif otype == 'func'      : master.bugs.addFunc(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
-                elif otype == 'proc'      : master.bugs.addProc(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
-                elif otype == 'formpkg'   : pass ###TODO: Need special TaksList for forms - and then remove formpkg from IF
+                if otype in ['pkg','formpkg']:        master.bugs.addItem(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
+                elif otype in ['func','formpkgfunc']: master.bugs.addFunc(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
+                elif otype in ['proc','formpkgproc']: master.bugs.addProc(jd.name,jd.bug[ib],jd.author,master.uniqueNumber)
         if len(jd.todo)>0 and metaInfo.indexPage['todo'] != '':
             for ib in range(len(jd.todo)):
-                if otype in ['pkg','formpkg']: master.todo.addItem(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
-                elif otype == 'func'      : master.todo.addFunc(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
-                elif otype == 'proc'      : master.todo.addProc(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
-                elif otype == 'formpkg'   : pass ###TODO: Need special TaksList for forms - and then remove formpkg from IF
+                if otype in ['pkg','formpkg']:        master.todo.addItem(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
+                elif otype in ['func','formpkgfunc']: master.todo.addFunc(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
+                elif otype in ['proc','formpkgproc']: master.todo.addProc(jd.name,jd.todo[ib],jd.author,master.uniqueNumber)
+        if jdverify and not jdverify.javadoc.ignore and metaInfo.indexPage['report'] != '':
+            if otype in ['pkg','formpkg'] and jdverify.verification.allItemCount()>0:
+              for ver in jdverify.verification.items:
+                master.verification.addItem(ver.name,ver.desc,ver.author,ver.uid)
+            elif otype in ['formpkgfunc','formpkgproc']:
+                mname = jdverify.javadoc.name or jdverify.name
+                mands = jdverify.javadoc.verify_mandatory()
+                for mand in mands:
+                    if otype == 'formpkgfunc':   master.verification.addFunc(mname,mand,jdverify.javadoc.author,jdverify.uniqueNumber)
+                    elif otype == 'formpkgproc': master.verification.addProc(mname,mand,jdverify.javadoc.author,jdverify.uniqueNumber)
+                if JavaDocVars['javadoc_mandatory'] and jdverify.javadoc.isDefault():
+                    logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(otype.capitalize()),'name':jdverify.name})
+                    master.verification.addFunc(jdverify.name,'No JavaDoc information available')
+            #elif otype == 'proc'      : master.verification.addProc(jd.name,ver,jd.author,master.uniqueNumber)
 
     fileInfoList = metaInfo.fileInfoList
     pbarInit(_("Scanning source files for views and packages"),0,len(fileInfoList))
@@ -303,19 +326,21 @@ def ScanFilesForViewsAndPackages():
                     ptl = StandAloneElemInfo()
                     ptl.bugs = PackageTaskList(pkg.name)
                     ptl.todo = PackageTaskList(pkg.name)
-                    appendGlobalTasks('formpkg',ptl,pkg.javadoc)
+                    ptl.verification = PackageTaskList(pkg.name)
+                    appendGlobalTasks('formpkg',ptl,pkg.javadoc,pkg.uniqueNumber,pkg)
                     for func in pkg.functionInfoList:
-                        appendGlobalTasks('func',ptl,func.javadoc)
+                        appendGlobalTasks('formpkgfunc',ptl,func.javadoc,func.uniqueNumber,func)
                     for func in pkg.procedureInfoList:
-                        appendGlobalTasks('proc',ptl,func.javadoc)
+                        appendGlobalTasks('formpkgproc',ptl,func.javadoc,func.uniqueNumber,func)
                     form_info.bugs.pkgs.append(ptl.bugs)
                     form_info.todo.pkgs.append(ptl.todo)
+                    form_info.verification.pkgs.append(ptl.verification)
                 for func in form_info.functionInfoList:
                     FormInfoAppendJavadoc(func,'function',jdoc)
-                    appendGlobalTasks('func',form_info,func.javadoc)
+                    appendGlobalTasks('func',form_info,func.javadoc,func.uniqueNumber)
                 for proc in form_info.procedureInfoList:
                     FormInfoAppendJavadoc(proc,'procedure',jdoc)
-                    appendGlobalTasks('func',form_info,proc.javadoc)
+                    appendGlobalTasks('func',form_info,proc.javadoc,proc.uniqueNumber)
             continue
 
         else:
@@ -1523,12 +1548,17 @@ def MakeStatsPage():
             jwarns += package_info.verification.taskCount() + package_info.verification.funcCount() + package_info.verification.procCount()
             jbugs += package_info.bugs.taskCount() + package_info.bugs.funcCount() + package_info.bugs.procCount()
             jtodo += package_info.todo.taskCount() + package_info.todo.funcCount() + package_info.todo.procCount()
-        oList = ['tab','view','mview','syn','seq','trigger']
+        oList = ['tab','view','mview','syn','seq','trigger','procedure','function']
         for oname in oList:
           for oInfo in file_info.__getattribute__(oname+'InfoList'):
             jwarns += oInfo.verification.taskCount()
             jbugs += oInfo.bugs.taskCount()
             jtodo += oInfo.todo.taskCount()
+        if JavaDocVars['form_stats']:
+          for form in file_info.formInfoList:
+            jwarns += form.verification.allItemCount()
+            jbugs  += form.bugs.allItemCount()
+            jtodo  += form.todo.allItemCount()
     totalObj = jwarns + jbugs + jtodo
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('JavaDoc Statistics')+'</TH></TR>\n')
@@ -1718,7 +1748,6 @@ def WriteObjectList(oTupleList, listName, objectName, outfile):
         i += 1
     if len(oTupleList) != 0:
         outfile.write('</TABLE></TD></TR>\n')
-
 
 
 def MakeFormIndexWithUnits():
@@ -3003,6 +3032,8 @@ def configRead():
     else: JavaDocVars['verification'] = metaInfo.cmdOpts.verifyJavadoc
     JavaDocVars['author_in_report'] = config.getBool('Verification','author_in_report',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
+    JavaDocVars['form_stats'] = config.getBool('Verification','stats_javadoc_forms',False)
+    JavaDocVars['verify_forms'] = config.getBool('Verification','verify_forms',False)
     # Section DEPGRAPH
     metaInfo.graphvizMod   = metaInfo.cmdOpts.graphvizProc or config.get('DepGraph','processor','fdp')
     metaInfo.fontName      = metaInfo.cmdOpts.graphvizFont or config.get('DepGraph','fontname','')
@@ -3177,7 +3208,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.6.2"
+    metaInfo.versionString = "3.6.4"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
@@ -3285,4 +3316,4 @@ if __name__ == "__main__":
     logger.info('Percentage: %s%% empty, %s%% plain comments, %s%% plain code, %s%% mixed', \
         metaInfo.getLocPct('empty'), metaInfo.getLocPct('comment'), metaInfo.getLocPct('code'), \
         metaInfo.getLocPct('mixed'))
-    logger.info(_('HyperSQL v%s exiting normally') % metaInfo.versionString)
+    logger.info(_('HyperSQL v%s exiting normally')+'\n', metaInfo.versionString)

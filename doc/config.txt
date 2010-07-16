@@ -143,6 +143,9 @@ Verification
 In this section you may setup some JavaDoc verification stuff:
 
  * verify_javadoc: shall JavaDoc be verified at all? (Default: 0)
+ * verify_forms: as above - shall we do so for forms as well? (Default: 0)
+ * stats_javadoc_forms: Include bugs/todos/verification for forms into the stats?
+   Default: 0, since all other form stats are excluded as well currently.
  * javadoc_mandatory: is JavaDoc mandatory for all your objects? (currently,
    this only affects packages) Default: 0 (no)
  * author_in_report: shall we display @author information for the items in

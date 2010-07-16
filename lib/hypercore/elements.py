@@ -22,12 +22,13 @@ class ElemInfo(object):
         self.javadoc = JavaDoc()
     def __repr__(self):
         """ Basic information for simple debug """
-        if self.lineNumber<0: return 'Empty ElemInfo object'
-        if self.name: ret = 'ElemInfo object "' + self.name + '"'
-        else: ret = 'unnamed ElemInfo object'
+        mytype = type(self).__name__
+        if self.lineNumber<0: return 'Empty '+mytype+' object'
+        if self.name: ret = mytype+' object "' + self.name + '"'
+        else: ret = 'unnamed '+mytype+' object'
         if self.parent: ret += ' with parent ' + `self.parent`
         else: ret += ' without parent'
-        return ret + ', attached JavaDoc:\n' + `self.javadoc`
+        return ret + ', attached JavaDoc:\n' + `self.javadoc` + '\n'
 
 class StandAloneElemInfo(ElemInfo):
     """ Object to hold information about stand-alone elements (tables, views, etc.) """
@@ -37,6 +38,12 @@ class StandAloneElemInfo(ElemInfo):
         self.bugs = PackageTaskList()
         self.todo = PackageTaskList()
         self.verification = PackageTaskList()
+    def __repr__(self):
+        ret = ElemInfo.__repr__(self)
+        ret += '* '+`self.bugs.allItemCount()`+' know bugs\n'
+        ret += '* '+`self.todo.allItemCount()`+' know todos\n'
+        ret += '* '+`self.verification.allItemCount()`+' know verification errors\n'
+        return ret
 
 class PackageInfo(StandAloneElemInfo):
     """ Object to hold information about a package """
@@ -45,6 +52,11 @@ class PackageInfo(StandAloneElemInfo):
         StandAloneElemInfo.__init__(self)
         self.functionInfoList = []
         self.procedureInfoList = []
+    def __repr__(self):
+        ret = StandAloneElemInfo.__repr__(self)
+        ret += '* '+`len(self.functionInfoList)`+' functions\n'
+        ret += '* '+`len(self.procedureInfoList)`+' procedures\n'
+        return ret
 
 class FormInfo(StandAloneElemInfo):
     """ Object to hold information about an Oracle Form """

@@ -3,6 +3,12 @@
 v3.6.5
 -------------------
 + Todos/Bugs are now also collected from forms
++ new keyword verification.stats_javadoc_forms (0/1) lets you include forms
+  todo/bug count within the javadoc stats on the code stats page
++ javadoc verification is now available for Oracle Forms program units as well
+  (partially - no parameter validation yet). To enable, set the new keyword
+  verification.verify_forms to 1 (it is disabled by default)
+! missing @return made verification crash
 
 v3.6.0 (14.07.2010)
 -------------------

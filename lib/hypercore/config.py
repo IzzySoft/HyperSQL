@@ -162,7 +162,9 @@ class HyperConf(IniParser):
             javadoc_mandatory = '0',
             verify_javadoc = '0',
             author_in_report = '0',
-            mandatory_tags = ''
+            mandatory_tags = '',
+            stats_javadoc_forms = '0',
+            verify_forms = '0'
         )
         # Section DEPGRAPH
         depgraph = dict (
