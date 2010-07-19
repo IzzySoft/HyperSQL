@@ -266,7 +266,7 @@ def ScanFilesForViewsAndPackages():
             else:
                 form_info.formType = 'unknown'
             form_info.name = form.getModuleName()
-            form_info.lineNumber = 0
+            form_info.lineNumber = 1
 
             for unit in form.getUnits(): # name, type, code
                 if not unit['type']: continue # deleted objects have their type removed
@@ -313,6 +313,7 @@ def ScanFilesForViewsAndPackages():
                 elem.lineNumber = linenr
                 form_info.triggerInfoList.append(elem)
 
+            form_info.codesize = len(formcode)
             file_info.formInfoList.append(form_info)
             file_info.bytes = os.path.getsize(file_info.fileName)
             file_info.lines = formcode.count('\n')
@@ -1712,7 +1713,7 @@ def MakeFormIndex():
     for formtuple in formtuplelist:
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(formtuple)
         trclass = ' CLASS="tr'+`i % 2`+'"'
-        outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,formtuple[1].name.lower(),formtuple[2].bytes) + '</TD>')
+        outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,formtuple[1].name.lower(),formtuple[1].codesize) + '</TD>')
         detail = formtuple[1].javadoc.getShortDesc() or formtuple[1].title
         outfile.write('<TD>' + detail + '</TD>')
         outfile.write( makeUsageCol(len(formtuple[1].whereUsed.keys())>0,len(formtuple[1].whatUsed.keys())>0,formtuple[1].uniqueNumber,'',len(formtuple[1].javadoc.used)>0,len(formtuple[1].javadoc.uses)>0) )
@@ -1740,8 +1741,10 @@ def WriteObjectList(oTupleList, listName, objectName, outfile):
     i = 0
     for oTuple in oTupleList:
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
+        if type(oTuple[1]).__name__ == 'FormInfo': codesize = oTuple[1].codesize
+        else: codesize = oTuple[2].bytes
         outfile.write('    <TR CLASS="tr'+`i % 2`+'"><TD>' + oTuple[1].javadoc.getVisibility() \
-          + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower(),oTuple[2].bytes) + '</TD>\n')
+          + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower(),codesize) + '</TD>\n')
         outfile.write('<TD>' + oTuple[1].javadoc.getShortDesc() + '</TD>')
         outfile.write( makeUsageCol(len(oTuple[1].whereUsed.keys())>0,len(oTuple[1].whatUsed.keys())>0,oTuple[1].uniqueNumber,'',len(oTuple[1].javadoc.used)>0,len(oTuple[1].javadoc.uses)>0) )
         outfile.write('</TR>\n')
@@ -1779,7 +1782,7 @@ def MakeFormIndexWithUnits():
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink((form_info.name.upper(),form_info,file_info))
         outfile.write(' <TR><TH COLSPAN="3">' + form_info.name.lower() + '</TH></TR>\n')
         outfile.write('  <TR><TD ALIGN="center" WIDTH="33.33%">')
-        if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or file_info.bytes <= metaInfo.includeSourceLimit ):
+        if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or form_info.codesize <= metaInfo.includeSourceLimit ):
             outfile.write('<A href="' + HTMLref + '">'+_('Code')+'</A>')
         else:
             outfile.write('&nbsp;')
@@ -1989,7 +1992,9 @@ def MakeTaskList(taskType):
         if task.allItemCount() < 1:
             return
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(xtuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + headname + ' ' + makeDualCodeRef(HTMLref,HTMLjref,xtuple[1].name.lower(),xtuple[2].bytes) + '</TH></TR>\n');
+        if type(xtuple[1]).__name__ == 'FormInfo': codesize = xtuple[1].codesize
+        else: codesize = xtuple[2].bytes
+        outfile.write('  <TR><TH COLSPAN="2">' + headname + ' ' + makeDualCodeRef(HTMLref,HTMLjref,xtuple[1].name.lower(),codesize) + '</TH></TR>\n');
         outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
         outfile.write('  <TR><TD COLSPAN="2"><DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV></TD></TR>\n')
 
@@ -2097,7 +2102,7 @@ def MakeTaskList(taskType):
         if task.allItemCount() < 1:
             continue
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(formtuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('Form') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,formtuple[1].name.lower(),formtuple[2].bytes) + '</TH></TR>\n');
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Form') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,formtuple[1].name.lower(),formtuple[1].codesize) + '</TH></TR>\n');
         if task.taskCount() > 0:
             outfile.write('  <TR><TD COLSPAN="2" ALIGN="center"><B><I>'+_('Form General')+'</I></B></TD></TR>\n')
             outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
@@ -2406,7 +2411,7 @@ def CreateHyperlinkedSourceFilePages():
                         html = ''
                         haveDetails = False
                         if not item.javadoc.isDefault(): haveDetails = True
-                        ObjectDetailsListItem(item,i,file_info.bytes)
+                        ObjectDetailsListItem(item,i,fi.codesize)
                         html += '<A NAME="'
                         html += (item.javadoc.name or item.name.lower())
                         html += '_'+`item.uniqueNumber`+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom: 10px;" WIDTH="95%">\n'
@@ -2448,7 +2453,7 @@ def CreateHyperlinkedSourceFilePages():
                     i = 0
                     html = ''
                     for item in fi.functionInfoList:
-                        ObjectDetailsListItem(item,i,file_info.bytes)
+                        ObjectDetailsListItem(item,i,fi.codesize)
                         html += item.javadoc.getHtml(item.uniqueNumber)
                         i += 1
                     if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
@@ -2461,7 +2466,7 @@ def CreateHyperlinkedSourceFilePages():
                     i = 0
                     html = ''
                     for item in fi.procedureInfoList:
-                        ObjectDetailsListItem(item,i,file_info.bytes)
+                        ObjectDetailsListItem(item,i,fi.codesize)
                         html += item.javadoc.getHtml(item.uniqueNumber)
                         i += 1
                     if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
@@ -2503,7 +2508,9 @@ def CreateHyperlinkedSourceFilePages():
         # ===[ JAVADOC END ]===
 
         # include the source itself
-        if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or file_info.bytes <= metaInfo.includeSourceLimit ):
+        if file_info.fileType == 'xml': codesize = file_info.formInfoList[0].codesize
+        else: codesize = file_info.bytes
+        if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
             outfile.write('\n<H2>'+_('Source')+'</H2>\n')
             outfile.write('<CODE><PRE>')
             if metaInfo.useCache:
@@ -2646,11 +2653,14 @@ def CreateWhereUsedPages():
         if utuple[0].fileType in ['sql','xml']:
             if utuple[0].fileType == 'xml':
                 html += '<A HREF="' + html_file + '#' + uObj.name + '_' + `uObj.uniqueNumber` + '">' + uObj.name + '</A></TD><TD>'
+                codesize = utuple[0].formInfoList[0].codesize
             elif not metaInfo.useJavaDoc or uObj.javadoc.isDefault():
                 html += uname + '</TD><TD>'
+                codesize = utuple[0].bytes
             else:
                 html += '<A HREF="' + html_file + '#' + uObj.javadoc.name + '_' + `uObj.uniqueNumber` + '">' + uname + '</A></TD><TD>'
-            if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or utuple[0].bytes <= metaInfo.includeSourceLimit ):
+                codesize = utuple[0].bytes
+            if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
                 html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
                 html += '<A href="' + html_file + '#' + `line_number` + '">' + `line_number` + '</A>'
         else:
@@ -2805,6 +2815,7 @@ def CreateWhereUsedPages():
         for form_info in file_info.formInfoList:
             # no where_used pages here, so we go straight for the what_used
             makeWhat(form_info,'form')
+            ###TODO:
             # check for form packages
             # check for form functions
             # check for form procedures
@@ -3208,7 +3219,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.6.4"
+    metaInfo.versionString = "3.6.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

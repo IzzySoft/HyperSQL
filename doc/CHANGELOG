@@ -9,6 +9,9 @@ v3.6.5
   (partially - no parameter validation yet). To enable, set the new keyword
   verification.verify_forms to 1 (it is disabled by default)
 ! missing @return made verification crash
+! source code links for forms themselves where routed to line 0, which does not exist
+* file_size_limit for forms now is bound to the PL/SQL code size instead of file size,
+  as this is the "included source code"
 
 v3.6.0 (14.07.2010)
 -------------------

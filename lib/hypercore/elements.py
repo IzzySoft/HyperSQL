@@ -67,6 +67,7 @@ class FormInfo(StandAloneElemInfo):
         self.title = ''
         self.objects = 0
         self.stats = {}
+        self.codesize = 0
         self.packageInfoList = []
         self.triggerInfoList = []
         self.functionInfoList = []
