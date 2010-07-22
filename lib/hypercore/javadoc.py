@@ -792,7 +792,9 @@ def ScanJavaDoc(text,fileName,lineNo=0):
         elem = tag
         if tag in otypes: # line describes supported object type + name
           item.objectType = doc[0][1:]
-          item.name = doc[1]
+          if len(doc)<2:
+            logger.info(_('object type %(otype)s must have an object name specified, none was given in %(file)s line %(line)s'), {'otype':item.objectType, 'file':fileName, 'line':lineNumber})
+          else: item.name = doc[1]
         elif tag in tags: # other supported tag
           if tag == 'param':    # @param inout type [name [desc]]
             if len(doc) < 2:

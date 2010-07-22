@@ -12,6 +12,8 @@ v3.6.5
 ! source code links for forms themselves where routed to line 0, which does not exist
 * file_size_limit for forms now is bound to the PL/SQL code size instead of file size,
   as this is the "included source code"
+! javadoc evaluator crashed the script when an object was defined without name being
+  specified
 
 v3.6.0 (14.07.2010)
 -------------------
