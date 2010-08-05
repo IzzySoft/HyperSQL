@@ -1759,7 +1759,7 @@ def MakeFormIndexWithUnits():
     ### not yet working
     """
     if metaInfo.indexPage['form_full'] == '': return     # Forms disabled = nothing to do here
-    printProgress(_('Creating %s index') % 'full Form')
+    printProgress(_('Creating full form index'))
 
     fileInfoList = metaInfo.fileInfoList
     html_dir = metaInfo.htmlDir
@@ -3219,7 +3219,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.6.5"
+    metaInfo.versionString = "3.7.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
@@ -3304,21 +3304,24 @@ if __name__ == "__main__":
     MakeElem2Index('sequence')
     MakeElem2Index('trigger')
     MakePackageIndex()
+    MakePackagesWithFuncsAndProcsIndex()
     MakeElemIndex('function')
     MakeElemIndex('procedure')
-    MakePackagesWithFuncsAndProcsIndex()
     MakeFormIndex()
     MakeFormIndexWithUnits()
-
-    CreateWhereUsedPages()
-    CreateDepGraphIndex()
-    CreateHyperlinkedSourceFilePages()
 
     # Bug and Todo lists
     MakeTaskList('bug')
     MakeTaskList('todo')
     MakeTaskList('report')
     MakeStatsPage()
+
+    # Dependencies
+    CreateWhereUsedPages()
+    CreateDepGraphIndex()
+
+    # Details
+    CreateHyperlinkedSourceFilePages()
 
     printProgress(_("done"))
     logger.info('Processed %s total lines: %s empty, %s plain comments, %s plain code, %s mixed', \
