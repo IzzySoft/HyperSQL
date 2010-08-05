@@ -2031,7 +2031,7 @@ def MakeTaskList(taskType):
         for triggerInfo in file_info.triggerInfoList:
             triggertuplelist.append((triggerInfo.name.upper(), triggerInfo, file_info))
         for functionInfo in file_info.functionInfoList:
-            functioninfolist.append((functionInfo.name.upper(), functionInfo, file_info))
+            functiontuplelist.append((functionInfo.name.upper(), functionInfo, file_info))
         for procInfo in file_info.procedureInfoList:
             proceduretuplelist.append((procInfo.name.upper(), procInfo, file_info))
         for formInfo in file_info.formInfoList:
