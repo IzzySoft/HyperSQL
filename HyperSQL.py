@@ -51,6 +51,20 @@ from depgraph import *
 from hypercore.options import hyperopts
 import hypercore.cache
 
+def getWordLineNr(text,word):
+    """
+    Wrapper to getWordLineNr from iz_tools.text catching possible errors
+    @param string text Text to search IN
+    @param string word WORD to search FOR
+    @return list res
+    """
+    try:
+        res = getWordLineNo(text,word)
+    except:
+        logger.error(_('RegExp error searching for "%s"'), word)
+        res = []
+    return res
+
 def CleanRemovedFromCache():
     """
     Check the cache for copies of already deleted/moved files
@@ -182,12 +196,13 @@ def ScanFilesForViewsAndPackages():
 
     def fixQuotedName(name):
         """
-        Remove possible double-quotes around object names
+        Remove possible double-quotes around and trailing opening parenthesis from object names
         @param string name name string to check
         @return string name fixed name
         """
         if len(name)<3: return name
-        if name[0]=='"' and name[len(name)-1]=='"': return name[1:len(name)-1]
+        if name[0]=='"' and name[len(name)-1]=='"': name = name[1:len(name)-1]
+        if name[len(name)-1]=='(': return name[0:len(name)-1]
         return name
 
     def appendGlobalTasks(otype,master,jd,uid=0,jdverify=None):
@@ -315,8 +330,9 @@ def ScanFilesForViewsAndPackages():
 
             form_info.codesize = len(formcode)
             file_info.formInfoList.append(form_info)
-            file_info.bytes = os.path.getsize(file_info.fileName)
-            file_info.lines = formcode.count('\n')
+            ###TODO: Forms stats
+            #file_info.bytes = os.path.getsize(file_info.fileName)
+            #file_info.lines = formcode.count('\n')
             if metaInfo.useCache and not cache.check(file_info.fileName,'formcode'):
                 cache.put(file_info.fileName, 'formcode', formcode)
             if metaInfo.useJavaDoc:
@@ -1060,54 +1076,57 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             # if this FileInfo instance has triggers
             for tab_info in inner_file_info.triggerInfoList:
                 # perform case insensitive find
-                res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+tab_info.name+'\\b')
                 for ires in res:
                     addWhereUsed(tab_info, outer_file_info, ires[0], 'trigger')
 
             # if this FileInfo instance has tables
             for tab_info in inner_file_info.tabInfoList:
                 # perform case insensitive find
-                res = getWordLineNo(new_text,'\\b'+tab_info.name+'\\b')
+                try:
+                    res = getWordLineNr(new_text,'\\b'+tab_info.name+'\\b')
+                except:
+                    logger.error('RegExp error searching for "'+tab_info.name+'"')
                 for ires in res:
                     addWhereUsed(tab_info, outer_file_info, ires[0], 'tab')
 
             # if this FileInfo instance has views
             for view_info in inner_file_info.viewInfoList:
                 # perform case insensitive find
-                res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+view_info.name+'\\b')
                 for ires in res:
                     addWhereUsed(view_info, outer_file_info, ires[0], 'view')
 
             # if this FileInfo instance has materialized views
             for view_info in inner_file_info.mviewInfoList:
                 # perform case insensitive find
-                res = getWordLineNo(new_text,'\\b'+view_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+view_info.name+'\\b')
                 for ires in res:
                     addWhereUsed(view_info, outer_file_info, ires[0], 'mview')
 
             # if this FileInfo instance has synonyms
             for syn_info in inner_file_info.synInfoList:
                 # perform case insensitive find
-                res = getWordLineNo(new_text,'\\b'+syn_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+syn_info.name+'\\b')
                 for ires in res:
                     addWhereUsed(syn_info, outer_file_info, ires[0], 'synonym')
 
             # if this FileInfo instance has sequences
             for seq_info in inner_file_info.seqInfoList:
                 # perform case insensitive find
-                res = getWordLineNo(new_text,'\\b'+seq_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+seq_info.name+'\\b')
                 for ires in res:
                     addWhereUsed(seq_info, outer_file_info, ires[0], 'sequence')
 
             # if this FileInfo instance has stand-alone functions
             for func_info in inner_file_info.functionInfoList:
-                res = getWordLineNo(new_text,'\\b'+func_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+func_info.name+'\\b')
                 for ires in res:
                     addWhereUsed(func_info, outer_file_info, ires[0], 'function')
 
             # if this FileInfo instance has stand-alone procedures
             for func_info in inner_file_info.procedureInfoList:
-                res = getWordLineNo(new_text,'\\b'+func_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+func_info.name+'\\b')
                 for ires in res:
                     addWhereUsed(func_info, outer_file_info, ires[0], 'procedure')
 
@@ -1115,20 +1134,20 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
             for package_info in inner_file_info.packageInfoList:
 
                 # perform case insensitive find, this is "package name"."function or procedure name"
-                res = getWordLineNo(new_text,'\\b'+package_info.name+'\\.\S')
+                res = getWordLineNr(new_text,'\\b'+package_info.name+'\\.\S')
                 if len(res):
                     for ires in res:
                         addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
 
                     #look for any of this packages' functions
                     for function_info in package_info.functionInfoList:
-                        res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+function_info.name+'\\b')
+                        res = getWordLineNr(new_text,'\\b'+package_info.name+'\.'+function_info.name+'\\b')
                         for ires in res:
                             addWhereUsed(function_info, outer_file_info, ires[0], 'func')
 
                     #look for any of this packages procedures
                     for procedure_info in package_info.procedureInfoList:
-                        res = getWordLineNo(new_text,'\\b'+package_info.name+'\.'+procedure_info.name+'\\b')
+                        res = getWordLineNr(new_text,'\\b'+package_info.name+'\.'+procedure_info.name+'\\b')
                         for ires in res:
                             addWhereUsed(procedure_info, outer_file_info, ires[0], 'proc')
 
@@ -1137,7 +1156,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
                     #look for any of this packages' functions
                     for function_info in package_info.functionInfoList:
-                        res = getWordLineNo(new_text,'(^|\\s|[(;,])'+function_info.name+'([ (;,)]|$)')
+                        res = getWordLineNr(new_text,'(^|\\s|[(;,])'+function_info.name+'([ (;,)]|$)')
                         for ires in res:
                             if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
                                 addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
@@ -1145,7 +1164,7 @@ def ScanFilesForWhereViewsAndPackagesAreUsed():
 
                     #look for any of this packages procedures
                     for procedure_info in package_info.procedureInfoList:
-                        res = getWordLineNo(new_text,'(^|\\s|[(;,])'+procedure_info.name+'([ (;,)]|$)')
+                        res = getWordLineNr(new_text,'(^|\\s|[(;,])'+procedure_info.name+'([ (;,)]|$)')
                         for ires in res:
                             if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
                                 addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
@@ -1452,12 +1471,14 @@ def MakeStatsPage():
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('File Statistics')+'</TH></TR>\n')
     outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')
-    totalFiles = metaInfo.getFileStat('files')
+    xmlFiles = metaInfo.getFileStat('xmlfiles')
+    totalFiles = metaInfo.getFileStat('files') - xmlFiles
     # Lines
     colors = [col[0] for col in [c['file400l'],c['file1000l'],c['filebig']]]
     tcols  = [col[1] for col in [c['file400l'],c['file1000l'],c['filebig']]]
     stat = metaInfo.getFileLineStat([400,1000])
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
+    stat[400] -= xmlFiles # they are always accounted with 0 lines here
     limits.sort()
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     pie = PieChart('FL',pieposx,pieposy,pie_offset,pie_rad,colors)
@@ -1498,6 +1519,7 @@ def MakeStatsPage():
     tcols  = [col[1] for col in [c['file10k'],c['file25k'],c['file50k'],c['file100k'],c['filebig']]]
     stat = metaInfo.getFileSizeStat([10240,25*1024,50*1024,102400])
     limits = stat.keys() # for some strange reason, sorting gets lost in the dict
+    stat[10240] -= xmlFiles # they are in here with 0 byte size
     limits.sort()
     outfile.write('  <TR><TH CLASS="sub">'+_('Total Bytes')+'</TH><TD ALIGN="right">' + size_format(metaInfo.getFileStat('sum bytes')) \
         + '</TD><TD ALIGN="right">' + num_format(100,2) + '%</TD><TD COLSPAN="9" CLASS="pie_chart"><DIV CLASS="pie_chart">\n')

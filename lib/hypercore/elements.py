@@ -183,12 +183,12 @@ class MetaInfo:
         """
         Return some file statistics
         @param self
-        @param string type ('files','avg lines','min lines','max lines',
+        @param string type ('files','xmlfiles','avg lines','min lines','max lines',
                'sum bytes','avg bytes','min bytes','max bytes')
         @return number stat_value value for the requested stat. Depending on its
                 type, this may be either an integer or a float
         """
-        if what not in ['files','avg lines','min lines','max lines','sum bytes','avg bytes','min bytes','max bytes']:
+        if what not in ['files','xmlfiles','avg lines','min lines','max lines','sum bytes','avg bytes','min bytes','max bytes']:
             return 0
         fileCount = len(self.fileInfoList)
         if what in ['sum bytes','avg bytes','min bytes','max bytes']:
@@ -219,6 +219,11 @@ class MetaInfo:
                     maxLines = file.lines
         if what == 'files':
             return fileCount
+        elif what == 'xmlfiles':
+            sumfiles = 0
+            for file in self.fileInfoList:
+                if file.fileType == 'xml': sumfiles += 1
+            return sumfiles
         elif what == 'avg lines':
             return self.getLoc('totals') / fileCount
         elif what == 'min lines':
