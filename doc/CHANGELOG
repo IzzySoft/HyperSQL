@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.7.0
+v3.7.0 (08.08.2010)
 -------------------
 + Todos/Bugs are now also collected from forms
 + new keyword verification.stats_javadoc_forms (0/1) lets you include forms
