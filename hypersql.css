@@ -118,6 +118,8 @@ table#projectinfo {
 
 .tr0 { background-color: transparent; }
 .tr1 { background-color: #eeeeff; }
+.stat tr td:first-child { padding-right:1em; }
+.stat tr td:last-child  { padding-left:1em; }
 
 /*
  * Header

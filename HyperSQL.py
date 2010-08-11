@@ -331,7 +331,8 @@ def ScanFilesForViewsAndPackages():
             form_info.codesize = len(formcode)
             file_info.formInfoList.append(form_info)
             ###TODO: Forms stats
-            #file_info.bytes = os.path.getsize(file_info.fileName)
+            file_info.xmlbytes = os.path.getsize(file_info.fileName)
+            file_info.xmlcodebytes = len(formcode)
             #file_info.lines = formcode.count('\n')
             if metaInfo.useCache and not cache.check(file_info.fileName,'formcode'):
                 cache.put(file_info.fileName, 'formcode', formcode)
@@ -2412,15 +2413,17 @@ def CreateHyperlinkedSourceFilePages():
                 else:
                     if len(jdoc.desc)<1 or (len(jdoc.desc)==1 and jdoc.desc[0]==''): jdoc.desc.append(fi.title)
                     outfile.write( jdoc.getHtml(fi.uniqueNumber) )
-                outfile.write('  <DL><DT>'+_('Statistics')+':</DT><DD><TABLE><TR CLASS="tr0"><TD>' \
-                    + _('Packages') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.packageInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
-                    + _('Functions') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.functionInfoList)` + '</TD></TR><TR CLASS="tr0"><TD>' \
-                    + _('Procedures') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.procedureInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
-                    + _('Triggers') + '</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">' + `len(fi.triggerInfoList)` + '</TD></TR>')
+                outfile.write('  <DL><DT>'+_('Statistics')+':</DT><DD><TABLE CLASS="stat"><TR CLASS="tr0"><TD>' \
+                    + _('XML Size') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlbytes) + '</TD></TR><TR CLASS="tr1"><TD>' \
+                    + _('SQL Code') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlcodebytes) + '<BR>(' + num_format(100*file_info.xmlcodebytes/file_info.xmlbytes,1) + '%)</TD></TR><TR CLASS="tr0"><TD>' \
+                    + _('Packages') + '</TD><TD ALIGN="right">' + `len(fi.packageInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
+                    + _('Functions') + '</TD><TD ALIGN="right">' + `len(fi.functionInfoList)` + '</TD></TR><TR CLASS="tr0"><TD>' \
+                    + _('Procedures') + '</TD><TD ALIGN="right">' + `len(fi.procedureInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
+                    + _('Triggers') + '</TD><TD ALIGN="right">' + `len(fi.triggerInfoList)` + '</TD></TR>')
                 i = 0
                 for s in fi.stats.keys():
                     if fi.stats[s]>0:
-                        outfile.write('<TR CLASS="tr'+`i%2`+'"><TD>'+s+'</TD><TD CLASS="delim">&nbsp;</TD><TD ALIGN="right">'+`fi.stats[s]`+'</TD></TR>')
+                        outfile.write('<TR CLASS="tr'+`i%2`+'"><TD>'+s+'</TD><TD ALIGN="right">'+`fi.stats[s]`+'</TD></TR>')
                         i += 1
                 outfile.write('</TABLE></DD></TD></TR>\n')
                 # Check form for packages

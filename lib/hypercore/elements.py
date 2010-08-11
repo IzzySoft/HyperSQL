@@ -104,6 +104,8 @@ class FileInfo(object):
         self.uniqueNumber = 0 # used to create unique file name for where used list
         self.lines = 0
         self.bytes = 0
+        self.xmlbytes = 0
+        self.xmlcodebytes = 0
 
     def sortLists(self):
         """ Sort all lists alphabetically by object name """

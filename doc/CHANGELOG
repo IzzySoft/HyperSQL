@@ -1,5 +1,9 @@
 # History of Changes for HyperSQL
 
+v3.7.5
+-------------------
++ adding size details to forms pages
+
 v3.7.0 (08.08.2010)
 -------------------
 + Todos/Bugs are now also collected from forms
