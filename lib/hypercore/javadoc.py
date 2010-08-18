@@ -30,11 +30,11 @@ JavaDocVars = dict(
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
               'see', 'webpage', 'license', 'ticket', 'wiki', 'since',
-              'uses', 'ignore', 'throws', 'col', 'used'], # other supported tags
+              'uses', 'ignore', 'throws', 'col', 'used', 'testcase'], # other supported tags
     txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
                'copyright', 'deprecated', 'see', 'webpage', 'license',
                'ticket', 'wiki', 'desc', 'since', 'uses', 'throws',
-               'used'] # values of these tags are plain text
+               'used', 'testcase'] # values of these tags are plain text
 )
 
 def setJDocEncoding(encoding):
@@ -115,6 +115,7 @@ class JavaDoc(object):
         self.uses = []
         self.used = []
         self.throws = []
+        self.testcase = []
 
     def __repr__(self):
         """ Basic information for simple debug """

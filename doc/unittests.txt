@@ -1,0 +1,143 @@
+Unit Tests
+==========
+
+HyperSQL allows you to define Unit-Tests with your JavaDoc-style documentation.
+The ideas behind this are:
+
+ * defining them here makes it more likely they are kept up-to-date
+ * providing an easy syntax makes it more likely developers will add/maintain them
+ * exporting them to XML gives you the possibility to automatically create/run
+   those tests using a programming language of your choice
+
+Currently, I'm not aware of any openly available program processing those XML files,
+but with some luck they may be provided in the future. I hereby strongly encourage
+the developers amongst you to create them, and feed them back to this project, so
+they may be included with future versions of HyperSQL or at least mentioned in its
+documentation together with a link to your project, if you prefer that. The
+following definitions should give you all required information - plus if you have
+any questions left, I'll do my best to answer them.
+
+
+Defining testcases with your JavaDoc style documentation
+--------------------------------------------------------
+
+This can be done using the @testcase tag. It's content can be multi-line, but all
+line-breaks are optional. First a basic example given the "FUNCTION foo (bar IN NUMBER)":
+
+@function foo
+@param in number bar The foo bar description
+@return varchar2
+@testcase
+    name    { foo_bar_five };
+    comment { Converting 5 to a word should give us "five" };
+    message { foo(5) did not return "five"! };
+    param   { bar 5 };
+    return  { = five };
+
+This should look quite intuitive, so now we can go for the formal description.
+First, what is written there in a line we now call an "element", which has the
+form "<name> { <value> };". <name> is always a WORD, <value> can be anything
+depending on the <name>. Second: all elements are generally optional - which are
+required depends on the "object" the @testcase is attached to (a procedure e.g.
+has no return value) - but a testcase with no value to check makes no sense at
+all, and will be silently ignored. Third, @testcase will only be evaluated for
+functions and procedures (stand-alone or in packages).
+
+So here comes the more formal syntax:
+
+element := [ element ] name | comment | message | param | check | return
+
+name    := "name" { word };
+comment := "comment" { text };
+message := "message" { text };
+param   := "param" { param_name value };
+check   := "check" | "check_param" | "checkparam" { param_name operator value };
+return  := "return" | "check_return" | "checkreturn" { operator value };
+
+word    := [A-z_]+
+text    := .+
+param_name := word
+value   := text
+operator:= "<" | ">" | "=" | "!="
+
+Note that the definition for "word" and "text" is given as regular expression:
+The "+" at the end means it needs at least one character of the definition before,
+[A-z_] means you can use only upper-case letters and the underscore. The "."
+stands for any character - so even line breaks are permitted here. Terms in
+double quotes are meant literally. Just compare it with the example above ;)
+
+
+The generated XML file
+----------------------
+
+Output will be generated on a per-input-file basis (one output file per input file,
+but only if the input file contains any testcases). So the name of the generated
+XML file corresponds to the name of the input file (including some encoded
+directory information, if the input file was located in a subdirectory).
+
+Content starts with the XML declaration, followed by one <UNITTEST> element
+serving as our "root". This "root" contains one or more TESTSUITEs, representing
+either a database package or a collection of all stand-alone functions and
+procedures of the input file. Each TESTSUITE holds one or more OBJECTs, where
+each OBJECT represents a single procedure or function and contains its
+SIGNATURE and TESTCASEs.
+
+Again, all this is best explained given a basic example, using our above foo() function:
+
+<?xml version="1.0" encoding="utf-8"?>
+<UNITTEST>
+    <TESTSUITE TYPE="package" NAME="my_package">
+        <OBJECT TYPE="function" NAME="foo">
+            <SIGNATURE>
+                <NAME>foo</NAME>
+                <PARAM TYPE="in" DATATYPE="number" NAME="bar" OPTIONAL="FALSE" />
+            </SIGNATURE>
+            <TESTCASE NAME="foo_bar_five">
+                <COMMENT><![CDATA[Converting 5 to a word should give us "five"]]></COMMENT>
+                <MESSAGE><![CDATA[foo(5) did not return "five"!]]></MESSAGE>
+                <PARAM NAME="bar"><![CDATA[5]]></PARAM>
+                <RET OP="="><![CDATA[five]]></RET>
+            </TESTCASE>
+        </OBJECT>
+    </TESTSUITE>
+</UNITTEST>
+
+The TESTCASE for a procedure would not have the RET child, but instead probably
+some OUT Variable to check:
+
+                <CHECK NAME="my_out" OP="!="><![CDATA[bullshit]]></CHECK>
+
+So there you've got all what's currently implemented. Admitted, this will not
+allow for complex cases - but those may be supported by a later version (see below).
+
+
+Future Plans
+------------
+
+Don't take them as already scheduled - but there are some ideas of what might
+possibly added in the future. You may thing e.g. of procedures without any OUT
+parameter, which just alter some data. Or functions/procedures which need some
+preparation and/or post-checking/cleanup to be done. For those, the TESTCASE
+could get two more children:
+
+                <BEFORE><![CDATA[INSERT INTO ...]]></BEFORE>
+                <AFTER><![CDATA[DELETE FROM ...]]></AFTER>
+
+The AFTER stuff may even need some more attention: You might want to check here
+whether a certain table contains certain data the function/procedure inserted or
+updated. And other things might be there as well (feel free to visit the projects
+website to add ideas with the ticket system).
+
+                <PLSQL><![CDATA[DECLARE..BEGIN..END;]]></PLSQL>
+                <SQL><!CDATA[SELECT ...]]</SQL>
+
+Where the anonymous PLSQL could just be executed, not returning anything, it
+could check the data altered/inserted by the tested function/procedure to see
+whether it meets the expectations, and write the result into some (temporary)
+table. The SQL then should return a value to be interpreted as either TRUE or
+FALSE - which simply means whether our test succeeded or not. All those
+"temporary" data could then be cleaned up using the AFTER declaration.
+
+As said above, this is just some brainstorming - non of this is scheduled or
+even implemented yet. But we have the possibilities to extend the features
+already offered...

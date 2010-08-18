@@ -703,6 +703,68 @@ def ScanFilesForViewsAndPackages():
     pbarClose()
 
 
+def CreateUnitTests():
+    """
+    Check the code for embedded testcases and generate the XML files for
+    Unit Test generators input
+    """
+
+    if not metaInfo.unittests: return
+    printProgress(_('Extracting Unit-Tests'))
+
+    from hypercore import unittest
+
+    def processObject(otype,oInfo):
+        """
+        Process one object (i.e. function/procedure) and create the OBJECT XML element
+        @param string otype object type. This must be either 'function' or 'procedure'
+        @param object oInfo the function/procedure object from the list
+        @return string xml SIGNATURE and TESTCASE blocks glued together (or empty string if no testcases)
+        """
+        otype = otype.lower()
+        if otype not in ['function','procedure']:
+            ###TODO: logging
+            return ''
+        xml = ''
+        for tc in oInfo.javadoc.testcase:
+            xml += unittest.testcase(tc)
+        if xml != '':
+            params = []
+            for param in oInfo.javadoc.params: params.append({'name':param.name,'type':param.inout,'datatype':param.sqltype}) ###TODO: Optional params
+            sig = unittest.signature(oInfo.javadoc.name,params)
+            xml = unittest.xobject(otype,oInfo.name,sig,xml)
+        return xml
+
+    # Walk the input files. We generate one XML per input file if the latter contains testcases
+    for file_info in metaInfo.fileInfoList:
+
+        so_test   = ''
+        testsuite = ''
+        fname     = os.path.split(file_info.fileName)[1].replace(".", "_")
+
+        for fi in file_info.functionInfoList:   # check stand-alone functions
+            so_test += processObject('function',fi)
+        for fi in file_info.procedureInfoList:  # check stand-alone procedures
+            so_test += processObject('procedure',fi)
+        if so_test != '': # we have testcases for stand-alone stuff - they need their separate testsuite
+            testsuite = unittest.testsuite('standalone',fname,so_test)
+        for pi in file_info.packageInfoList:    # check packages
+            pkgtest = ''
+            for fi in pi.functionInfoList:      # check package functions
+                pkgtest += processObject('function',fi)
+            for fi in pi.procedureInfoList:     # check package procedures
+                pkgtest += processObject('procedure',fi)
+            if pkgtest != '': # we need a dedicated testsuit per package
+                testsuite += unittest.testsuite('package',(pi.javadoc.name or pi.name),pkgtest)
+
+        if testsuite != '':                     # only create XML if we have testcases
+            xmlfile = os.path.join( metaInfo.unittest_dir, fname ) + '.xml'
+            outfile = fopen(xmlfile, 'w', metaInfo.encoding)
+            outfile.write('<?xml version="1.0" encoding="'+metaInfo.encoding+'"?>\n')
+            outfile.write( unittest.unittest(testsuite) )
+            outfile.close()
+
+
 def ScanFilesForWhereViewsAndPackagesAreUsed():
     """
     Scans files collected in metaInfo.fileInfoList and checks them line by line
@@ -1254,16 +1316,23 @@ def MakeHTMLFooter(title_name):
 
 
 def CreateHTMLDirectory():
-    """Creates the html (output) directory if needed"""
-    printProgress(_("Creating html subdirectory"))
-    splitted = metaInfo.htmlDir.split(os.sep)
-    temp = ""
-    for path_element in splitted: # loop through path components, making directories as needed
-        temp += path_element + os.sep
-        if os.access(temp, os.F_OK) == 1:
-            continue
-        else:
-            os.mkdir(temp)
+    """Creates the output directories if needed"""
+    printProgress(_("Creating output subdirectories"))
+    def makeRDir(dname):
+        """
+        Create recursive directory structur, if it not exists already
+        """
+        splitted = dname.split(os.sep)
+        temp = ""
+        for path_element in splitted: # loop through path components, making directories as needed
+            temp += path_element + os.sep
+            if os.access(temp, os.F_OK) == 1:
+                continue
+            else:
+                os.mkdir(temp)
+
+    makeRDir(metaInfo.htmlDir)                              # make sure the HTML output dir exists
+    if metaInfo.unittests: makeRDir(metaInfo.unittest_dir)  # same for UnitTest XML output
 
 
 def getDualCodeLink(otuple):
@@ -2415,7 +2484,7 @@ def CreateHyperlinkedSourceFilePages():
                     outfile.write( jdoc.getHtml(fi.uniqueNumber) )
                 outfile.write('  <DL><DT>'+_('Statistics')+':</DT><DD><TABLE CLASS="stat"><TR CLASS="tr0"><TD>' \
                     + _('XML Size') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlbytes) + '</TD></TR><TR CLASS="tr1"><TD>' \
-                    + _('SQL Code') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlcodebytes) + '<BR>(' + num_format(100*file_info.xmlcodebytes/file_info.xmlbytes,1) + '%)</TD></TR><TR CLASS="tr0"><TD>' \
+                    + _('PL/SQL Code') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlcodebytes) + '<BR>(' + num_format(100*file_info.xmlcodebytes/file_info.xmlbytes,1) + '%)</TD></TR><TR CLASS="tr0"><TD>' \
                     + _('Packages') + '</TD><TD ALIGN="right">' + `len(fi.packageInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
                     + _('Functions') + '</TD><TD ALIGN="right">' + `len(fi.functionInfoList)` + '</TD></TR><TR CLASS="tr0"><TD>' \
                     + _('Procedures') + '</TD><TD ALIGN="right">' + `len(fi.procedureInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
@@ -3014,6 +3083,7 @@ def configRead():
     metaInfo.htmlDir            = metaInfo.cmdOpts.htmlDir or config.get('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
     metaInfo.css_file           = config.get('FileNames','css_file','hypersql.css')
     metaInfo.css_url            = config.get('FileNames','css_url','')
+    metaInfo.unittest_dir       = config.get('FileNames','unittest_dir',os.path.split(sys.argv[0])[0] + os.sep + "unittests" + os.sep)
     metaInfo.indexPage          = {}
     metaInfo.indexPageCount     = 1 # We at least have the main index page
     metaInfo.indexPageName      = {}
@@ -3051,6 +3121,8 @@ def configRead():
     if metaInfo.cmdOpts.javadoc is None:
         metaInfo.useJavaDoc = config.getBool('Process','javadoc',True)
     else: metaInfo.useJavaDoc = metaInfo.cmdOpts.javadoc
+    if metaInfo.useJavaDoc: metaInfo.unittests = config.getBool('Process','unittests',False)
+    else: metaInfo.unittests = False
     if metaInfo.cmdOpts.linkCalls is None:
         metaInfo.linkCodeCalls = config.getBool('Process','link_code_calls',True)
     else: metaInfo.linkCodeCalls = metaInfo.cmdOpts.linkCalls
@@ -3244,7 +3316,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.7.0"
+    metaInfo.versionString = "3.7.3"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
@@ -3347,6 +3419,7 @@ if __name__ == "__main__":
 
     # Details
     CreateHyperlinkedSourceFilePages()
+    CreateUnitTests()
 
     printProgress(_("done"))
     logger.info('Processed %s total lines: %s empty, %s plain comments, %s plain code, %s mixed', \

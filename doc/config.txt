@@ -46,6 +46,7 @@ All about file names - e.g. concerning the target HTML files:
    multiple extensions using spaces.
  * top_level_directory: the top level directory of the source code to parse.
    HyperSQL will investigate all directories below this recursively.
+ * unittest_dir: XML exports of unit tests are stored here
 
 Plus all the pages (see below) with their file names.
 
@@ -109,6 +110,7 @@ Here come processing options:
    their targets (1, default) in the highlighted code or not (0)
  * purge_on_start: whether to purge the target HTML directory from files of
    previous runs (if any) before generating new ones 
+ * unittests: whether to export detected unit-tests to XML (0/1)
  * whereused_scan_instring: whether to scan strings (i.e. things enclosed within
    single quotes) for where_used. This only makes sense if you have such calls
    created dynamically for EXECUTE IMMEDIATE or REF_CURSOR, and is subject to
