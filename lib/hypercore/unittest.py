@@ -45,11 +45,18 @@ from cgi import escape # for htmlspecialchars
 from iz_tools.typecheck import is_numeric
 import re
 
-def testcase(block):
+def testcase_split(block):
     """
+    Takes a @testcase block and splits up its data, returning them as structured dictionary
     @param  string block
-    @return string xml
-    Takes a @testcase block and converts it to XML
+    @return dict   testcase[
+              str name,
+              str comment,
+              str message,
+              list params[ dict(str var,str val) ],
+              list check [ dict(str var,str op,str val) ],
+              dict ret [str op,str val] | None
+            ]
     """
     # Regular expressions used to extract the information
     regElem  = re.compile('(\w+)\s*\{(.+?)\};',re.M|re.S)           # BlockElems: 'name { def };'
@@ -59,37 +66,58 @@ def testcase(block):
 
     # Presets
     xml = ''
-    uname   = ''
     params  = []
     check   = []
     ret     = []
-    message = ''
-    comment = ''
+    tc            = {}
+    tc['name']    = ''
+    tc['params']  = []
+    tc['check']   = []
+    tc['ret']     = None
+    tc['message'] = ''
+    tc['comment'] = ''
 
     # First get the elements
     elems  = regElem.findall(block) # collect all elements in (name, value) tuples
     for i in range(len(elems)):     # interprete the elements collected
         #print elems[i]
         ename = elems[i][0].lower()
-        if   ename == 'name' : uname = elems[i][1].strip()
+        if   ename == 'name' : tc['name'] = elems[i][1].strip()
         elif ename == 'param': params.append(regParam.findall(elems[i][1]))
         elif ename in ['check','check-param','check_param','checkparam']    : check.append(regCheck.findall(elems[i][1]))
         elif ename in ['return','check-return','check_return','checkreturn']: ret = retCheck.findall(elems[i][1])
-        elif ename == 'message': message = elems[i][1].strip()
-        elif ename == 'comment': comment = elems[i][1].strip()
-    # Now generate the TESTCASE XML segment
-    if len(ret)>0 or len(check)>0: # if there's nothing to test we need no testunit
-        xml  = '      <TESTCASE NAME="'+uname+'">\n';
-        if comment != '': xml += '        <COMMENT><![CDATA['+comment+']]></COMMENT>\n'
-        if message != '': xml += '        <MESSAGE><![CDATA['+message+']]></MESSAGE>\n'
-        for i in range(len(params)):
-            if len(params[i])==1 and len(params[i][0])==2:
-                xml += '        <PARAM NAME="'+params[i][0][0].strip()+'"><![CDATA['+params[i][0][1].strip()+']]></PARAM>\n';
-        for i in range(len(check)) :
-            if len(check[i])==1 and len(check[i][0])==3:
-                xml += '        <CHECK NAME="'+check[i][0][0].strip()+'" OP="'+check[i][0][1]+'"><![CDATA['+check[i][0][2].strip()+']]></CHECK>\n';
-        if ret is not None and len(ret)==1 and len(ret[0])==2:
-            xml += '        <RET OP="'+ret[0][0].strip()+'"><![CDATA['+ret[0][1].strip()+']]></RET>\n';
+        elif ename == 'message': tc['message'] = elems[i][1].strip()
+        elif ename == 'comment': tc['comment'] = elems[i][1].strip()
+    for par in params:
+        if len(par)!=1 or len(par[0])!=2: continue # must be [('var','val')]
+        tc['params'].append( dict(var=par[0][0].strip(),val=par[0][1].strip()) )
+    for chk in check:
+        if len(chk)!=1 or len(chk[0])!=3: continue # must be [('var','op','val')]
+        tc['check'].append( dict(var=chk[0][0].strip(),op=chk[0][1].strip(),val=chk[0][2].strip()) )
+    if len(ret)>0:               # just if we have (at least) one, take the first
+        if len(ret[0])==2:       # must be 'op val'
+            tc['ret'] = dict(op=ret[0][0].strip(),val=ret[0][1].strip())
+    return tc
+
+
+def testcase(block):
+    """
+    @param  string block
+    @return string xml
+    Takes a @testcase block and converts it to XML
+    """
+    tc = testcase_split(block)                      # split up the testcase block
+
+    if tc['ret'] is not None or len(tc['check'])>0: # if there's nothing to test we need no testunit
+        xml  = '      <TESTCASE NAME="'+tc['name']+'">\n';
+        if tc['comment'] != '': xml += '        <COMMENT><![CDATA['+tc['comment']+']]></COMMENT>\n'
+        if tc['message'] != '': xml += '        <MESSAGE><![CDATA['+tc['message']+']]></MESSAGE>\n'
+        for par in tc['params']:
+            xml += '        <PARAM NAME="'+par['var']+'"><![CDATA['+par['val']+']]></PARAM>\n';
+        for par in tc['check']:
+            xml += '        <CHECK NAME="'+par['var']+'" OP="'+par['op']+'"><![CDATA['+par['val']+']]></CHECK>\n';
+        if tc['ret'] is not None:
+            xml += '        <RET OP="'+tc['ret']['op']+'"><![CDATA['+tc['ret']['val']+']]></RET>\n';
         xml += '      </TESTCASE>\n'
     return xml
 
@@ -148,3 +176,4 @@ def unittest(uxml):
            If there are multiple testsuites concerned, glue them together beforehand.
     """
     return '<UNITTEST>\n'+uxml+'</UNITTEST>\n'
+

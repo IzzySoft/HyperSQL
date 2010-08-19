@@ -6,6 +6,7 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 
 from .gettext_init import langpath, langs
 from sys import maxint, argv as pargs
+from .unittest import testcase_split
 import logging, re, gettext, locale, os
 logger = logging.getLogger('main.jdoc')
 
@@ -310,6 +311,35 @@ class JavaDoc(object):
           html += '<DT>'+_('Example Usage')+':</DT>'
           for i in range(len(self.example)):
             html += '<DD>' + self.example[i] + '</DD>'
+
+        if len(self.testcase) > 0:
+            html += '<DT>'+_('Unit-Tests')+':</DT><DD><TABLE>'
+            for tcs in self.testcase:
+                tc = testcase_split(tcs)
+                html += '<TR><TH CLASS="delim" COLSPAN="2">&nbsp;</TH></TR>'
+                html += '<TR><TH COLSPAN="2" CLASS="sub">'+(tc['name'] or _('NoName'))+'</TH></TR>'
+                i = 0
+                if tc['comment'] != '':
+                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Comment')+':&nbsp;</TD><TD>'+tc['comment']+'</TD></TR>'
+                    i = (i+1) % 2
+                if tc['message'] != '':
+                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Error Message')+':&nbsp;</TD><TD>'+tc['message']+'</TD></TR>'
+                    i = (i+1) % 2
+                if len(tc['params'])>0:
+                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Parameters')+':&nbsp;</TD><TD><TABLE>'
+                    html += '<TR><TD><B>'+_('Name')+'</B></TD><TD><B>'+_('Value')+'</B></TD></TR>'
+                    for par in tc['params']: html += '<TR><TD>'+par['var']+'</TD><TD>'+par['val']+'</TD></TR>'
+                    html += '</TABLE></TD></TR>'
+                    i = (i+1) % 2
+                if len(tc['check'])>0:
+                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Check OUT Parameters')+':&nbsp;</TD><TD><TABLE>'
+                    html += '<TR><TD><B>'+_('Name')+'</B></TD><TD><B>'+_('Operator')+'</B></TD><TD><B>'+_('Value')+'</B></TD></TR>'
+                    for par in tc['check']: html += '<TR><TD>'+par['var']+'</TD><TD ALIGN="center">'+par['op']+'</TD><TD>'+par['val']+'</TD></TR>'
+                    html += '</TABLE></TD></TR>'
+                    i = (i+1) % 2
+                if tc['ret'] is not None: html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Return values')+':&nbsp;</TD><TD>'+tc['ret']['op']+' '+tc['ret']['val']+'</TD></TR>'
+            html += '</TABLE></DD>\n'
+
         if len(self.author) > 0:
           html += '<DT>'+_('Author')+':</DT><DD>' + listItemHtml(self.author) + '</DD>'
         if len(self.copyright) > 0:
