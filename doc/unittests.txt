@@ -22,7 +22,8 @@ Defining testcases with your JavaDoc style documentation
 --------------------------------------------------------
 
 This can be done using the @testcase tag. It's content can be multi-line, but all
-line-breaks are optional. First a basic example given the "FUNCTION foo (bar IN NUMBER)":
+line-breaks are optional. First a basic example given the
+"FUNCTION foo (bar IN NUMBER) RETURNS VARCHAR2":
 
 @function foo
 @param in number bar The foo bar description
@@ -91,6 +92,7 @@ Again, all this is best explained given a basic example, using our above foo() f
             <SIGNATURE>
                 <NAME>foo</NAME>
                 <PARAM TYPE="in" DATATYPE="number" NAME="bar" OPTIONAL="FALSE" />
+                <RET>varchar2</RET>
             </SIGNATURE>
             <TESTCASE NAME="foo_bar_five">
                 <COMMENT><![CDATA[Converting 5 to a word should give us "five"]]></COMMENT>
@@ -109,6 +111,45 @@ some OUT Variable to check:
 
 So there you've got all what's currently implemented. Admitted, this will not
 allow for complex cases - but those may be supported by a later version (see below).
+
+
+Generating the real code
+------------------------
+
+WARNING: THE FOLLOWING IS NOT WELL TESTED, SO DON'T USE IT STRAIGHT ON YOUR
+PRODUCTION DATABASE WITHOUT HAVING EVERYTHING TESTED OUT YOURSELF!
+YOU HAVE BEEN WARNED!
+
+More or less as a "proof of concept", you will find a script named "ut_plsql.py"
+in the "doc/" directory of this distribution. It will accept the name of a single
+XML file as input, generate PL/SQL unit-test code, and write it to STDOUT. Thus
+given a directory containing (only) all your generated XML files and this script,
+plus the script made executable (Unix/Linux: "chmod u+x ut_plsql.py"), on a
+Unix/Linux machine you could simply run
+
+    for file in *.xml; do ./ut_plsql.py $file > ${file%*.xml}.sql; done
+
+and afterwards find a corresponding *.sql file for each of your XML files. One
+more line:
+
+    for file in *.sql; do sqlplus scott/tiger@orcl <$file; done
+
+And you have the unit-test packages installed into your database. OF COURSE YOU
+SHOULD CHECK THE SQL FILES FIRST!!! Never do such things blindly. Most important
+is to make sure there are no existing packages with the same name as one of those
+you are going to install...
+
+Each of those test-unit packages will have a procedure called "test_run_all()".
+Execute it to run all unit-tests of the given package.
+
+
+As said before, this is mostly a "proof of concept". It should however work for
+simple cases (feedback welcome); but you are strongly encouraged to write your
+own code generators (you may use this code to your convenience according to the
+terms of its license, the GPL). Use whatever language fits YOU best, and the
+generated code can reflect that as well. As author of HyperSQL, I appreciate
+your reporting back, and will happily mention (and link to or even include) your
+code generator with HyperSQL!
 
 
 Future Plans

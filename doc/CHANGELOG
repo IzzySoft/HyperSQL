@@ -5,6 +5,7 @@ v3.7.5
 + adding size details to forms pages
 + new javadoc tag @testcase to define unit-tests
 + added unit test XML export
++ added demo script to create PL/SQL unit tests from the XML exports
 
 v3.7.0 (08.08.2010)
 -------------------
