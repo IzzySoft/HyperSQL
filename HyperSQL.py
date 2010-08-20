@@ -731,7 +731,9 @@ def CreateUnitTests():
         if xml != '':
             params = []
             for param in oInfo.javadoc.params: params.append({'name':param.name,'type':param.inout,'datatype':param.sqltype}) ###TODO: Optional params
-            sig = unittest.signature(oInfo.javadoc.name,params)
+            if len(oInfo.javadoc.retVals)>0: retval = oInfo.javadoc.retVals[0].sqltype
+            else: retval = None
+            sig = unittest.signature(oInfo.javadoc.name,params,retval)
             xml = unittest.xobject(otype,oInfo.name,sig,xml)
         return xml
 
@@ -3121,7 +3123,7 @@ def configRead():
     if metaInfo.cmdOpts.javadoc is None:
         metaInfo.useJavaDoc = config.getBool('Process','javadoc',True)
     else: metaInfo.useJavaDoc = metaInfo.cmdOpts.javadoc
-    if metaInfo.useJavaDoc: metaInfo.unittests = config.getBool('Process','unittests',False)
+    if metaInfo.useJavaDoc: metaInfo.unittests = config.getBool('Process','export_unittests',False)
     else: metaInfo.unittests = False
     if metaInfo.cmdOpts.linkCalls is None:
         metaInfo.linkCodeCalls = config.getBool('Process','link_code_calls',True)
@@ -3316,7 +3318,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.7.3"
+    metaInfo.versionString = "3.7.5"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

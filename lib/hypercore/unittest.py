@@ -122,11 +122,12 @@ def testcase(block):
     return xml
 
 
-def signature(name,params):
+def signature(name,params,retval=None):
     """
     Create the XML SIGNATURE block for a function/procedure
     @param string name
     @param list   params list of dict[str name,str type,str datatype,bool optional]
+    @param optional string retval datatype returned by the function
     @return string xml
     """
     xml  = '      <SIGNATURE>\n'
@@ -136,6 +137,8 @@ def signature(name,params):
         if params[i].has_key('optional') and params[i]['optional'].lower() == 'true': xml += 'TRUE'
         else: xml += 'FALSE'
         xml += '" />\n'
+    if retval is not None:
+        xml += '        <RET>'+retval+'</RET>\n'
     xml += '      </SIGNATURE>\n'
     return xml
 

@@ -145,7 +145,7 @@ class HyperConf(IniParser):
             include_source = '1',
             include_source_limit = '0',
             javadoc = '1',
-            unittests = '0',
+            export_unittests = '0',
             whereused_scan_shortrefs = '0',
             whereused_scan_instring = '0',
             cache = '1',
