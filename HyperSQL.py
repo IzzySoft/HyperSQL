@@ -337,7 +337,7 @@ def ScanFilesForViewsAndPackages():
             if metaInfo.useCache and not cache.check(file_info.fileName,'formcode'):
                 cache.put(file_info.fileName, 'formcode', formcode)
             if metaInfo.useJavaDoc:
-                jdoc = ScanJavaDoc(formcode.split('\n'), file_info.fileName)
+                jdoc = ScanJavaDoc(formcode, file_info.fileName)
                 FormInfoAppendJavadoc(form_info,'form',jdoc)
                 for pkg in form_info.packageInfoList:
                     FormInfoAppendJavadoc(pkg,'pkg',jdoc)
@@ -465,7 +465,7 @@ def ScanFilesForViewsAndPackages():
                         else:
                           tab_info.name = token_list1[0]
                         tab_info.name = fixQuotedName(tab_info.name)
-                        ElemInfoAppendJdoc(tab_info,'trigger',lineNumber,jdoc)
+                        ElemInfoAppendJdoc(tab_info,'trigger',lineNumber+1,jdoc)
                         file_info.triggerInfoList.append(tab_info)
                         continue
 
@@ -482,7 +482,7 @@ def ScanFilesForViewsAndPackages():
                         else:
                           tab_info.name = token_list1[0]
                         tab_info.name = fixQuotedName(tab_info.name)
-                        ElemInfoAppendJdoc(tab_info,'table',lineNumber,jdoc)
+                        ElemInfoAppendJdoc(tab_info,'table',lineNumber+1,jdoc)
                         file_info.tabInfoList.append(tab_info)
                         continue
 
@@ -499,7 +499,7 @@ def ScanFilesForViewsAndPackages():
                         else:
                           view_info.name = token_list1[0]
                         view_info.name = fixQuotedName(view_info.name)
-                        ElemInfoAppendJdoc(view_info,'view',lineNumber,jdoc)
+                        ElemInfoAppendJdoc(view_info,'view',lineNumber+1,jdoc)
                         file_info.viewInfoList.append(view_info)
                         continue
 
@@ -517,7 +517,7 @@ def ScanFilesForViewsAndPackages():
                         else:
                           view_info.name = token_list1[0]
                         view_info.name = fixQuotedName(view_info.name)
-                        ElemInfoAppendJdoc(view_info,'mview',lineNumber,jdoc)
+                        ElemInfoAppendJdoc(view_info,'mview',lineNumber+1,jdoc)
                         file_info.mviewInfoList.append(view_info)
                         continue
 
@@ -535,7 +535,7 @@ def ScanFilesForViewsAndPackages():
                         else:
                             syn_info.name = token_list1[0]
                         syn_info.name = fixQuotedName(syn_info.name)
-                        ElemInfoAppendJdoc(syn_info,'synonym',lineNumber,jdoc)
+                        ElemInfoAppendJdoc(syn_info,'synonym',lineNumber+1,jdoc)
                         file_info.synInfoList.append(syn_info)
                         continue
 
@@ -552,7 +552,7 @@ def ScanFilesForViewsAndPackages():
                         else:
                             seq_info.name = token_list1[0]
                         seq_info.name = fixQuotedName(seq_info.name)
-                        ElemInfoAppendJdoc(seq_info,'sequence',lineNumber,jdoc)
+                        ElemInfoAppendJdoc(seq_info,'sequence',lineNumber+1,jdoc)
                         file_info.seqInfoList.append(seq_info)
                         continue
 
@@ -567,7 +567,7 @@ def ScanFilesForViewsAndPackages():
                       package_info.uniqueNumber = metaInfo.NextIndex()
                       package_info.parent = file_info
                       package_info.name = fixQuotedName(token_list[token_index+3])
-                      package_info.lineNumber = lineNumber
+                      package_info.lineNumber = lineNumber+1
                       for j in range(len(jdoc)):
                         ln = jdoc[j].lineNumber - lineNumber
                         if (CaseInsensitiveComparison(package_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
@@ -604,7 +604,7 @@ def ScanFilesForViewsAndPackages():
                   else:
                     function_info.parent = file_info
                   function_info.name = fixQuotedName(function_name)
-                  function_info.lineNumber = lineNumber
+                  function_info.lineNumber = lineNumber+1
                   for j in range(len(jdoc)):
                     ln = jdoc[j].lineNumber - lineNumber
                     if (CaseInsensitiveComparison(function_name,jdoc[j].name)==0 and jdoc[j].objectType=='function') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
@@ -659,7 +659,7 @@ def ScanFilesForViewsAndPackages():
                   else:
                     procedure_info.parent = file_info
                   procedure_info.name = fixQuotedName(procedure_name)
-                  procedure_info.lineNumber = lineNumber
+                  procedure_info.lineNumber = lineNumber+1
                   for j in range(len(jdoc)):
                     ln = jdoc[j].lineNumber - lineNumber
                     if (CaseInsensitiveComparison(procedure_name,jdoc[j].name)==0 and jdoc[j].objectType=='procedure') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
@@ -3318,7 +3318,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.7.5"
+    metaInfo.versionString = "3.7.6"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser

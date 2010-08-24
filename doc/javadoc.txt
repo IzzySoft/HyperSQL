@@ -11,7 +11,8 @@ Same applies to the other keywords: if your inline documentation contains tags
 unsupported by HyperSQL, they will be silently ignored - so you can keep them in
 the hope they will be added (and file a ticket to request this), all other stuff
 will still be processed. A side effect of this is, you won't be informed about
-possible typos - so maybe I will log those keywords somehow.
+possible typos - but you will find all those in your log file if your log level
+is set to at least INFO.
 
 
 Description
@@ -44,22 +45,21 @@ It is a good idea to start each new line with the star - this way, when browsing
 your code, it is easy to tell how far the comment goes. HyperSQL expects you
 doing so.
 
-All tag information has to be kept in one line - line breaks inside a tag are
-not permitted, and will lead to errors (subsequent lines will be ignored). I
-was too lazy to support multi-line tags, sorry.
+All information for a tag can be kept in one line - but (with versions post-3.7.5)
+they can also span multiple lines, which will make the JavaDoc block better
+human-readable in your source code.
 
-Moreover, all Javadoc information for a given object has to be kept in one block,
+Moreover, all Javadoc information for a given object MUST be kept in one block,
 i.e. enclosed between '/**' and '*/' - the parser will close at the '*/' mark.
 If you miss the object type, everything else is probably lost (since HyperSQL
-would not know where it belongs to). However, this may still work if your Javadoc
-block starts immediately in the first two lines following the object declaration
-itself, e.g.:
+would not know where it belongs to). However, if you set process.blind_offset in
+your configuration accordingly, this may still work if your Javadoc block starts
+immediately before/after the object declaration itself, e.g.:
 
   CREATE OR REPLACE PACKAGE something AS
     /** This is some package */
 
-This fallback may be made optional in the future, so you can switch it off if
-needed.
+By default, this feature is switched off (blind_offset = 0).
 
 
 Supported Tags
@@ -101,3 +101,9 @@ Other object information:
  * @used <object> [<object> ...]
  * @uses <object> [<object> ...]
  * @webpage <text>
+
+Further Information
+-------------------
+
+More detailed information can be found in the projects wiki, especially on the page
+http://projects.izzysoft.de/trac/hypersql/wiki/JavaDoc

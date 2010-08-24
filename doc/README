@@ -7,7 +7,8 @@ Preface
 HyperSQL is like a doxygen for SQL, hypermapping SQL views, packages, procedures,
 and functions to HTML source code listings and showing all code locations where
 these are used. The internal "where used" functionality also scans C++ and Java
-source files.
+source files. You can use JavaDoc-style "inline documentation", and even embed
+unit-tests with it. See the feature list for more details.
 
 History
 -------
@@ -21,6 +22,9 @@ Since I very much liked the idea of HyperSQL, but felt it needs some polish, I
 decided to do that myself - so on one day in February 2010, I sat down and wrote
 v1.1; I probably will do some more work on it, and make some more releases (sent
 to Randy for now to be published).
+
+Meanwhile Randy transfered the project to me (including the "maintainer-ship" at
+Sourceforge), and HyperSQLs features have been far extended...
 
 Features
 --------
@@ -39,6 +43,7 @@ Features
   with your code (see javadoc.txt), and also creates global bug/todo lists from
   your javadoc style documentation
 * generates dependency graphs
+* ...
 
 Usage
 -----
@@ -51,8 +56,9 @@ There's not much to say about:
   directory you are in) to parse the code from below the directory you
   specified in HyperSQL.ini, and generates HTML in the specified output directory
 * Run HyperSQL.py with the name of your project as only parameter, like
-  "HyperSQL.py myProject". This would use "myProject.ini" if found, otherwise
-  "myproject.ini" - and if that's also not found, fall back to HyperSQL.ini
+  "HyperSQL.py myProject". This would first parse HyperSQL.ini (as above), and
+  then look for "myProject.ini" (or "myproject.ini" if the former is not found),
+  updating all previous settings from here.
 * Run "HyperSQL.py --help" to find out about more command line options
 
 That's it - enjoy!

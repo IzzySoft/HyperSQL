@@ -7,6 +7,7 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 from .gettext_init import langpath, langs
 from sys import maxint, argv as pargs
 from .unittest import testcase_split
+from iz_tools.typecheck import is_list # for ScanJavaDoc
 import logging, re, gettext, locale, os
 logger = logging.getLogger('main.jdoc')
 
@@ -254,10 +255,7 @@ class JavaDoc(object):
           html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if len(self.desc) > 0:
-          html += '  <DIV CLASS="jd_desc">'
-          for i in range(len(self.desc)):
-            html += HyperScan(self.desc[i]) 
-          html += '</DIV>\n'
+          html += '  <DIV CLASS="jd_desc">' + ' '.join(self.desc) + '</DIV>\n'
         html += '  <DL>'
         if self.private:
           html += ' <DT>'+_('Private')+'</DT><DD>'+_('Just used internally.')+'</DD>'
@@ -759,118 +757,99 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     @param optional number lineNo which line to start with (Default: 0, the very beginning)
     @return list of JavaDoc instances
     """
-    elem = 'desc'
-    content = ''
-    res  = []
-    opened = False
-    otypes = JavaDocVars['otypes'] # supported object types
-    tags   = JavaDocVars['tags']   # other supported tags
-    txttags= JavaDocVars['txttags']# tags with just one parameter, type text
-    for lineNumber in range(lineNo,len(text)):
-      line = text[lineNumber].strip()
-      if not opened and line[0:3] != '/**':
-        continue
-      if line[0:1] == '*' and line[0:2] != '*/':
-        line = line[1:].strip()
-      if line == '*/': # end of JavaDoc block
-        if elem in txttags:
-            exec('item.'+elem+'.append(content)')
-        content = ''
-        res.append(item)
-        elem = 'desc'
-        opened = False
-        continue
-      if elem == 'desc':
-        if line[0:3] == '/**':
-          opened = True
-          item = JavaDoc()
-          item.lineNumber = lineNumber
-          item.file = fileName
-          content = line[3:].strip().replace('"','&quot;')
-          continue
-        if line[0:1] != '@':
-          if line[len(line)-2:] == '*/': # end of JavaDoc block
-            content += ' ' + line[0:len(line)-2].replace('"','&quot;')
-            item.desc.append(content)
-            content = ''
-            res.append(item)
-            opened = False
-            elem = 'desc'
-            continue
-          else:
-            if content == '':
-              content = line.replace('"','&quot;')
-            else:
-              content += ' ' + line
-            item.desc.append(content)
-            content = ''
-            continue
-        else:
-          item.desc.append(content)
-          content = ''
-          elem = ''
-      if elem != 'desc':
-        if line[0:1] != '@': # 2nd+ line of a tag
-          if elem in tags and elem not in ['param','return','private']: # maybe...
-            content += ' ' + line.replace('"','&quot;')
-          continue
-        # new tag starts here
-        if elem != '' and content != '' and elem in txttags: # there is something in the buffer
-            exec('item.'+elem+'.append(content)')
-            content = ''
-        doc = line.split()
-        tag = doc[0][1:]
-        elem = tag
-        if tag in otypes: # line describes supported object type + name
-          item.objectType = doc[0][1:]
-          if len(doc)<2:
-            logger.info(_('object type %(otype)s must have an object name specified, none was given in %(file)s line %(line)s'), {'otype':item.objectType, 'file':fileName, 'line':lineNumber})
-          else: item.name = doc[1]
-        elif tag in tags: # other supported tag
-          if tag == 'param':    # @param inout type [name [desc]]
-            if len(doc) < 2:
-              logger.info(_('@param requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
-            else:
-              p = JavaDocParam()
-              if doc[1] in ['in','out','inout']:
-                p.inout   = doc[1].upper()
-                p.sqltype = doc[2].upper()
-                if len(doc) > 3:
-                  p.name = doc[3]
-                  for w in range(4,len(doc)):
-                    p.desc += doc[w] + ' '
-                  p.desc = p.desc.strip()
-              else:
-                p.sqltype = doc[1]
-                if len(doc) > 2:
-                  p.name = doc[2]
-                  for w in range(3,len(doc)):
-                    p.desc += doc[w] + ' '
-                  p.desc = p.desc.strip()
-              item.params.append(p)
-          elif tag in ['return','col']: # @(return|col) type [name [desc]]
-            if len(doc) < 2:
-              logger.info(_('@%(tag)s requires at least one parameter, none given in %(file)s line %(line)s'), {'tag':tag,'file':fileName, 'line':lineNumber})
-            else:
-              p = JavaDocParam()
-              p.sqltype = doc[1].upper()
-              if len(doc)>2:
-                p.name = doc[2]
-                for w in range(3,len(doc)):
-                  p.desc += doc[w] + ' '
-              if (tag=='return'): item.retVals.append(p)
-              else: item.cols.append(p)
-          elif tag == 'private':
-            item.private = True
-          elif tag == 'ignore':
-            item.ignore = True
-          else: # tags with only one <text> parameter
-            if len(doc) < 2:
-              logger.info(_('@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
-            content = line[len(tag)+1:].strip()
-        else:             # unsupported tag, ignore
-          logger.info(_('unsupported JavaDoc tag "%(tag)s" in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
-          continue
+    if is_list(text): text = ''.join(text)
+    reTagEnd    = r'(\n\s*\**\s*@|\*\/)' # end of tag/desc definition
+    reLineStart = r'(\n\s*\**\s*)'       # start of a line, incl. optional '*'
+    pattLeading = re.compile(r'^\s*\**\s*')
+    pattTag     = re.compile(reLineStart+r'(@\w+)([ \t\f\v]*)([^\n]*.*?)\s*'+reTagEnd, re.M|re.S)
+    pattBreak   = re.compile(reLineStart) # line break inside a tag desc
 
-    return res
+    blocks = []
+    items  = []
+    for m in re.finditer(r'/\*\*(.*?)\*/', text, re.M|re.S): # Collect JavaDoc blocks w/ their position
+        start = m.start()
+        lineno = text.count('\n', 0, start) +1 # starts at line 0
+        offset = start - text.rfind('\n', 0, start)
+        block = m.group(0)
+        blocks.append((lineno, offset, block))
 
+    for tblock in blocks:                                    # Parse JavaDoc blocks
+        if tblock[0]+1<lineNo: continue
+        lineNumber = tblock[0]+1
+        block = tblock[2].strip()
+        item = JavaDoc()
+        item.file = fileName
+        item.lineNumber = lineNumber
+        item.file = fileName
+        tdesc = re.search(r'\*\*\s*(.*?)\s*'+reTagEnd,block,re.M|re.S).group(1).strip()
+        if tdesc != '':
+            desc = tdesc.split('\n')
+            for i in range(len(desc)): desc[i] = pattLeading.sub('',desc[i]).strip()
+            if desc[0][0]!='@': item.desc = desc
+        tags = pattTag.search(block)
+        lineNumber = tblock[0]+tdesc.count('\n')+1 # the line following the desc
+        taglines = 0
+        while tags != None:
+            tag  = tags.group(2)[1:].lower().strip()
+            cont = pattBreak.sub(' ',tags.group(4)).strip()
+            taglines = tags.group(0).strip().count('\n')
+            end = tags.start()+len(tags.group(1)+tags.group(2)+tags.group(3)+tags.group(4))
+            tags = pattTag.search(block,end)
+            if tag in JavaDocVars['otypes']:
+                if cont=='':
+                    logger.info(_('object type %(otype)s must have an object name specified, none was given in %(file)s line %(line)s'), {'otype':item.objectType, 'file':fileName, 'line':lineNumber})
+                else:
+                    item.objectType = tag
+                    item.name = cont
+            elif tag in JavaDocVars['tags']:
+                if tag == 'param':    # @param inout type [name [desc]]
+                    if cont=='':
+                      logger.info(_('@param requires at least one parameter, none given in %(file)s line %(line)s'), {'file':fileName, 'line':lineNumber})
+                    else:
+                      p = JavaDocParam()
+                      doc = cont.split()
+                      if doc[0] in ['in','out','inout']:
+                        p.inout   = doc[0].upper()
+                        p.sqltype = doc[1].upper()
+                        if len(doc) > 2:
+                            p.name = doc[2]
+                            for w in range(3,len(doc)):
+                              p.desc += doc[w] + ' '
+                            p.desc = p.desc.strip()
+                        else:
+                            p.sqltype = doc[0]
+                            if len(doc) > 1:
+                              p.name = doc[1]
+                              for w in range(2,len(doc)):
+                                p.desc += doc[w] + ' '
+                              p.desc = p.desc.strip()
+                      item.params.append(p)
+                elif tag in JavaDocVars['txttags']:
+                    if cont=='':
+                      logger.info(_('@%(tag)s requires <text> parameter, none given in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
+                    else:
+                      item.__getattribute__(tag).append(cont)
+                elif tag in ['return','col']: # @(return|col) type [name [desc]]
+                  if cont=='':
+                    logger.info(_('@%(tag)s requires at least one parameter, none given in %(file)s line %(line)s'), {'tag':tag,'file':fileName, 'line':lineNumber})
+                  else:
+                    p = JavaDocParam()
+                    doc = cont.split()
+                    p.sqltype = doc[0].upper()
+                    if len(doc)>1:
+                      p.name = doc[1]
+                      for w in range(2,len(doc)):
+                        p.desc += doc[w] + ' '
+                    if (tag=='return'): item.retVals.append(p)
+                    else: item.cols.append(p)
+                elif tag == 'private': item.private = True
+                elif tag == 'ignore' : item.ignore  = True
+                else: # kick the developers brain - one never should get here!
+                    logger.warn(_('JavaDoc tag "%s" failed - kick the developers brain!'), tag)
+            else:             # unsupported tag, ignore
+                logger.info(_('unsupported JavaDoc tag "%(tag)s" in %(file)s line %(line)s'), {'tag':tag, 'file':fileName, 'line':lineNumber})
+                lineNumber += taglines
+                continue
+            lineNumber += taglines
+        items.append(item)
+    return items

@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v3.8.0
+-------------------
+! fixed line numbers in code links (array counted line 1 as line 0)
+* rewrote JavaDoc parser using RegExps - now all tags should be able to span
+  multiple lines (as a side-effect, the "false error messages" about empty
+  values on multi-line tags with first line left empty are gone)
+
 v3.7.5 (22.08.2010)
 -------------------
 + adding size details to forms pages

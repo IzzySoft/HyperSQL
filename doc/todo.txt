@@ -9,5 +9,3 @@ TO-DO LIST
 * JavaDoc verification for stand-alone objects
 * @ignore only ignores javadoc verification. Do we need some @unlist tag to exclude objects
   completely from being listed?
-! ScanJavaDoc logs error on multi-line "@tag <text>" elements when first line is empty
-  (not waiting if there may be content in the second line)
