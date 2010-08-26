@@ -138,6 +138,13 @@ right-hand from the chosen one are automatically included as well.
  * verification: if javadoc verification is enabled, violations will be recorded
    for the corresponding report. Decide here whether they should also be recorded
    to the log file (1, as in HyperSQL before v2.9) or not (0, default since v2.9)
+ * maxkbytes: automatically rotate logfiles when they reach this size. Set to '0'
+   (default) to turn log switching off
+ * backupcount: on rotation, keep this many "old" files. Default is '3'
+ * capture_warnings: shall the logger capture warnings? With Python 2.7 or later,
+   we can do so and such have them obey our log level rules. Default is '0'
+   (disabled/do not capture). Set to '1' to activate (which will have no effect
+   if you run a Python version < 2.7)
 
 Verification
 ------------

@@ -6,6 +6,14 @@ v3.8.0
 * rewrote JavaDoc parser using RegExps - now all tags should be able to span
   multiple lines (as a side-effect, the "false error messages" about empty
   values on multi-line tags with first line left empty are gone)
++ added support for automated log rotation. By default this is disabled; to
+  activate it take a look at the new keywords "maxkbytes" and "backupcount"
+  in the "Logging" section
++ added feature to capture non-handled Python warnings and make them obey the
+  configured log level. This is disabled by default and only works with
+  Python 2.7 and above - see the new keyword "capture_warnings" in the "Logging"
+  section. Note: Since the highest Python version installed here is 2.6.5, I
+  was not able to test this - so reports are welcome ;)
 
 v3.7.5 (22.08.2010)
 -------------------

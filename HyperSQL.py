@@ -3239,8 +3239,19 @@ def confDeps():
 def confLogger():
     """ Setup logging """
     logging.addLevelName(99,'NONE')
+    if sys.hexversion > 0x02070000: # captureWarnings was introduced with 2.7
+        logging.captureWarnings(config.get('Logging','capture_warnings',False))
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler( metaInfo.cmdOpts.logfile or config.get('Logging','logfile'), 'a', metaInfo.encoding )
+    maxbytes = config.getInt('Logging','maxkbytes',0) * 1024 # rotate at x kB
+    if maxbytes==0:
+        fh = logging.FileHandler( metaInfo.cmdOpts.logfile or config.get('Logging','logfile'), 'a', metaInfo.encoding )
+    else:
+        from logging.handlers import RotatingFileHandler
+        fh = RotatingFileHandler(
+          metaInfo.cmdOpts.logfile or config.get('Logging','logfile'), 'a',
+          maxbytes, config.getInt('Logging','backupcount',3),
+          metaInfo.encoding
+        )
     ch = logging.StreamHandler()
     #fh.setFormatter( logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s") )
     fh.setFormatter( logging.Formatter("%(asctime)s %(module)s %(levelname)s %(message)s") )
@@ -3318,7 +3329,7 @@ def purge_cache():
 if __name__ == "__main__":
 
     metaInfo = MetaInfo() # This holds top-level meta information, i.e., lists of filenames, etc.
-    metaInfo.versionString = "3.7.6"
+    metaInfo.versionString = "3.8.0"
     metaInfo.scriptName = sys.argv[0]
 
     # Option parser
