@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.8.0
+v3.8.0 (29.08.2010)
 -------------------
 ! fixed line numbers in code links (array counted line 1 as line 0)
 * rewrote JavaDoc parser using RegExps - now all tags should be able to span
