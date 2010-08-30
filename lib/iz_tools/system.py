@@ -6,10 +6,11 @@ Some useful system functions which mostly mimic PHP (or Shell) equivalents
 """
 
 #====================================================[ Imports and Presets ]===
-import os       # for which()
+import os       # for which() and getCallingModule()
 import sys      # for which()
 from subprocess import Popen,PIPE   # for popen()
 from typecheck import *             # for file_put_contents (local module typecheck)
+from traceback import extract_stack # for getCaller()
 
 # prepare for fopen (encoding fallback)
 from locale import getdefaultlocale
@@ -169,3 +170,21 @@ def file_put_contents(filename,content,enc=None,append=False):
     outfile.close()
     return bytes
 
+#--------------------------------------------------[ Caller identification ]---
+def getCaller(level=3):
+    """
+    Find out who called the holding function
+    @param optional integer level 1 = self, 2 = caller of GetCaller, 3 = who called 2, etc.
+    @return tuple caller (filename, line number, function name, text)
+    """
+    stack = extract_stack()
+    return stack[len(stack)-level]
+
+def getCallingModule(level=4,basename=True):
+    """
+    Obtain the name of the calling module
+    @param optional integer level 1 = self, 2 = caller of GetCaller, 3 = caller of getCallingModule, 4 = who called 3 (default), etc.
+    @param optional boolean basename whether to cut-off the path (default: True)
+    @return string name of the module (i.e. filename w/o ext)
+    """
+    return os.path.splitext(os.path.basename(getCaller(level)[0]))[0]
