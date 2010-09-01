@@ -170,6 +170,21 @@ def file_put_contents(filename,content,enc=None,append=False):
     outfile.close()
     return bytes
 
+#---------------------------------------------------------------[ makeRDir ]---
+def makeRDir(dname):
+    """
+    Create recursive directory structur, if it not exists already
+    (similar to 'mkdir -p' on *nix)
+    """
+    splitted = dname.split(os.sep)
+    temp = ""
+    for path_element in splitted: # loop through path components, making directories as needed
+        temp += path_element + os.sep
+        if os.access(temp, os.F_OK) == 1:
+            continue
+        else:
+            os.mkdir(temp)
+
 #--------------------------------------------------[ Caller identification ]---
 def getCaller(level=3):
     """
