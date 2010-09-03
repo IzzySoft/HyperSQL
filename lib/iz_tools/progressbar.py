@@ -1,9 +1,9 @@
-# $Id$
 """
 Progress bar
 Original Source: http://code.activestate.com/recipes/168639-progress-bar-class/
 Modified by: Izzy
 """
+__revision__ = '$Id$'
 
 from sys import stdout
 from locale import getdefaultlocale
@@ -51,6 +51,7 @@ class progressBar:
         @param self
         @param int curVal
         """
+        drawMe = (newAmount != 0)
         if newAmount < self.min: newAmount = self.min
         if newAmount > self.max: newAmount = self.max
         self.amount = newAmount
@@ -79,7 +80,7 @@ class progressBar:
         self.pbar = self.pbar[0:percentPlace] + percentString + self.pbar[percentPlace+len(percentString):]
 
         # call draw() to update screen if necessary
-        self.draw()
+        if drawMe: self.draw()
 
     def __str__(self):
         """ Returns the current string of the bar (incl. prefix) """

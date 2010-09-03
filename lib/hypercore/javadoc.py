@@ -1,15 +1,16 @@
 """
-$Id$
 HyperSQL Javadoc support
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
+__revision__ = '$Id$'
 
 from .gettext_init import langpath, langs
 from sys import maxint, argv as pargs
 from .unittest import testcase_split
 from iz_tools.typecheck import is_list # for ScanJavaDoc
-import logging, re, gettext, locale, os
-logger = logging.getLogger('main.jdoc')
+import re, gettext, locale, os
+from hypercore.logger import logg
+logger = logg.getLogger('JavaDoc')
 
 # Setup gettext support
 gettext.bindtextdomain('hyperjdoc', langpath)

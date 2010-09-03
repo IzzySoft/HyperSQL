@@ -19,8 +19,8 @@ from iz_tools.system import *
 from hypercore.gettext_init import langpath, langs
 from os import sep as os_sep, path as os_path, access as os_access, unlink as os_unlink
 from tempfile import NamedTemporaryFile
-import logging
-logger = logging.getLogger('main.depgraph')
+from hypercore.logger import logg
+logger = logg.getLogger('DepGraph')
 
 # Setup gettext support
 import gettext

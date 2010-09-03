@@ -1,5 +1,9 @@
 # History of Changes for HyperSQL
 
+v3.8.5
+-------------------
+* code reorg for better maintenance and re-usability
+
 v3.8.0 (29.08.2010)
 -------------------
 ! fixed line numbers in code links (array counted line 1 as line 0)

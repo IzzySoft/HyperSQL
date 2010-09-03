@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# $Id$
 """
 Some useful system functions which mostly mimic PHP (or Shell) equivalents
 """
+__revision__ = '$Id$'
 
 #====================================================[ Imports and Presets ]===
 import os       # for which() and getCallingModule()

@@ -1,12 +1,24 @@
 """
-$Id$
 HyperSQL Core helper functions
 Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
+__revision__ = '$Id$'
 
 from locale import format as loc_format, setlocale, LC_NUMERIC
-import re # for eatStrings, countEmptyLines, cleanSQL
+from iz_tools.text import * # includes import re # for eatStrings, countEmptyLines, cleanSQL
+from iz_tools.system import getCallingModule # this module shall not be included in log entries ;)
+from hypercore.logger import logg
+logger = logg.getLogger()
+
+# Setup gettext support
+import gettext
+from .gettext_init import langpath, langs
+gettext.bindtextdomain('hyperjdoc', langpath)
+gettext.textdomain('hyperjdoc')
+lang = gettext.translation('hyperjdoc', langpath, languages=langs, fallback=True)
+_ = lang.ugettext
+
 
 try:
     setlocale(LC_NUMERIC, '')
@@ -70,6 +82,22 @@ def size_format(size,decs=2):
             continue
         else:
             return num_format( round(size/float(lim/2**10),decs), decs )+suf
+
+
+def getWordLineNr(text,word):
+    """
+    Wrapper to getWordLineNr from iz_tools.text catching possible errors
+    @param string text Text to search IN
+    @param string word WORD to search FOR
+    @return list res
+    """
+    try:
+        res = getWordLineNo(text,word)
+    except:
+        logger.error(_('RegExp error searching for "%s"'), word)
+        res = []
+    return res
+
 
 def eatStrings(text):
     """

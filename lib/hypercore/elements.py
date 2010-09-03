@@ -4,6 +4,7 @@ HyperSQL Core elements
 Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
+__revision__ = '$Id$'
 
 from .javadoc import JavaDoc, PackageTaskList
 from .helpers import listCompName
@@ -101,11 +102,20 @@ class FileInfo(object):
         self.procedureInfoList = []
         self.triggerInfoList = []
         self.formInfoList = []
-        self.uniqueNumber = 0 # used to create unique file name for where used list
+        self.uniqueNumber = 0 # used to create unique file name for where used list (old variant)
+        self.uniqueName = ''  # used to create unique file name for where used list (new variant)
         self.lines = 0
         self.bytes = 0
         self.xmlbytes = 0
         self.xmlcodebytes = 0
+
+    def __repr__(self):
+        ret  = self.fileType +' file "'+ self.fileName +'":\n  '
+        if self.fileType.lower() == 'xml':
+            ret += `self.xmlbytes` +' bytes including '+ `self.xmlcodebytes` +' bytes of code'
+        else:
+            ret += `self.lines` +' lines with '+ `self.bytes` +' bytes'
+        return ret+'\n  Unique Name: "'+self.uniqueName+'"\n'
 
     def sortLists(self):
         """ Sort all lists alphabetically by object name """
@@ -129,6 +139,8 @@ class MetaInfo:
         self.linesOfCode['code'] = 0
         self.linesOfCode['comment'] = 0
         self.linesOfCode['empty'] = 0
+        self.indexPage = {} # filename
+        self.indexPageName = {}
         self.depGraph = {}
         self.depGraph['file2file'] = []
         self.depGraph['file2object'] = []
@@ -281,4 +293,5 @@ class MetaInfo:
                     break
         return stat
 
+metaInfo = MetaInfo() # This is needed by different modules, so the instance is created here for import issues
 
