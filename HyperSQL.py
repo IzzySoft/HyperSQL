@@ -379,7 +379,7 @@ if __name__ == "__main__":
     confDeps()
 
     # Initiate logging
-    if metaInfo.printProgress: from pbar import *
+    if metaInfo.printProgress: from progress import *
     confLogger()
     from hypercore.logger import logg
     logger = logg.getLogger()

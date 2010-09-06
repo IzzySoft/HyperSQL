@@ -125,6 +125,11 @@ class FileInfo(object):
                 if len(p.functionInfoList) > 0: p.functionInfoList.sort(listCompName)
                 if len(p.procedureInfoList) > 0: p.procedureInfoList.sort(listCompName)
 
+    def getHtmlName(self):
+        """ Get the name of the corresponding HTML file """
+        return self.uniqueName + '.html'
+
+
 class MetaInfo:
     """ Object to hold global information (e.g. configuration options) """
     def __init__(self):

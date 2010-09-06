@@ -7,7 +7,7 @@ import time # for makeHTMLFooter
 from os import path as os_path # for getDualCodeLink, purge_html, CreateIndexPage, MakeFileIndex, CreateDepGraphIndex
 from os import listdir,unlink  # for purge_html
 from hypercore.elements import metaInfo
-from pbar import *
+from progress import *
 from iz_tools.system import fopen
 
 # Setup gettext support
@@ -50,11 +50,11 @@ def purge_html():
         if os_path.exists(metaInfo.htmlDir):
             names=listdir(metaInfo.htmlDir)
             for i in names:
-                unlink(metaInfo.htmlDir + i)
+                unlink(os_path.join(metaInfo.htmlDir,i))
         if metaInfo.unittests and os_path.exists(metaInfo.unittest_dir):
             names=listdir(metaInfo.unittest_dir)
             for i in names:
-                if os_path.splitext(i)[1]=='.xml': unlink(metaInfo.unittest_dir + i)
+                if os_path.splitext(i)[1]=='.xml': unlink(os_path.join(metaInfo.unittest_dir,i))
 
 
 #------------------------------------------------------------------------------

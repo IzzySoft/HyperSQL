@@ -8,7 +8,7 @@ import os
 from hypercore.elements import metaInfo
 from hypercore.helpers  import TupleCompareFirstElements # WriteObjectList()
 from .commonhtml import getDualCodeLink,makeDualCodeRef,makeUsageCol,MakeHTMLHeader,MakeHTMLFooter
-from pbar import *
+from progress import *
 from iz_tools.system import fopen
 import hypercore.cache # for HyperLinkedSourceFilePages
 

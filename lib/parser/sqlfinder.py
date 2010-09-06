@@ -12,7 +12,7 @@ import re, gettext, locale, os
 from hypercore.logger import logg
 logname = 'ParseSQL'
 logger = logg.getLogger(logname)
-from pbar import *
+from progress import *
 
 # Setup gettext support
 gettext.bindtextdomain('hypersql', langpath)
@@ -244,13 +244,6 @@ def parseForm(file_info):
             FormInfoAppendJavadoc(proc,'procedure',jdoc)
             appendGlobalTasks('func',form_info,proc.javadoc,proc.uniqueNumber)
 
-
-#------------------------------------------------------------------------------
-def findObjects(file_info):
-    """
-    Scan plain-text (i.e. no Oracle Forms XML) file for Views, Packages, etc.
-    @param object file_info
-    """
 
 #------------------------------------------------------------------------------
 def ScanFilesForObjects():
