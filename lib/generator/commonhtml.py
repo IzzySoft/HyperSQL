@@ -187,8 +187,7 @@ def getDualCodeLink(otuple):
     @return string HTMLpjref link to JavaDoc package reference
     """
     # HTML[j]ref links to function Code / [ApiDoc]
-    HTMLref = os_path.split(otuple[2].fileName)[1].replace(".", "_")
-    HTMLref += "_" + `otuple[2].uniqueNumber` + ".html"
+    HTMLref = otuple[2].getHtmlName()
     if otuple[1].javadoc.isDefault():
         HTMLjref = ''
     else:
@@ -331,8 +330,7 @@ def MakeFileIndex(objectType):
 
     for filenametuple in filenametuplelist:
         file_name = filenametuple[1].fileName
-        temp = os_path.split(file_name)[1].replace(".", "_")
-        temp += "_" + `filenametuple[1].uniqueNumber` + ".html"
+        temp = filenametuple[1].getHtmlName()
         if objectType == 'file':
             outfile.write("  <TR CLASS='tr"+`i % 2`+"'><TD><A href=\"" + temp + "\">" + os_path.split(file_name)[1])
         else:

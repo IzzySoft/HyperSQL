@@ -659,8 +659,7 @@ def CreateHyperlinkedSourceFilePages():
             continue
 
         # generate a file name for us to write to (+1 for delimiter)
-        outfilename = os.path.split(file_info.fileName)[1].replace('.', '_')
-        outfilename += '_' + `file_info.uniqueNumber` + '.html'
+        outfilename = file_info.getHtmlName()
 
         outfile = fopen(os.path.join(metaInfo.htmlDir,outfilename), "w", metaInfo.encoding)
         outfile.write(MakeHTMLHeader(file_info.fileName[len(top_level_directory)+1:]))
@@ -818,7 +817,8 @@ def CreateHyperlinkedSourceFilePages():
             outfile.write('<TABLE CLASS="apilist">\n')
             for p in range(len(file_info.packageInfoList)):
                 jdoc = file_info.packageInfoList[p].javadoc
-                outfile.write(' <TR><TH COLSPAN="3">' + file_info.packageInfoList[p].name + '</TH></TR>\n')
+                aname = '<A NAME="'+file_info.packageInfoList[p].javadoc.name + '_' + `file_info.packageInfoList[p].uniqueNumber`+'"></A>'
+                outfile.write(' <TR><TH COLSPAN="3">' + aname + file_info.packageInfoList[p].name + '</TH></TR>\n')
                 outfile.write(' <TR><TD COLSPAN="3">')
                 outfile.write( jdoc.getHtml(file_info.packageInfoList[p].uniqueNumber) )
                 outfile.write('</TD></TR>\n')
@@ -869,8 +869,7 @@ def CreateHyperlinkedSourceFilePages():
                                 try: opname = u[3].parent.name
                                 except: opname = ''
                                 oname = u[3].name
-                                href  = os.path.split(u[0].fileName)[1].replace('.','_') \
-                                  + '_' + `u[0].uniqueNumber` + '.html#' + `u[1]`
+                                href  = u[0].getHtmlName() + '#' + `u[1]`
                                 patt = re.compile('\\b('+opname+')\\.('+oname+')\\b',re.I)
                                 oricode = code
                                 code = patt.sub('\\1.<A HREF="'+href+'">\\2</A>',code)
@@ -931,7 +930,7 @@ def CreateWhereUsedPages():
         filename_short = filename[len(metaInfo.topLevelDirectory)+1:]
         line_number = utuple[1]
         unique_number = utuple[0].uniqueNumber
-        html_file = os.path.split(filename)[1].replace(".", "_") + "_" + `unique_number` + ".html"
+        html_file = fileMap[filename].getHtmlName()
         utype = utuple[2]
         uObj = utuple[3]
         if utype in ['func','proc'] and type(uObj.parent).__name__=='PackageInfo': uname = uObj.parent.name + '.'
@@ -1042,6 +1041,10 @@ def CreateWhereUsedPages():
             makeUsagePage('where',otype,obj)
 
     pbarInit(_('Creating "where used" pages'),0,len(metaInfo.fileInfoList), logname)
+
+    # We need to map this in order to retrieve the corresponding html file names
+    fileMap = {}
+    for file_info in metaInfo.fileInfoList: fileMap[file_info.fileName] = file_info
 
     # loop through files
     i = 0

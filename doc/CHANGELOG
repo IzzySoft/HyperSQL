@@ -3,6 +3,9 @@
 v3.8.5
 -------------------
 * code reorg for better maintenance and re-usability
++ HTML files now get more "static" names so one can link to them directly
+  (file names remain the same as long as the source file is not renamed or got
+  its position - relative to the top-level source directory - changed)
 
 v3.8.0 (29.08.2010)
 -------------------
