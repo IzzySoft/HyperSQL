@@ -29,10 +29,12 @@
        randy-san@users.sourceforge.net
        izzysoft AT qumran DOT org
 """
+__revision__ = '$Id$'
+__version__  = '3.8.5'
+
 
 # first import standard modules we use
-import os, sys, fileinput, re, gettext, locale
-from shutil import copy2
+import os, sys, re, gettext
 
 # now import our own modules
 sys.path.insert(0,os.path.split(sys.argv[0])[0] + os.sep + 'lib')
@@ -40,18 +42,18 @@ from hypercore.logger import logg
 from hypercore.elements import *
 from hypercore.helpers import *
 from hypercore.javadoc import *
-from hypercore.codeformatter import *
 from hypercore.config import *
 from hypercore.config import _ # needs explicit call
 from hypercore.charts import *
-from iz_tools.typecheck import *
 from iz_tools.system import *
 from depgraph import *
 from hypercore.options import hyperopts
 from generator.commonhtml import *
 from generator.db_html import *
+from generator.sqlstats import MakeStatsPage
 import hypercore.cache
 import parser.sqlfinder
+
 
 #------------------------------------------------------------------------------
 def FindFilesAndBuildFileList(sdir, fileInfoList, init=True):
@@ -79,31 +81,6 @@ def FindFilesAndBuildFileList(sdir, fileInfoList, init=True):
     for f in fileInfoList:
         f.uniqueName = f.fileName[cpos:].replace('.','_').replace('/','--') # unique Name (for new-style refs)
         if f.uniqueNumber == 0: f.uniqueNumber = metaInfo.NextIndex()       # unique Number (old style, deprecated)
-
-
-#------------------------------------------------------------------------------
-def MakeStatsPage():
-    """
-    Generate Statistics Page
-    """
-
-    if metaInfo.indexPage['stat'] == '': # statistics disabled
-        return
-
-    printProgress(_('Creating statistics page'), logName)
-    import generator.sqlstats
-
-    outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w', metaInfo.encoding)
-    outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
-    try:
-        copy2(scriptpath + os.sep + 'diagram.js', metaInfo.htmlDir + 'diagram.js')
-    except IOError:
-        logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('javascript file'),'target':_('HTML-Dir')})
-
-    generator.sqlstats.generateOutput(outfile)
-
-    outfile.write(MakeHTMLFooter('stat'))
-    outfile.close()
 
 
 #------------------------------------------------------------------------------
@@ -331,18 +308,10 @@ def confLogger():
     logg.setFileLog(fileLevel,fname,metaInfo.encoding,maxbytes,backupCount)
 
 
-#------------------------------------------------------------------------------
-def purge_cache():
-    if metaInfo.cmdOpts.purge_cache is not None:
-        cache = hypercore.cache.cache(metaInfo.cacheDirectory)
-        for name in metaInfo.cmdOpts.purge_cache: cache.clear(name)
-    CleanRemovedFromCache()
-
-
 #==============================================================================
 if __name__ == "__main__":
 
-    metaInfo.versionString = "3.8.4"
+    metaInfo.versionString = __version__
     metaInfo.scriptName = sys.argv[0]
     logName = os.path.splitext(os.path.basename(metaInfo.scriptName))[0]
 
@@ -361,14 +330,16 @@ if __name__ == "__main__":
         if os.path.exists(metaInfo.cmdOpts.config): confName.append(metaInfo.cmdOpts.config)
         else: print 'specified config file %s not found' % metaInfo.cmdOpts.config
     if len(confName)==0:
-        scriptpath = os.path.split(sys.argv[0])[0] + os.sep
+        metaInfo.scriptpath = os.path.split(sys.argv[0])[0]
         for proj in ['HyperSQL','hypersql']:
-            if not scriptpath + proj + '.ini' in confName and os.path.exists(scriptpath + proj + '.ini'):
-                confName.append(scriptpath + proj + '.ini')
+            pfile = os.path.join(metaInfo.scriptpath, proj) + '.ini'
+            if not pfile in confName and os.path.exists(pfile):
+                confName.append(pfile)
         if len(metaInfo.cmdArgs)>0:
             for proj in [metaInfo.cmdArgs[0].lower(),metaInfo.cmdArgs[0]]:
-                if not scriptpath + proj + '.ini' in confName and os.path.exists(scriptpath + proj + '.ini'):
-                    confName.append(scriptpath + proj + '.ini')
+                pfile = os.path.join(metaInfo.scriptpath, proj) + '.ini'
+                if not pfile in confName and os.path.exists(pfile):
+                    confName.append(pfile)
     # If we have any config files, read them!
     if len(confName) > 0:
       config.read(confName)
@@ -401,6 +372,8 @@ if __name__ == "__main__":
         sys.exit(os.EX_OSFILE)
 
     metaInfo.config = config
+
+    from generator.sqlstats import MakeStatsPage
 
     # ----------------
     # Start processing

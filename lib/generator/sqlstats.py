@@ -6,6 +6,9 @@ __revision__ = '$Id$'
 from hypercore.elements import metaInfo
 from hypercore.helpers  import num_format,size_format
 from hypercore.javadoc  import JavaDocVars
+from iz_tools.system    import fopen
+from .commonhtml        import MakeHTMLHeader, MakeHTMLFooter
+from shutil             import copy2
 
 # Setup gettext support
 import gettext
@@ -14,6 +17,11 @@ gettext.bindtextdomain('hypersql', langpath)
 gettext.textdomain('hypersql')
 lang = gettext.translation('hypersql', langpath, languages=langs, fallback=True)
 _ = lang.ugettext
+
+# Setup logging
+from hypercore.logger import logg
+logname = 'SQLStats'
+logger = logg.getLogger(logname)
 
 
 #------------------------------------------------------------------------------
@@ -307,4 +315,31 @@ def generateOutput(outfile):
     outfile.write('  <TR><TH CLASS="sub">'+_('Known Bugs')+'</TH><TD ALIGN="right">'+num_format(jbugs)+'</TD><TD ALIGN="right">'+bugPct+'%</TD></TR>')
     outfile.write('  <TR><TH CLASS="sub">'+_('Todo Items')+'</TH><TD ALIGN="right">'+num_format(jtodo)+'</TD><TD ALIGN="right">'+todoPct+'%</TD></TR>')
     outfile.write("</TABLE>\n")
+
+
+#------------------------------------------------------------------------------
+def MakeStatsPage():
+    """
+    Generate Statistics Page
+    """
+
+    if metaInfo.indexPage['stat'] == '': # statistics disabled
+        return
+
+    from progress import printProgress
+    from os import path as os_path
+    printProgress(_('Creating statistics page'), logname)
+
+    outfile = fopen(metaInfo.htmlDir + metaInfo.indexPage['stat'], 'w', metaInfo.encoding)
+    outfile.write(MakeHTMLHeader('stat',True,'initCharts();'))
+    try:
+        copy2(os_path.join(metaInfo.scriptpath,'diagram.js'), os_path.join(metaInfo.htmlDir,'diagram.js'))
+    except IOError:
+        logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('javascript file'),'target':_('HTML-Dir')})
+
+    generateOutput(outfile)
+
+    outfile.write(MakeHTMLFooter('stat'))
+    outfile.close()
+
 

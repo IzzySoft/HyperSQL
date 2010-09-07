@@ -71,6 +71,14 @@ def CleanRemovedFromCache():
 
 
 #------------------------------------------------------------------------------
+def purge_cache():
+    if metaInfo.cmdOpts.purge_cache is not None:
+        cache = hypercore.cache.cache(metaInfo.cacheDirectory)
+        for name in metaInfo.cmdOpts.purge_cache: cache.clear(name)
+    CleanRemovedFromCache()
+
+
+#------------------------------------------------------------------------------
 def CopyStaticFiles():
     """Copy static files (CSS etc.) to HTML dir"""
     printProgress(_('Copying static files'), logname)

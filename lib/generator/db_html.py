@@ -568,6 +568,7 @@ def CreateHyperlinkedSourceFilePages():
     Very basic syntax highlighting is performed here as well if code is included.
     """
     from hypercore.helpers import size_format, num_format
+    from hypercore.codeformatter import hypercode
     from sys import argv
     import fileinput, re
     def ObjectDetailsListItem(item,i,fsize):
