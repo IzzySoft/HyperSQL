@@ -13,7 +13,7 @@ class ElemInfo(object):
     """ Object to hold information about a function, or procedure """
     def __init__(self):
         """ Initialize the object with useful defaults """
-        self.name = ""
+        self.__dict__['name'] = ""
         self.lineNumber = -1
         self.whatUsed = {} # file name key, fileInfo and line number list
         self.whereUsed = {} # file name key, fileInfo and line number list
@@ -21,6 +21,36 @@ class ElemInfo(object):
         self.parent = None
         self.paramCount = 0
         self.javadoc = JavaDoc()
+    def __setattr__(self, name, val):
+        """
+        Overwrite some setters which require special behavior, as e.g. the HTML
+        anchor name needs to be implicitly set with the elements name
+        """
+        # the HTML Anchor corresponding to this element depends on the elements
+        # name, plus it must be unique for the generated HTML document. Hence
+        # the anchor name is stored in the FileInfo object and set when the name
+        # of the element is set:
+        if name=='name':
+            if self.uniqueNumber == 0: self.uniqueNumber = metaInfo.NextIndex()
+            master = self
+            while hasattr(master,'parent') and master.parent:
+                master = master.parent
+                if hasattr(master,'anchorNames'):
+                    foo = True
+                    if not val and self.uniqueNumber in master.anchorNames:
+                        del master.anchorNames[self.uniqueNumber]
+                    elif not val in master.anchorNames.values():
+                        master.anchorNames[self.uniqueNumber] = (val,self)
+                    else:
+                        i = 0
+                        while True:
+                            i += 1
+                            aname = val+str(i)
+                            if aname in master.anchorNames.values(): continue
+                            master.anchorNames[self.uniqueNumber] = (aname,self)
+                            break
+                    break;
+        self.__dict__[name] = val
     def __repr__(self):
         """ Basic information for simple debug """
         mytype = type(self).__name__
@@ -40,7 +70,7 @@ class StandAloneElemInfo(ElemInfo):
         self.todo = PackageTaskList()
         self.verification = PackageTaskList()
     def __repr__(self):
-        ret = ElemInfo.__repr__(self)
+        ret = ElemInfo.__repr__(self)+'\n* Name: '+self.name+'\n'
         ret += '* '+`self.bugs.allItemCount()`+' know bugs\n'
         ret += '* '+`self.todo.allItemCount()`+' know todos\n'
         ret += '* '+`self.verification.allItemCount()`+' know verification errors\n'
@@ -92,6 +122,7 @@ class FileInfo(object):
         """ Initialize the object with useful defaults """
         self.fileName = ""
         self.fileType = "" # cpp files are only scanned for sql "where used" information
+        self.anchorNames = {} # HTML Anchor names for the page generated for this file: uniqueID=(name,element)
         self.viewInfoList = []
         self.mviewInfoList = []
         self.tabInfoList = []

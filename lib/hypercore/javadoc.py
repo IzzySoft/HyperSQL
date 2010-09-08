@@ -217,12 +217,12 @@ class JavaDoc(object):
             return 'private '
         else:
             return 'public '
-    def getHtml(self,unum):
+    def getHtml(self,aname):
         """
         Generates HTML block from JavaDoc Api Info for the element passed - or
         an empty string if it is still the default empty element.
         @param self
-        @param int unique number
+        @param string aname anchor name for HTML anchor to this object (a name=xxx)
         @return string html code block
         """
         def listItemHtml(item):
@@ -247,13 +247,13 @@ class JavaDoc(object):
             return ''
         if self.objectType not in JavaDocVars['otypes']:
             if self.name == '':
-                self.log(_('Unnamed object with ID %(id)s (%(file)s line %(line)s has no object type set!') % {'id':unum, 'file':self.file, 'line':self.lineNumber})
+                self.log(_('Unnamed object in %(file)s line %(line)s has no object type set!') % {'file':self.file, 'line':self.lineNumber})
             else:
-                self.log(_('No object type specified for object id %(name)s, ID %(id)s in %(file)s line %(line)s') % {'name':self.name, 'id':unum, 'file':self.file, 'line':self.lineNumber})
+                self.log(_('No object type specified for object id %(name)s in %(file)s line %(line)s') % {'name':self.name, 'file':self.file, 'line':self.lineNumber})
             return ''
         html = ''
         if self.objectType not in JavaDocVars['supertypes']:
-          html = '<A NAME="'+self.name+'_'+str(unum)+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
+          html = '<A NAME="'+aname+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if len(self.desc) > 0:
           html += '  <DIV CLASS="jd_desc">' + ' '.join(self.desc) + '</DIV>\n'

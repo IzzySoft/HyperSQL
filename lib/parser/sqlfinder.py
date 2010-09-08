@@ -173,16 +173,19 @@ def parseForm(file_info):
         if unit['code']: formcode += unit['code'] + '\n'
         if unit['type'].upper() == proc_mark:
             elem = StandAloneElemInfo()
+            elem.parent = form_info
             elem.name = unit['name']
             elem.lineNumber = linenr
             form_info.procedureInfoList.append(elem)
         elif unit['type'].upper() == func_mark:
             elem = StandAloneElemInfo()
+            elem.parent = form_info
             elem.name = unit['name']
             elem.lineNumber = linenr
             form_info.functionInfoList.append(elem)
         elif unit['type'].upper() == pck_mark:
             elem = PackageInfo()
+            elem.parent = form_info
             elem.name = unit['name']
             elem.lineNumber = linenr
             ###TODO: Go for more details (pkg.proc/func/...)
@@ -208,6 +211,7 @@ def parseForm(file_info):
         linenr = formcode.count('\n') +1
         if trigger['code']: formcode += trigger['code']
         elem = StandAloneElemInfo()
+        elem.parent = form_info
         elem.name = trigger['name']
         elem.lineNumber = linenr
         form_info.triggerInfoList.append(elem)

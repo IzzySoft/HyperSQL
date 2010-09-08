@@ -199,18 +199,22 @@ def getDualCodeLink(otuple):
     if otuple[1].javadoc.isDefault():
         HTMLjref = ''
     else:
-        HTMLjref = HTMLref + '#' + otuple[1].javadoc.name + '_' + `otuple[1].uniqueNumber`
+        try:
+            HTMLjref = HTMLref + '#' + otuple[2].anchorNames[otuple[1].uniqueNumber][0]
+        except KeyError:
+            logger.error('*** KEYERROR FOR ANCHOR OF "'+otuple[0]+'" ***')
+            logger.error(otuple[1])
     # HTMLp[j]ref links to package Code [ApiDoc]
     if len(otuple) > 3 and otuple[3]: # otuple[3] is package_info
         if otuple[3].javadoc.isDefault():
             HTMLpjref = ''
         else:
-            HTMLpjref = HTMLref + '#' + otuple[3].name.lower() + '_' + `otuple[3].uniqueNumber`
-        HTMLpref = HTMLref + "#" + `otuple[3].lineNumber`
+            HTMLpjref = HTMLref + '#' + otuple[2].anchorNames[otuple[3].uniqueNumber][0]
+        HTMLpref = HTMLref + "#L" + str(otuple[3].lineNumber)
     else:
         HTMLpjref = ''
         HTMLpref  = ''
-    HTMLref += "#" + `otuple[1].lineNumber`
+    HTMLref += "#L" + str(otuple[1].lineNumber)
     return HTMLref,HTMLjref,HTMLpref,HTMLpjref
 
 

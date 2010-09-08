@@ -571,22 +571,24 @@ def CreateHyperlinkedSourceFilePages():
     from hypercore.codeformatter import hypercode
     from sys import argv
     import fileinput, re
-    def ObjectDetailsListItem(item,i,fsize):
+    def ObjectDetailsListItem(item,i,fsize,fileInfo):
         """
         Write the row for the overview
         @param object item procedure/function item
         @param int i counter for odd/even row alternation
+        @param int fsize code size (to decide whether we link to code)
+        @param object fileInfo the corresponding FileInfo object for additional information
         """
         iname = item.javadoc.getVisibility()
         if item.javadoc.name != '' and not item.javadoc.ignore:
-            iname += '<A HREF="#'+item.javadoc.name+'_'+str(item.uniqueNumber)+'">'+item.javadoc.name+'</A>'
+            iname += '<A HREF="#'+fileInfo.anchorNames[item.uniqueNumber][0]+'">'+item.javadoc.name+'</A>'
             idesc = item.javadoc.getShortDesc()
         else:
             iname += (item.javadoc.name or item.name)
             idesc = ''
         outfile.write(' <TR CLASS="tr'+`i % 2`+'"><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
         if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or fsize <= metaInfo.includeSourceLimit ):
-            outfile.write(' <SUP><A HREF="#'+str(item.lineNumber)+'">#</A></SUP>')
+            outfile.write(' <SUP><A HREF="#L'+str(item.lineNumber)+'">#</A></SUP>')
         outfile.write(' (')
         if len(item.javadoc.params) > 0:
             ph = ''
@@ -628,7 +630,7 @@ def CreateHyperlinkedSourceFilePages():
         html  = ' <TR><TD STYLE="text-align:center;font-weight:bold;"><A NAME="'
         html += (fu.javadoc.name or fu.name.lower())
         html += '"></A></TD></TR>\n <TR><TD>'
-        html += fu.javadoc.getHtml(fu.uniqueNumber)
+        html += fu.javadoc.getHtml(file_info.anchorNames[fu.uniqueNumber][0])
         html += '</TD></TR>\n'
         return html
 
@@ -674,43 +676,43 @@ def CreateHyperlinkedSourceFilePages():
         if len(file_info.tabInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Tables')+'</H2>\n')
             for v in range(len(file_info.tabInfoList)):
-                outfile.write(file_info.tabInfoList[v].javadoc.getHtml(file_info.tabInfoList[v].uniqueNumber))
+                outfile.write(file_info.tabInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.tabInfoList[v].uniqueNumber][0]))
 
         # Do we have views in this file?
         if len(file_info.viewInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Views')+'</H2>\n')
             for v in range(len(file_info.viewInfoList)):
-                outfile.write(file_info.viewInfoList[v].javadoc.getHtml(file_info.viewInfoList[v].uniqueNumber))
+                outfile.write(file_info.viewInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.viewInfoList[v].uniqueNumber][0]))
 
         # Do we have mviews in this file?
         if len(file_info.mviewInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Materialized Views')+'</H2>\n')
             for v in range(len(file_info.mviewInfoList)):
-                outfile.write(file_info.mviewInfoList[v].javadoc.getHtml(file_info.mviewInfoList[v].uniqueNumber))
+                outfile.write(file_info.mviewInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.mviewInfoList[v].uniqueNumber][0]))
 
         # Do we have synonyms in this file?
         if len(file_info.synInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Synonyms')+'</H2>\n')
             for v in range(len(file_info.synInfoList)):
-                outfile.write(file_info.synInfoList[v].javadoc.getHtml(file_info.synInfoList[v].uniqueNumber))
+                outfile.write(file_info.synInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.synInfoList[v].uniqueNumber][0]))
 
         # Do we have trigger in this file?
         if len(file_info.triggerInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Triggers')+'</H2>\n')
             for v in range(len(file_info.triggerInfoList)):
-                outfile.write(file_info.triggerInfoList[v].javadoc.getHtml(file_info.triggerInfoList[v].uniqueNumber))
+                outfile.write(file_info.triggerInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.triggerInfoList[v].uniqueNumber][0]))
 
         # Do we have stand-alone functions?
         if len(file_info.functionInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Functions')+'</H2>\n')
             for v in range(len(file_info.functionInfoList)):
-                outfile.write(file_info.functionInfoList[v].javadoc.getHtml(file_info.functionInfoList[v].uniqueNumber))
+                outfile.write(file_info.functionInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.functionInfoList[v].uniqueNumber][0]))
             
         # Do we have stand-alone procedures?
         if len(file_info.procedureInfoList) > 0:
             outfile.write('<H2 CLASS="api">'+_('Procedures')+'</H2>\n')
             for v in range(len(file_info.procedureInfoList)):
-                outfile.write(file_info.procedureInfoList[v].javadoc.getHtml(file_info.procedureInfoList[v].uniqueNumber))
+                outfile.write(file_info.procedureInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.procedureInfoList[v].uniqueNumber][0]))
             
         # Do we have forms in this file?
         if len(file_info.formInfoList) > 0:
@@ -725,7 +727,7 @@ def CreateHyperlinkedSourceFilePages():
                     outfile.write('<DIV CLASS="jd_desc">' + fi.title + '</DIV>')
                 else:
                     if len(jdoc.desc)<1 or (len(jdoc.desc)==1 and jdoc.desc[0]==''): jdoc.desc.append(fi.title)
-                    outfile.write( jdoc.getHtml(fi.uniqueNumber) )
+                    outfile.write( jdoc.getHtml(file_info.anchorNames[fi.uniqueNumber][0]) )
                 outfile.write('  <DL><DT>'+_('Statistics')+':</DT><DD><TABLE CLASS="stat"><TR CLASS="tr0"><TD>' \
                     + _('XML Size') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlbytes) + '</TD></TR><TR CLASS="tr1"><TD>' \
                     + _('PL/SQL Code') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlcodebytes) + '<BR>(' + num_format(100*file_info.xmlcodebytes/file_info.xmlbytes,1) + '%)</TD></TR><TR CLASS="tr0"><TD>' \
@@ -749,14 +751,14 @@ def CreateHyperlinkedSourceFilePages():
                         html = ''
                         haveDetails = False
                         if not item.javadoc.isDefault(): haveDetails = True
-                        ObjectDetailsListItem(item,i,fi.codesize)
+                        ObjectDetailsListItem(item,i,fi.codesize,file_info)
                         html += '<A NAME="'
                         html += (item.javadoc.name or item.name.lower())
                         html += '_'+`item.uniqueNumber`+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom: 10px;" WIDTH="95%">\n'
                         html += ' <TR><TH>'
                         html += (item.javadoc.name or item.name)
                         html += '</TH></TR>\n <TR><TD>'
-                        html += item.javadoc.getHtml(item.uniqueNumber)
+                        html += item.javadoc.getHtml(file_info.anchorNames[item.uniqueNumber][0])
                         html += '</TD></TR>\n'
                         i += 1
                         # check package for functions ###TODO: See above, they must be detected first
@@ -791,8 +793,8 @@ def CreateHyperlinkedSourceFilePages():
                     i = 0
                     html = ''
                     for item in fi.functionInfoList:
-                        ObjectDetailsListItem(item,i,fi.codesize)
-                        html += item.javadoc.getHtml(item.uniqueNumber)
+                        ObjectDetailsListItem(item,i,fi.codesize,file_info)
+                        html += item.javadoc.getHtml(file_info.anchorNames[item.uniqueNumber][0])
                         i += 1
                     if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
                     else: packagedetails += html
@@ -804,8 +806,8 @@ def CreateHyperlinkedSourceFilePages():
                     i = 0
                     html = ''
                     for item in fi.procedureInfoList:
-                        ObjectDetailsListItem(item,i,fi.codesize)
-                        html += item.javadoc.getHtml(item.uniqueNumber)
+                        ObjectDetailsListItem(item,i,fi.codesize,file_info)
+                        html += item.javadoc.getHtml(file_info.anchorNames[item.uniqueNumber][0])
                         i += 1
                     if html == '': packagedetails += '<P ALIGN="center">'+_('No JavaDoc information available')+'</P>'
                     else: packagedetails += html
@@ -821,7 +823,7 @@ def CreateHyperlinkedSourceFilePages():
                 aname = '<A NAME="'+file_info.packageInfoList[p].javadoc.name + '_' + `file_info.packageInfoList[p].uniqueNumber`+'"></A>'
                 outfile.write(' <TR><TH COLSPAN="3">' + aname + file_info.packageInfoList[p].name + '</TH></TR>\n')
                 outfile.write(' <TR><TD COLSPAN="3">')
-                outfile.write( jdoc.getHtml(file_info.packageInfoList[p].uniqueNumber) )
+                outfile.write( jdoc.getHtml(file_info.anchorNames[file_info.packageInfoList[p].uniqueNumber][0]) )
                 outfile.write('</TD></TR>\n')
                 # Check the packages for functions
                 if len(file_info.packageInfoList[p].functionInfoList) > 0:
@@ -829,8 +831,8 @@ def CreateHyperlinkedSourceFilePages():
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">'+_('Functions')+'</TH></TR>\n')
                     i = 0
                     for item in file_info.packageInfoList[p].functionInfoList:
-                        ObjectDetailsListItem(item,i,file_info.bytes)
-                        packagedetails += item.javadoc.getHtml(item.uniqueNumber)
+                        ObjectDetailsListItem(item,i,file_info.bytes,file_info)
+                        packagedetails += item.javadoc.getHtml(file_info.anchorNames[item.uniqueNumber][0])
                         i += 1
                 # Check the packages for procedures
                 if len(file_info.packageInfoList[p].procedureInfoList) > 0:
@@ -838,8 +840,8 @@ def CreateHyperlinkedSourceFilePages():
                     outfile.write(' <TR><TH CLASS="sub" COLSPAN="3">'+_('Procedures')+'</TH></TR>\n')
                     i = 0
                     for item in file_info.packageInfoList[p].procedureInfoList:
-                        ObjectDetailsListItem(item,i,file_info.bytes)
-                        packagedetails += item.javadoc.getHtml(item.uniqueNumber)
+                        ObjectDetailsListItem(item,i,file_info.bytes,file_info)
+                        packagedetails += item.javadoc.getHtml(file_info.anchorNames[item.uniqueNumber][0])
                         i += 1
             outfile.write('</TABLE>\n\n')
 
@@ -870,7 +872,7 @@ def CreateHyperlinkedSourceFilePages():
                                 try: opname = u[3].parent.name
                                 except: opname = ''
                                 oname = u[3].name
-                                href  = u[0].getHtmlName() + '#' + `u[1]`
+                                href  = u[0].getHtmlName() + '#L' + repr(u[1])
                                 patt = re.compile('\\b('+opname+')\\.('+oname+')\\b',re.I)
                                 oricode = code
                                 code = patt.sub('\\1.<A HREF="'+href+'">\\2</A>',code)
@@ -949,17 +951,17 @@ def CreateWhereUsedPages():
         # only make hypertext references for SQL files for now
         if utuple[0].fileType in ['sql','xml']:
             if utuple[0].fileType == 'xml':
-                html += '<A HREF="' + html_file + '#' + uObj.name + '_' + `uObj.uniqueNumber` + '">' + uObj.name + '</A></TD><TD>'
+                html += '<A HREF="' + html_file + '#' + utuple[0].anchorNames[uObj.uniqueNumber][0] + '">' + uObj.name + '</A></TD><TD>'
                 codesize = utuple[0].formInfoList[0].codesize
             elif not metaInfo.useJavaDoc or uObj.javadoc.isDefault():
                 html += uname + '</TD><TD>'
                 codesize = utuple[0].bytes
             else:
-                html += '<A HREF="' + html_file + '#' + uObj.javadoc.name + '_' + `uObj.uniqueNumber` + '">' + uname + '</A></TD><TD>'
+                html += '<A HREF="' + html_file + '#' + utuple[0].anchorNames[uObj.uniqueNumber][0] + '">' + uname + '</A></TD><TD>'
                 codesize = utuple[0].bytes
             if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
                 html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
-                html += '<A href="' + html_file + '#' + `line_number` + '">' + `line_number` + '</A>'
+                html += '<A href="' + html_file + '#L' + `line_number` + '">' + `line_number` + '</A>'
         else:
             html += uname + '</TD><TD>' + filename_short + '</TD><TD ALIGN="right">' + `line_number`
 
