@@ -258,13 +258,13 @@ def makeUsageCol(where,what,unum,tdatt='',manused=False,manuses=False):
     """
     s = '<TD CLASS="whereused"'+tdatt+'>'
     if where:
-        ref = 'where_used_' + `unum` + '.html'
+        ref = 'where_used_%d.html' % unum
         s += '<A href="' + ref + '">'+_('where used')+'</A> / '
     elif manused: s += '@ / '
     elif what or manuses: s += '- / '
     else: s += _("no use found")
     if what:
-        ref = 'what_used_' + `unum` + '.html'
+        ref = 'what_used_%d.html' % unum
         s += '<A href="' + ref + '">'+_('what used')+'</A>'
     elif manuses: s += '@'
     elif where or manused: s += '-'
@@ -308,8 +308,6 @@ def MakeFileIndex(objectType):
     @param object outfile file object to write() to
     """
 
-    from hypercore.helpers import TupleCompareFirstElements
-
     if objectType not in ['file','filepath']: # unsupported type
         return
     if metaInfo.indexPage[objectType] == '':  # this index is disabled
@@ -334,7 +332,7 @@ def MakeFileIndex(objectType):
             filenametuplelist.append((os_path.split(file_info.fileName)[1].upper(), file_info))
         else:
             filenametuplelist.append((file_info.fileName.upper(), file_info))
-    filenametuplelist.sort(TupleCompareFirstElements)
+    filenametuplelist.sort(key=lambda x: x[0])
 
     outfile.write("<H1>"+html_title+"</H1>\n")
     outfile.write("<TABLE CLASS='apilist'>\n")
@@ -344,9 +342,9 @@ def MakeFileIndex(objectType):
         file_name = filenametuple[1].fileName
         temp = filenametuple[1].getHtmlName()
         if objectType == 'file':
-            outfile.write("  <TR CLASS='tr"+`i % 2`+"'><TD><A href=\"" + temp + "\">" + os_path.split(file_name)[1])
+            outfile.write("  <TR CLASS='tr%d'><TD><A href=\"" % (i % 2) + temp + "\">" + os_path.split(file_name)[1])
         else:
-            outfile.write("  <TR CLASS='tr"+`i % 2`+"'><TD><A href=\"" + temp + "\">" + file_name[len(metaInfo.topLevelDirectory)+1:])
+            outfile.write("  <TR CLASS='tr%d'><TD><A href=\"" % (i % 2) + temp + "\">" + file_name[len(metaInfo.topLevelDirectory)+1:])
         outfile.write("</A></TD></TR>\n")
         i += 1
 

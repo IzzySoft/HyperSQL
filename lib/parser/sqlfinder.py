@@ -4,7 +4,7 @@ Scan for (PL/)SQL objects
 __revision__ = '$Id$'
 
 from iz_tools.system import fopen
-from hypercore.helpers  import CaseInsensitiveComparison, eatStrings, getWordLineNr
+from hypercore.helpers  import eatStrings, getWordLineNr
 from hypercore.elements import *
 from hypercore.javadoc  import *
 import hypercore.cache
@@ -39,7 +39,7 @@ def ElemInfoAppendJdoc(oInfo,oType,lineNumber,jdoc):
     oInfo.lineNumber = lineNumber
     for j in range(len(jdoc)):
         ln = jdoc[j].lineNumber - lineNumber
-        if (CaseInsensitiveComparison(oInfo.name,jdoc[j].name)==0 and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+        if ( oInfo.name.lower()==jdoc[j].name.lower() and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
             oInfo.javadoc = jdoc[j]
             if hasattr(oInfo,'bugs'):
                 if len(jdoc[j].bug) > 0 and metaInfo.indexPage['bug'] != '':
@@ -69,7 +69,7 @@ def FormInfoAppendJavadoc(oInfo,oType,jdoc):
     """
     for j in range(len(jdoc)):
       ln = jdoc[j].lineNumber - oInfo.lineNumber
-      if (CaseInsensitiveComparison(oInfo.name,jdoc[j].name)==0 and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+      if (oInfo.name.lower()==jdoc[j].name.lower() and jdoc[j].objectType==oType) or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
         oInfo.javadoc = jdoc[j]
 
     if JavaDocVars['verify_forms'] and not oInfo.javadoc.ignore:
@@ -493,7 +493,7 @@ def ScanFilesForObjects():
                       package_info.lineNumber = lineNumber+1
                       for j in range(len(jdoc)):
                         ln = jdoc[j].lineNumber - lineNumber
-                        if (CaseInsensitiveComparison(package_info.name,jdoc[j].name)==0 and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                        if (package_info.name.lower()==jdoc[j].name.lower() and jdoc[j].objectType=='pkg') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                           package_info.javadoc = jdoc[j]
                       if not package_info.javadoc.ignore: # ignore items with @ignore tag
                           pi = package_info
@@ -530,7 +530,7 @@ def ScanFilesForObjects():
                   function_info.lineNumber = lineNumber+1
                   for j in range(len(jdoc)):
                     ln = jdoc[j].lineNumber - lineNumber
-                    if (CaseInsensitiveComparison(function_name,jdoc[j].name)==0 and jdoc[j].objectType=='function') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                    if (function_name.lower()==jdoc[j].name.lower() and jdoc[j].objectType=='function') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                       if function_info.javadoc.isDefault():
                         function_info.javadoc = jdoc[j]
                         function_info.javadoc.lndiff = abs(ln)
@@ -585,7 +585,7 @@ def ScanFilesForObjects():
                   procedure_info.lineNumber = lineNumber+1
                   for j in range(len(jdoc)):
                     ln = jdoc[j].lineNumber - lineNumber
-                    if (CaseInsensitiveComparison(procedure_name,jdoc[j].name)==0 and jdoc[j].objectType=='procedure') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
+                    if (procedure_name.lower()==jdoc[j].name.lower() and jdoc[j].objectType=='procedure') or (ln>0 and ln<metaInfo.blindOffset) or (ln<0 and ln>-1*metaInfo.blindOffset):
                       if procedure_info.javadoc.isDefault():
                         procedure_info.javadoc = jdoc[j]
                         procedure_info.javadoc.lndiff = abs(ln)

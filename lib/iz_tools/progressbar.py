@@ -77,7 +77,7 @@ class progressBar:
         percentString = str(percentDone) + "%"
 
         # slice the percentage into the bar
-        self.pbar = self.pbar[0:percentPlace] + percentString + self.pbar[percentPlace+len(percentString):]
+        self.pbar = self.pbar[0:int(percentPlace)] + percentString + self.pbar[int(percentPlace)+len(percentString):]
 
         # call draw() to update screen if necessary
         if drawMe: self.draw()

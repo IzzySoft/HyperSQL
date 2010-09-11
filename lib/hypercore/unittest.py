@@ -133,8 +133,8 @@ def signature(name,params,retval=None):
     xml  = '      <SIGNATURE>\n'
     xml += '        <NAME>'+name+'</NAME>\n'
     for i in range(len(params)):
-        xml += '        <PARAM TYPE="'+params[i]['type']+'" DATATYPE="'+params[i]['datatype']+'" NAME="'+params[i]['name']+'" INDEX="'+`i`+'" OPTIONAL="';
-        if params[i].has_key('optional') and params[i]['optional'].lower() == 'true': xml += 'TRUE'
+        xml += '        <PARAM TYPE="'+params[i]['type']+'" DATATYPE="'+params[i]['datatype']+'" NAME="'+params[i]['name']+'" INDEX="'+str(i)+'" OPTIONAL="';
+        if 'optional' in params[i] and params[i]['optional'].lower() == 'true': xml += 'TRUE'
         else: xml += 'FALSE'
         xml += '" />\n'
     if retval is not None:

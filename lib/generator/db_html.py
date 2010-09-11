@@ -1,12 +1,12 @@
 """
 Database-specific HTML stuff
 """
+from __future__ import division ### temporary to verify Python v3 compatibility
 __revision__ = '$Id$'
 
 import time # for makeHTMLFooter
 import os
 from hypercore.elements import metaInfo
-from hypercore.helpers  import TupleCompareFirstElements # WriteObjectList()
 from .commonhtml import getDualCodeLink,makeDualCodeRef,makeUsageCol,MakeHTMLHeader,MakeHTMLFooter
 from progress import *
 from iz_tools.system import fopen
@@ -63,7 +63,7 @@ def MakeMethodIndex(objectType):
                 elemInfoList = package_info.procedureInfoList
             for elem_info in elemInfoList:
                 objectTupleList.append((elem_info.name.upper(), elem_info, file_info, package_info)) # append as tuple for case insensitive sort
-    objectTupleList.sort(TupleCompareFirstElements)
+    objectTupleList.sort(key=lambda x: x[0])
 
     outfile = fopen(os.path.join(metaInfo.htmlDir,metaInfo.indexPage[objectType]), "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(objectType))
@@ -74,7 +74,7 @@ def MakeMethodIndex(objectType):
 
     for object_tuple in objectTupleList: # list of tuples describing every object
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(object_tuple)
-        trclass = ' CLASS="tr'+`i % 2`+'"'
+        trclass = ' CLASS="tr%d"' % (i % 2)
         # Write column 1: Object name w/ links
         outfile.write("  <TR"+trclass+"><TD>" + object_tuple[1].javadoc.getVisibility() + makeDualCodeRef(HTMLref,HTMLjref,object_tuple[1].name.lower(),object_tuple[2].bytes) + "</TD>")
         # Write column 2: Package name w/ links
@@ -155,7 +155,7 @@ def MakeElemIndex(objectType):
         for object_info in objectList:
             objectTupleList.append((object_info.name.upper(), object_info, file_info)) # append as tuple for case insensitive sort
 
-    objectTupleList.sort(TupleCompareFirstElements)
+    objectTupleList.sort(key=lambda x: x[0])
 
     outfile = fopen(os.path.join(metaInfo.htmlDir,metaInfo.indexPage[objectType]), "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(objectType))
@@ -165,7 +165,7 @@ def MakeElemIndex(objectType):
     i = 0
 
     for object_tuple in objectTupleList: # list of tuples describing every object
-        trclass = ' CLASS="tr'+`i % 2`+'"'
+        trclass = ' CLASS="tr%d"' % (i % 2)
         if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or object_tuple[2].bytes <= metaInfo.includeSourceLimit ):
             HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(object_tuple)
             name = makeDualCodeRef(HTMLref,HTMLjref,object_tuple[1].name.lower(),object_tuple[2].bytes)
@@ -192,7 +192,7 @@ def WriteObjectList(oTupleList, listName, objectName, outfile):
     @param string objectName same in singular form for the object itself
     @param object outfile handler to the output HTML file
     """
-    oTupleList.sort(TupleCompareFirstElements)
+    oTupleList.sort(key=lambda x: x[0])
     if len(oTupleList) != 0:
         outfile.write('  <TR><TH class="sub" COLSPAN="3">' + listName + '</TH></TR>\n  <TR><TD COLSPAN="3">')
         outfile.write('<TABLE ALIGN="center">\n')
@@ -202,7 +202,8 @@ def WriteObjectList(oTupleList, listName, objectName, outfile):
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(oTuple)
         if type(oTuple[1]).__name__ == 'FormInfo': codesize = oTuple[1].codesize
         else: codesize = oTuple[2].bytes
-        outfile.write('    <TR CLASS="tr'+`i % 2`+'"><TD>' + oTuple[1].javadoc.getVisibility() \
+        outfile.write('    <TR CLASS="tr%d"><TD>' % (i % 2))
+        outfile.write( oTuple[1].javadoc.getVisibility() \
           + makeDualCodeRef(HTMLref,HTMLjref, oTuple[1].name.lower(),codesize) + '</TD>\n')
         outfile.write('<TD>' + oTuple[1].javadoc.getShortDesc() + '</TD>')
         outfile.write( makeUsageCol(len(oTuple[1].whereUsed.keys())>0,len(oTuple[1].whatUsed.keys())>0,oTuple[1].uniqueNumber,'',len(oTuple[1].javadoc.used)>0,len(oTuple[1].javadoc.uses)>0) )
@@ -230,7 +231,7 @@ def MakePackageIndex():
         for package_info in file_info.packageInfoList:
             packagetuplelist.append((package_info.name.upper(), package_info, file_info)) # append as tuple for case insensitive sort
 
-    packagetuplelist.sort(TupleCompareFirstElements)
+    packagetuplelist.sort(key=lambda x: x[0])
 
     outfile = fopen(os.path.join(metaInfo.htmlDir,metaInfo.indexPage['package']), "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader('package'))
@@ -241,7 +242,7 @@ def MakePackageIndex():
 
     for package_tuple in packagetuplelist: # list of tuples describing every package file name and line number as an HTML reference
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
-        trclass = ' CLASS="tr'+`i % 2`+'"'
+        trclass = ' CLASS="tr%d"' % (i % 2)
         outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower(),package_tuple[2].bytes) + '</TD>')
         outfile.write('<TD>' + package_tuple[1].javadoc.getShortDesc() + '</TD>')
         outfile.write( makeUsageCol(len(package_tuple[1].whereUsed.keys())>0,len(package_tuple[1].whatUsed.keys())>0,package_tuple[1].uniqueNumber,'',len(package_tuple[1].javadoc.used)>0,len(package_tuple[1].javadoc.uses)>0) )
@@ -270,7 +271,7 @@ def MakePackagesWithFuncsAndProcsIndex():
         for package_info in file_info.packageInfoList:
             packagetuplelist.append((package_info.name.upper(), package_info, file_info)) # append as tuple for case insensitive sort
 
-    packagetuplelist.sort(TupleCompareFirstElements)
+    packagetuplelist.sort(key=lambda x: x[0])
 
     outfile = fopen(os.path.join(metaInfo.htmlDir,metaInfo.indexPage['package_full']), 'w', metaInfo.encoding)
     outfile.write(MakeHTMLHeader('package_full'))
@@ -334,12 +335,12 @@ def MakeFormIndex():
         for form_info in file_info.formInfoList:
             formtuplelist.append((form_info.name.upper(), form_info, file_info))
 
-    formtuplelist.sort(TupleCompareFirstElements)
+    formtuplelist.sort(key=lambda x: x[0])
 
     i = 0
     for formtuple in formtuplelist:
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(formtuple)
-        trclass = ' CLASS="tr'+`i % 2`+'"'
+        trclass = ' CLASS="tr%d"' % (i % 2)
         outfile.write('  <TR'+trclass+'><TD>' + makeDualCodeRef(HTMLref,HTMLjref,formtuple[1].name.lower(),formtuple[1].codesize) + '</TD>')
         detail = formtuple[1].javadoc.getShortDesc() or formtuple[1].title
         outfile.write('<TD>' + detail + '</TD>')
@@ -474,16 +475,16 @@ def MakeTaskList(taskType):
         for formInfo in file_info.formInfoList:
             formtuplelist.append((formInfo.name.upper(), formInfo, file_info))
 
-    packagetuplelist.sort(TupleCompareFirstElements)
-    tabletuplelist.sort(TupleCompareFirstElements)
-    viewtuplelist.sort(TupleCompareFirstElements)
-    mviewtuplelist.sort(TupleCompareFirstElements)
-    syntuplelist.sort(TupleCompareFirstElements)
-    seqtuplelist.sort(TupleCompareFirstElements)
-    triggertuplelist.sort(TupleCompareFirstElements)
-    functiontuplelist.sort(TupleCompareFirstElements)
-    proceduretuplelist.sort(TupleCompareFirstElements)
-    formtuplelist.sort(TupleCompareFirstElements)
+    packagetuplelist.sort(key=lambda x: x[0])
+    tabletuplelist.sort(key=lambda x: x[0])
+    viewtuplelist.sort(key=lambda x: x[0])
+    mviewtuplelist.sort(key=lambda x: x[0])
+    syntuplelist.sort(key=lambda x: x[0])
+    seqtuplelist.sort(key=lambda x: x[0])
+    triggertuplelist.sort(key=lambda x: x[0])
+    functiontuplelist.sort(key=lambda x: x[0])
+    proceduretuplelist.sort(key=lambda x: x[0])
+    formtuplelist.sort(key=lambda x: x[0])
 
     outfile = fopen(os.path.join(metaInfo.htmlDir,metaInfo.indexPage[taskType]), "w", metaInfo.encoding)
     outfile.write(MakeHTMLHeader(taskType))
@@ -586,7 +587,7 @@ def CreateHyperlinkedSourceFilePages():
         else:
             iname += (item.javadoc.name or item.name)
             idesc = ''
-        outfile.write(' <TR CLASS="tr'+`i % 2`+'"><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">'+iname)
+        outfile.write(' <TR CLASS="tr%d"><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">%s' % (i % 2, iname))
         if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or fsize <= metaInfo.includeSourceLimit ):
             outfile.write(' <SUP><A HREF="#L'+str(item.lineNumber)+'">#</A></SUP>')
         outfile.write(' (')
@@ -731,14 +732,14 @@ def CreateHyperlinkedSourceFilePages():
                 outfile.write('  <DL><DT>'+_('Statistics')+':</DT><DD><TABLE CLASS="stat"><TR CLASS="tr0"><TD>' \
                     + _('XML Size') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlbytes) + '</TD></TR><TR CLASS="tr1"><TD>' \
                     + _('PL/SQL Code') + '</TD><TD ALIGN="right">' + size_format(file_info.xmlcodebytes) + '<BR>(' + num_format(100*file_info.xmlcodebytes/file_info.xmlbytes,1) + '%)</TD></TR><TR CLASS="tr0"><TD>' \
-                    + _('Packages') + '</TD><TD ALIGN="right">' + `len(fi.packageInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
-                    + _('Functions') + '</TD><TD ALIGN="right">' + `len(fi.functionInfoList)` + '</TD></TR><TR CLASS="tr0"><TD>' \
-                    + _('Procedures') + '</TD><TD ALIGN="right">' + `len(fi.procedureInfoList)` + '</TD></TR><TR CLASS="tr1"><TD>' \
-                    + _('Triggers') + '</TD><TD ALIGN="right">' + `len(fi.triggerInfoList)` + '</TD></TR>')
+                    + _('Packages') + '</TD><TD ALIGN="right">%d</TD></TR><TR CLASS="tr1"><TD>' % len(fi.packageInfoList) \
+                    + _('Functions') + '</TD><TD ALIGN="right">%d</TD></TR><TR CLASS="tr0"><TD>' % len(fi.functionInfoList) \
+                    + _('Procedures') + '</TD><TD ALIGN="right">%d</TD></TR><TR CLASS="tr1"><TD>' % len(fi.procedureInfoList) \
+                    + _('Triggers') + '</TD><TD ALIGN="right">%d</TD></TR>' % len(fi.triggerInfoList))
                 i = 0
                 for s in fi.stats.keys():
                     if fi.stats[s]>0:
-                        outfile.write('<TR CLASS="tr'+`i%2`+'"><TD>'+s+'</TD><TD ALIGN="right">'+`fi.stats[s]`+'</TD></TR>')
+                        outfile.write('<TR CLASS="tr%d"><TD>' % (i%2) +s+'</TD><TD ALIGN="right">%d</TD></TR>' % fi.stats[s])
                         i += 1
                 outfile.write('</TABLE></DD></TD></TR>\n')
                 # Check form for packages
@@ -752,9 +753,8 @@ def CreateHyperlinkedSourceFilePages():
                         haveDetails = False
                         if not item.javadoc.isDefault(): haveDetails = True
                         ObjectDetailsListItem(item,i,fi.codesize,file_info)
-                        html += '<A NAME="'
-                        html += (item.javadoc.name or item.name.lower())
-                        html += '_'+`item.uniqueNumber`+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom: 10px;" WIDTH="95%">\n'
+                        html += '<A NAME="' + file_info.anchorNames[item.uniqueNumber][0]
+                        html += '"></A><TABLE CLASS="apilist" STYLE="margin-bottom: 10px;" WIDTH="95%">\n'
                         html += ' <TR><TH>'
                         html += (item.javadoc.name or item.name)
                         html += '</TH></TR>\n <TR><TD>'
@@ -820,7 +820,7 @@ def CreateHyperlinkedSourceFilePages():
             outfile.write('<TABLE CLASS="apilist">\n')
             for p in range(len(file_info.packageInfoList)):
                 jdoc = file_info.packageInfoList[p].javadoc
-                aname = '<A NAME="'+file_info.packageInfoList[p].javadoc.name + '_' + `file_info.packageInfoList[p].uniqueNumber`+'"></A>'
+                aname = '<A NAME="'+file_info.anchorNames[file_info.packageInfoList[p].uniqueNumber][0]+'"></A>'
                 outfile.write(' <TR><TH COLSPAN="3">' + aname + file_info.packageInfoList[p].name + '</TH></TR>\n')
                 outfile.write(' <TR><TD COLSPAN="3">')
                 outfile.write( jdoc.getHtml(file_info.anchorNames[file_info.packageInfoList[p].uniqueNumber][0]) )
@@ -903,8 +903,6 @@ def CreateHyperlinkedSourceFilePages():
 def CreateWhereUsedPages():
     """Generate a where-used-page for each object"""
 
-    from hypercore.helpers import CaseInsensitiveComparison
-
     def makeUsageTableHead(otype, oname, page):
         """
         Create the table header for usage tables
@@ -961,9 +959,9 @@ def CreateWhereUsedPages():
                 codesize = utuple[0].bytes
             if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
                 html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
-                html += '<A href="' + html_file + '#L' + `line_number` + '">' + `line_number` + '</A>'
+                html += '<A href="' + html_file + '#L%d">%d</A>' % (line_number, line_number)
         else:
-            html += uname + '</TD><TD>' + filename_short + '</TD><TD ALIGN="right">' + `line_number`
+            html += uname + '</TD><TD>' + filename_short + '</TD><TD ALIGN="right">%d' % line_number
 
         html += '</TD></TR>\n'
         return html
@@ -980,12 +978,12 @@ def CreateWhereUsedPages():
             used_keys = obj.whereUsed.keys()
             used_list = obj.whereUsed
             pname = _('Where Used List for %s') % obj.name
-            fname = metaInfo.htmlDir + 'where_used_' + `unum` + '.html'
+            fname = metaInfo.htmlDir + 'where_used_%d.html' % unum
         else:
             used_keys = obj.whatUsed.keys()
             used_list = obj.whatUsed
             pname = _('What Used List for %s') % obj.name
-            fname = metaInfo.htmlDir + 'what_used_' + `unum` + '.html'
+            fname = metaInfo.htmlDir + 'what_used_%d.html' % unum
         outfile = fopen(fname, 'w', metaInfo.encoding)
         if otype=='tab':
             outfile.write(MakeHTMLHeader(pname))
@@ -1026,11 +1024,11 @@ def CreateWhereUsedPages():
             outfile.write( makeUsageTableHead(_('Form'),obj.name,page) )
         else:
             logger.warn(_('makeUsagePage called for undefined type "%s"'),otype)
-        used_keys.sort(CaseInsensitiveComparison)
+        used_keys.sort(key=str.lower)
         k = 0;
         for key in used_keys:
             for usedtuple in used_list[key]:
-                outfile.write( makeUsageColumn(key,usedtuple,'tr'+`k % 2`) )
+                outfile.write( makeUsageColumn(key,usedtuple,'tr%d' % (k % 2)) )
                 k += 1
         outfile.write('</TABLE>')
         outfile.write(MakeHTMLFooter(pname))

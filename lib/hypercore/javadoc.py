@@ -128,7 +128,7 @@ class JavaDoc(object):
         if self.name: ret += ' ' + self.name
         if self.file:
             ret += ' from ' + self.file
-            if self.lineNumber!=-1: ret += ' at line ' + `self.lineNumber`
+            if self.lineNumber!=-1: ret += ' at line ' + str(self.lineNumber)
         return ret
 
     def log(self,msg):
@@ -167,22 +167,22 @@ class JavaDoc(object):
                     self.log(_('Missing mandatory tag "%(tag)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'tag':tag, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         for param in self.params:
             if param.name == '':
-                faillist.append(_('Missing name for %(type)s parameter (#%(index)s)') % {'type': param.sqltype, 'index': `self.params.index(param)`})
+                faillist.append(_('Missing name for %(type)s parameter (#%(index)s)') % {'type': param.sqltype, 'index': self.params.index(param)})
                 self.log(_('Missing name for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
             if param.desc == '' and 'desc' in JavaDocVars['mandatory_tags']:
                 if param.name == '':
-                    faillist.append(_('Missing description for %(type)s parameter (#%(index)s)') % {'type':param.sqltype, 'index':`self.params.index(param)`})
+                    faillist.append(_('Missing description for %(type)s parameter (#%(index)s)') % {'type':param.sqltype, 'index':self.params.index(param)})
                     self.log(_('Missing description for parameter of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':param.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
                 else:
                     faillist.append(_('Missing description for parameter %s') % param.name)
                     self.log(_('Missing description for parameter "%(pname)s" for %(otype)s %(oname)s in %(file)s line %(line)s') % {'pname':param.name, 'otype':self.objectType, 'oname':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
         for col in self.cols:
             if col.name == '':
-                faillist.append(_('Missing name for %(type)s column (#%(index)s)') % {'type': col.sqltype, 'index': `self.cols.index(col)`})
+                faillist.append(_('Missing name for %(type)s column (#%(index)s)') % {'type': col.sqltype, 'index': self.cols.index(col)})
                 self.log(_('Missing name for column of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':col.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
             if col.desc == '' and 'desc' in JavaDocVars['mandatory_tags']:
                 if col.name == '':
-                    faillist.append(_('Missing description for %(type)s column (#%(index)s)') % {'type':col.sqltype, 'index':`self.cols.index(col)`})
+                    faillist.append(_('Missing description for %(type)s column (#%(index)s)') % {'type':col.sqltype, 'index':self.cols.index(col)})
                     self.log(_('Missing description for column of type "%(type)s" for %(otype)s %(name)s in %(file)s line %(line)s') % {'type':col.sqltype, 'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber})
                 else:
                     faillist.append(_('Missing description for column %s') % col.name)
@@ -202,7 +202,7 @@ class JavaDoc(object):
         if self.isDefault() or not JavaDocVars['verification']:
             return faillist
         if len(cparms) != len(self.params):
-            faillist.append(_('Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s') % { 'cparms':`len(cparms)`, 'jparms':`len(self.params)`})
+            faillist.append(_('Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s') % { 'cparms':len(cparms), 'jparms':len(self.params)})
             self.log(_('Parameter count mismatch for %(otype)s %(name)s in %(file)s line %(line)s (%(lc)s / %(lj)s)') % {'otype':self.objectType, 'name':self.name, 'file':self.file[JavaDocVars['top_level_dir_len']+1:], 'line':self.lineNumber, 'lc':len(cparms), 'lj':len(self.params)})
         return faillist
     def getVisibility(self):
@@ -276,7 +276,7 @@ class JavaDoc(object):
             html += '<TH CLASS="sub">' + _('Description') + '</TH></TR>'
             i = 0
             for p in range(len(self.params)):
-              html += '<TR CLASS="tr'+`i`+'"><TD>' + self.params[p].name + '</TD>'
+              html += '<TR CLASS="tr'+str(i)+'"><TD>' + self.params[p].name + '</TD>'
               html += '<TD>' + self.params[p].inout + '</TD>'
               html += '<TD>' + self.params[p].sqltype + '</TD>'
               if self.params[p].desc != '': html += '<TD>' + self.params[p].desc + '</TD></TR>'
@@ -299,7 +299,7 @@ class JavaDoc(object):
           html += _('Data Type')+'</TH><TH CLASS="sub">'+_('Description')+'</TH></TR>'
           i = 0
           for p in range(len(self.cols)):
-            html += '<TR CLASS="tr'+`i`+'"><TD>' + self.cols[p].name + '</TD>'
+            html += '<TR CLASS="tr'+str(i)+'"><TD>' + self.cols[p].name + '</TD>'
             html += '<TD>' + self.cols[p].sqltype + '</TD>'
             if self.cols[p].desc != '': html += '<TD>' + self.cols[p].desc + '</TD></TR>'
             else: html += '<TD>&nbsp;</TD></TR>'
@@ -319,24 +319,24 @@ class JavaDoc(object):
                 html += '<TR><TH COLSPAN="2" CLASS="sub">'+(tc['name'] or _('NoName'))+'</TH></TR>'
                 i = 0
                 if tc['comment'] != '':
-                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Comment')+':&nbsp;</TD><TD>'+tc['comment']+'</TD></TR>'
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Comment')+':&nbsp;</TD><TD>'+tc['comment']+'</TD></TR>'
                     i = (i+1) % 2
                 if tc['message'] != '':
-                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Error Message')+':&nbsp;</TD><TD>'+tc['message']+'</TD></TR>'
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Error Message')+':&nbsp;</TD><TD>'+tc['message']+'</TD></TR>'
                     i = (i+1) % 2
                 if len(tc['params'])>0:
-                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Parameters')+':&nbsp;</TD><TD><TABLE>'
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Parameters')+':&nbsp;</TD><TD><TABLE>'
                     html += '<TR><TD><B>'+_('Name')+'</B></TD><TD><B>'+_('Value')+'</B></TD></TR>'
                     for par in tc['params']: html += '<TR><TD>'+par['var']+'</TD><TD>'+par['val']+'</TD></TR>'
                     html += '</TABLE></TD></TR>'
                     i = (i+1) % 2
                 if len(tc['check'])>0:
-                    html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Check OUT Parameters')+':&nbsp;</TD><TD><TABLE>'
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Check OUT Parameters')+':&nbsp;</TD><TD><TABLE>'
                     html += '<TR><TD><B>'+_('Name')+'</B></TD><TD><B>'+_('Operator')+'</B></TD><TD><B>'+_('Value')+'</B></TD></TR>'
                     for par in tc['check']: html += '<TR><TD>'+par['var']+'</TD><TD ALIGN="center">'+par['op']+'</TD><TD>'+par['val']+'</TD></TR>'
                     html += '</TABLE></TD></TR>'
                     i = (i+1) % 2
-                if tc['ret'] is not None: html += '<TR CLASS="tr'+`i`+'"><TD>'+_('Return values')+':&nbsp;</TD><TD>'+tc['ret']['op']+' '+tc['ret']['val']+'</TD></TR>'
+                if tc['ret'] is not None: html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Return values')+':&nbsp;</TD><TD>'+tc['ret']['op']+' '+tc['ret']['val']+'</TD></TR>'
             html += '</TABLE></DD>\n'
 
         if len(self.author) > 0:
@@ -456,38 +456,6 @@ class TaskItem:
         self.author = author
         self.uid = uid
 
-def taskSortDesc(a,b):
-    """
-    Helper for sorting a TaskList by descriptions
-    @param TaskItem a
-    @param TaskItem b
-    """
-    if a.desc < b.desc:   return -1
-    elif a.desc > b.desc: return 1
-    else:
-        if a.name < b.name:   return -1
-        elif a.name > b.name: return 1
-        else:
-            if a.uid < b.uid:   return -1
-            elif a.uid > b.uid: return 1
-            else: return 0
-
-def taskSortName(a,b):
-    """
-    Helper for sorting a TaskList by names
-    @param TaskItem a
-    @param TaskItem b
-    """
-    if a.name < b.name:   return -1
-    elif a.name > b.name: return 1
-    else:
-        if a.uid < b.uid:   return -1
-        elif a.uid > b.uid: return 1
-        else:
-            if a.desc < b.desc: return -1
-            elif a.desc > b.desc: return 1
-            else:               return 0
-
 class TaskList:
     """
     List of TaskItems for Bugs / Todos
@@ -508,7 +476,7 @@ class TaskList:
         """
         desc = '<hypercore.javadoc.TaskList>:\n' \
              + '* name:  '+self.name+'\n' \
-             + '* items: '+`len(self.items)`
+             + '* items: '+str(len(self.items))
         return desc
     def addItem(self,name,desc,author='',uid=0):
         """
@@ -534,16 +502,16 @@ class TaskList:
         @param optional string orderBy 'name' (default) or 'desc'
         """
         if orderBy=='desc':
-            self.items.sort(taskSortDesc)
+            self.items.sort(key=lambda x: (x.desc,x.name,x.uid))
         else:
-            self.items.sort(taskSortName)
+            self.items.sort(key=lambda x: (x.name,x.uid,x.desc))
     def getHtml(self):
         """
         Return collected tasks as unordered HTML list
         @param self
         @return string html
         """
-        if self.taskCount < 1: return ''
+        if self.taskCount() < 1: return ''
         html = '<UL>\n'
         for item in self.items: html += '  <LI>'+item.desc+'</LI>\n'
         html += '</UL>\n'
@@ -575,10 +543,10 @@ class PackageTaskList(TaskList):
         """
         desc = '<hypercore.javadoc.PackageTaskList>:\n' \
              + '* name  : '+self.name+'\n' \
-             + '* items : '+`len(self.items)`+'\n' \
-             + '* funcs : '+`len(self.funcs)`+'\n' \
-             + '* procs : '+`len(self.procs)`+'\n' \
-             + '* pkgs  : '+`len(self.pkgs)`
+             + '* items : '+str(len(self.items))+'\n' \
+             + '* funcs : '+str(len(self.funcs))+'\n' \
+             + '* procs : '+str(len(self.procs))+'\n' \
+             + '* pkgs  : '+str(len(self.pkgs))
         #if self.parent: desc += '* parent: '+self.parent+'\n'
         #else: desc += '* parent: None'
         return desc
@@ -645,9 +613,9 @@ class PackageTaskList(TaskList):
         @param optional string orderBy 'name' (default) or 'desc'
         """
         if orderBy == 'desc':
-            self.funcs.sort(taskSortDesc)
+            self.funcs.sort(key=lambda x: (x.desc,x.name,x.uid))
         else:
-            self.funcs.sort(taskSortName)
+            self.funcs.sort(key=lambda x: (x.name,x.uid,x.desc))
     def sortProcs(self,orderBy='name'):
         """
         Sort this packages procedure task list
@@ -655,9 +623,9 @@ class PackageTaskList(TaskList):
         @param optional string orderBy 'name' (default) or 'desc'
         """
         if orderBy == 'desc':
-            self.procs.sort(taskSortDesc)
+            self.procs.sort(key=lambda x: (x.desc,x.name,x.uid))
         else:
-            self.procs.sort(taskSortName)
+            self.procs.sort(key=lambda x: (x.name,x.uid,x.desc))
     def getSubHtml(self,objectType):
         """
         Generate the Table BODY for tasks of the specified objectType

@@ -5,7 +5,6 @@ Copyright 2010 Itzchak Rehberg & IzzySoft
 """
 
 import os
-from dircache import listdir
 import cPickle
 from iz_tools.system import fopen
 
@@ -159,10 +158,10 @@ class cache(object):
         @param optional ctype type (extension) of cache to remove (default: 'all')
         """
         if ctype=='all':
-            for fname in listdir(self.dirname): os.unlink(fname)
+            for fname in os.listdir(self.dirname): os.unlink(fname)
         else:
             ext = '.'+ctype
             pos = len(ext)
-            for fname in listdir(self.dirname):
+            for fname in os.listdir(self.dirname):
                 if fname[len(fname)-pos:]==ext: os.unlink(os.path.join(self.dirname,fname))
 

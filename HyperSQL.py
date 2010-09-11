@@ -354,7 +354,7 @@ if __name__ == "__main__":
     confLogger()
     from hypercore.logger import logg
     logger = logg.getLogger()
-    logger.info(_('HyperSQL v%s initialized') % metaInfo.versionString)
+    printProgress(_('HyperSQL v%s initialized') % metaInfo.versionString, logName)
     logger.debug('ScriptName: '+metaInfo.scriptName)
 
     if len(confName) > 0:
@@ -420,12 +420,10 @@ if __name__ == "__main__":
     CreateHyperlinkedSourceFilePages()
     CreateUnitTests()
 
-    printProgress(_("done"), logName)
-
     logger.info('Processed %s total lines: %s empty, %s plain comments, %s plain code, %s mixed', \
         metaInfo.getLoc('totals'), metaInfo.getLoc('empty'), metaInfo.getLoc('comment'), metaInfo.getLoc('code'), \
         metaInfo.getLoc('totals') - metaInfo.getLoc('empty') - metaInfo.getLoc('comment') - metaInfo.getLoc('code'))
     logger.info('Percentage: %s%% empty, %s%% plain comments, %s%% plain code, %s%% mixed', \
         metaInfo.getLocPct('empty'), metaInfo.getLocPct('comment'), metaInfo.getLocPct('code'), \
         metaInfo.getLocPct('mixed'))
-    logger.info(_('HyperSQL v%s exiting normally')+'\n', metaInfo.versionString)
+    printProgress(_('HyperSQL v%s exiting normally') % metaInfo.versionString +'\n', logName)

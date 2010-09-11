@@ -1,6 +1,7 @@
 """
 (PL/)SQL and Oracle Forms statistics
 """
+from __future__ import division ### temporary to verify Python v3 compatibility
 __revision__ = '$Id$'
 
 from hypercore.elements import metaInfo

@@ -3,6 +3,7 @@ HyperSQL Core helper functions
 Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
+from __future__ import division ### temporary to verify Python v3 compatibility
 __revision__ = '$Id$'
 
 from locale import format as loc_format, setlocale, LC_NUMERIC
@@ -14,9 +15,9 @@ logger = logg.getLogger()
 # Setup gettext support
 import gettext
 from .gettext_init import langpath, langs
-gettext.bindtextdomain('hyperjdoc', langpath)
-gettext.textdomain('hyperjdoc')
-lang = gettext.translation('hyperjdoc', langpath, languages=langs, fallback=True)
+gettext.bindtextdomain('hypersql', langpath)
+gettext.textdomain('hypersql')
+lang = gettext.translation('hypersql', langpath, languages=langs, fallback=True)
 _ = lang.ugettext
 
 
@@ -24,39 +25,6 @@ try:
     setlocale(LC_NUMERIC, '')
 except:
     None
-
-def listCompName(a,b):
-    """
-    Helper to sort a list of objects by their "name" property using
-    list.sort(listCompName)
-    used by FileInfo.sortLists
-    """
-    if a.name < b.name: return -1
-    elif a.name > b.name: return 1
-    else: return 0
-
-def TupleCompareFirstElements(a, b):
-    """
-    used for sorting list of tuples by values of first elements in the tuples
-    @param tuple a
-    @param tuple b
-    @return int 0 for equal, -1 if a is less, 1 if a is greater than b
-    """
-    if a[0] < b[0]: return -1
-    if a[0] > b[0]: return 1
-    return 0
-
-
-def CaseInsensitiveComparison(a, b):
-    """
-    used for case insensitive string sorts
-    @param string a
-    @param string b
-    @return int 0 for equal, -1 if a is less, 1 if a is greater than b
-    """
-    if a.upper() < b.upper(): return -1
-    if a.upper() > b.upper(): return 1
-    return 0
 
 def num_format(num, places=0):
     """

@@ -4,10 +4,10 @@ HyperSQL Core elements
 Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 Copyright 2010 Itzchak Rehberg & IzzySoft
 """
+from __future__ import division ### temporary to verify Python v3 compatibility
 __revision__ = '$Id$'
 
 from .javadoc import JavaDoc, PackageTaskList
-from .helpers import listCompName
 
 class ElemInfo(object):
     """ Object to hold information about a function, or procedure """
@@ -57,9 +57,9 @@ class ElemInfo(object):
         if self.lineNumber<0: return 'Empty '+mytype+' object'
         if self.name: ret = mytype+' object "' + self.name + '"'
         else: ret = 'unnamed '+mytype+' object'
-        if self.parent: ret += ' with parent ' + `self.parent`
+        if self.parent: ret += ' with parent ' + repr(self.parent)
         else: ret += ' without parent'
-        return ret + ', attached JavaDoc:\n' + `self.javadoc` + '\n'
+        return ret + ', attached JavaDoc:\n' + repr(self.javadoc) + '\n'
 
 class StandAloneElemInfo(ElemInfo):
     """ Object to hold information about stand-alone elements (tables, views, etc.) """
@@ -71,9 +71,9 @@ class StandAloneElemInfo(ElemInfo):
         self.verification = PackageTaskList()
     def __repr__(self):
         ret = ElemInfo.__repr__(self)+'\n* Name: '+self.name+'\n'
-        ret += '* '+`self.bugs.allItemCount()`+' know bugs\n'
-        ret += '* '+`self.todo.allItemCount()`+' know todos\n'
-        ret += '* '+`self.verification.allItemCount()`+' know verification errors\n'
+        ret += '* %d known bugs\n' % self.bugs.allItemCount()
+        ret += '* %d known todos\n' % self.todo.allItemCount()
+        ret += '* %d known verification errors\n' % self.verification.allItemCount()
         return ret
 
 class PackageInfo(StandAloneElemInfo):
@@ -85,8 +85,8 @@ class PackageInfo(StandAloneElemInfo):
         self.procedureInfoList = []
     def __repr__(self):
         ret = StandAloneElemInfo.__repr__(self)
-        ret += '* '+`len(self.functionInfoList)`+' functions\n'
-        ret += '* '+`len(self.procedureInfoList)`+' procedures\n'
+        ret += '* %d functions\n' % len(self.functionInfoList)
+        ret += '* %d procedures\n' % len(self.procedureInfoList)
         return ret
 
 class FormInfo(StandAloneElemInfo):
@@ -107,12 +107,12 @@ class FormInfo(StandAloneElemInfo):
         """ Basic information for debug """
         if self.formType == '': return 'empty form'
         ret = 'Form '+self.formType+' "'+self.name+'":\n' \
-            + '* '+`self.objects`+' objects\n' \
-            + '* '+`len(self.packageInfoList)`+' packages\n' \
-            + '* '+`len(self.functionInfoList)`+' functions\n' \
-            + '* '+`len(self.procedureInfoList)`+' procedures\n' \
-            + '* '+`len(self.triggerInfoList)`+' trigger\n' \
-            + '* Stats: '+`self.stats`+'\n'
+            + '* %d objects\n' % self.objects \
+            + '* %d packages\n' % len(self.packageInfoList) \
+            + '* %d functions\n' % len(self.functionInfoList) \
+            + '* %d procedures\n' % len(self.procedureInfoList) \
+            + '* %d trigger\n' % len(self.triggerInfoList) \
+            + '* Stats: '+repr(self.stats)+'\n'
         if self.parent: ret += '* Parent: '+self.parent.fileName
         return ret
 
@@ -143,18 +143,18 @@ class FileInfo(object):
     def __repr__(self):
         ret  = self.fileType +' file "'+ self.fileName +'":\n  '
         if self.fileType.lower() == 'xml':
-            ret += `self.xmlbytes` +' bytes including '+ `self.xmlcodebytes` +' bytes of code'
+            ret += '%d bytes including %d bytes of code' % (self.xmlbytes, self.xmlcodebytes)
         else:
-            ret += `self.lines` +' lines with '+ `self.bytes` +' bytes'
+            ret += '%d lines with %d bytes' % (self.lines, self.bytes)
         return ret+'\n  Unique Name: "'+self.uniqueName+'"\n'
 
     def sortLists(self):
         """ Sort all lists alphabetically by object name """
-        if len(self.viewInfoList) > 0: self.viewInfoList.sort(listCompName)
+        if len(self.viewInfoList) > 0: self.viewInfoList.sort(key=lambda x: x.name)
         if len(self.packageInfoList) > 0:
             for p in self.packageInfoList:
-                if len(p.functionInfoList) > 0: p.functionInfoList.sort(listCompName)
-                if len(p.procedureInfoList) > 0: p.procedureInfoList.sort(listCompName)
+                if len(p.functionInfoList) > 0: p.functionInfoList.sort(key=lambda x: x.name)
+                if len(p.procedureInfoList) > 0: p.procedureInfoList.sort(key=lambda x: x.name)
 
     def getHtmlName(self):
         """ Get the name of the corresponding HTML file """
