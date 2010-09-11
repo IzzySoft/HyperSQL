@@ -2,14 +2,29 @@
 # Generate the POT files for this project
 ARGS="-s -L Python --foreign-user"
 
+[ ! -f /etc/SuSE-release ] && { # SuSE does not accept this parameter
+ hsql=' --package-name=hypersql'
+ jdoc=' --package-name=hyperjdoc'
+ graf=' --package-name=depgraph'
+ hopt=' --package-name=hyperopts'
+}
+
 # Make sure we are in the correct directory
 cd ${0%%/*}
 
 # Generate the POT files
-[ ../../HyperSQL.py -nt hypersql.pot -o ../../lib/hypercore/config.py -nt hypersql.pot ] && xgettext -o hypersql.pot $ARGS --foreign-user --package-name=hypersql ../../HyperSQL.py ../../lib/hypercore/config.py
-[ ../../lib/hyperjdoc.py -nt hyperjdoc.pot ] && xgettext -o hyperjdoc.pot $ARGS --package-name=hyperjdoc ../../lib/hyperjdoc.py
-[ ../../lib/depgraph.py -nt depgraph.pot ] && xgettext -o depgraph.pot $ARGS --package-name=depgraph ../../lib/depgraph.py
-[ ../../lib/hyperopts.py -nt hyperopts.pot ] && xgettext -o hyperopts.pot $ARGS --package-name=hyperopts ../../lib/hyperopts.py
+[ ../../../HyperSQL.py -nt hypersql.pot \
+  -o ../../../lib/hypercore/config.py -nt hypersql.pot \
+  -o ../../../lib/generator/commonhtml.py -nt hypersql.pot \
+  -o ../../../lib/generator/sqlstats.py -nt hypersql.pot \
+  -o ../../../lib/generator/db_html.py -nt hypersql.pot \
+  -o ../../../lib/parser/sqlfinder.py -nt hypersql.pot \
+  -o ../../../lib/hypercore/helpers.py -nt hypersql.pot \
+] && xgettext -o hypersql.pot $ARGS $hsql ../../../HyperSQL.py ../../../lib/hypercore/config.py ../../../lib/generator/commonhtml.py ../../../lib/generator/sqlstats.py ../../../lib/generator/db_html.py ../../../lib/parser/sqlfinder.py ../../../lib/hypercore/helpers.py
+[ ../../../lib/hyperjdoc.py -nt hyperjdoc.pot ] && xgettext -o hyperjdoc.pot $ARGS $jdoc ../../../lib/hyperjdoc.py
+[ ../../../lib/depgraph.py -nt depgraph.pot ] && xgettext -o depgraph.pot $ARGS $graf ../../../lib/depgraph.py
+[ ../../../lib/hyperopts.py -nt hyperopts.pot ] && xgettext -o hyperopts.pot $ARGS $hopt ../../../lib/hyperopts.py
 
 # Get back to where we came from
 cd -
+

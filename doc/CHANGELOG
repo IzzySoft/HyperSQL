@@ -9,6 +9,9 @@ v3.8.5
 + HTML anchors also have more "steady names" now (unique within the file,
   changing only when an object is renamed or an object with the same name
   is inserted BEFORE it)
+* prepared code for Python v3 compatibility
+* reorganized gettext .pot file location so code links do work now
+
 
 v3.8.0 (29.08.2010)
 -------------------
