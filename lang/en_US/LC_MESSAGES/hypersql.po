@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hypersql\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-08-19 19:13+0200\n"
-"PO-Revision-Date: 2010-08-19 19:14+0100\n"
+"POT-Creation-Date: 2010-09-11 21:49+0200\n"
+"PO-Revision-Date: 2010-09-11 21:53+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -12,911 +12,894 @@ msgstr ""
 "X-Poedit-Language: English\n"
 "X-Poedit-Country: UNITED STATES\n"
 
-#: ../../HyperSQL.py:1564
+#: ../../../lib/generator/sqlstats.py:193
 #, python-format
 msgid "%(from)s to %(to)s lines"
 msgstr "%(from)s to %(to)s lines"
 
-#: ../../HyperSQL.py:172
-#: ../../HyperSQL.py:194
-#: ../../HyperSQL.py:240
+#: ../../../lib/parser/sqlfinder.py:58
+#: ../../../lib/parser/sqlfinder.py:82
+#: ../../../lib/parser/sqlfinder.py:132
 #, python-format
 msgid "%(otype)s %(name)s has no JavaDoc information attached"
 msgstr "%(otype)s %(name)s has no JavaDoc information attached"
 
-#: ../../HyperSQL.py:1565
+#: ../../../lib/generator/sqlstats.py:194
 #, python-format
 msgid "%s lines and more"
 msgstr "%s lines and more"
 
-#: ../../HyperSQL.py:76
+#: ../../../lib/generator/commonhtml.py:70
 #, python-format
 msgid "%s obsolete files removed from cache"
 msgstr "%s obsolete files removed from cache"
 
-#: ../../HyperSQL.py:2996
+#: ../../../lib/generator/commonhtml.py:437
 msgid "Access from"
 msgstr "Access from"
 
-#: ../../HyperSQL.py:1885
-#: ../../HyperSQL.py:2298
+#: ../../../lib/generator/db_html.py:293
+#: ../../../lib/generator/db_html.py:389
 msgid "ApiDoc"
 msgstr "ApiDoc"
 
-#: ../../HyperSQL.py:1617
+#: ../../../lib/generator/sqlstats.py:246
 msgid "Avg Bytes"
 msgstr "Avg Bytes"
 
-#: ../../HyperSQL.py:1572
+#: ../../../lib/generator/sqlstats.py:201
 msgid "Avg Lines"
 msgstr "Avg Lines"
 
-#: ../../HyperSQL.py:3106
-#: ../../lib/hypercore/config.py:113
+#: ../../../lib/hypercore/config.py:113
 msgid "Bug List"
 msgstr "Bug List"
 
-#: ../../HyperSQL.py:1672
+#: ../../../lib/generator/sqlstats.py:301
 msgid "Bugs"
 msgstr "Bugs"
 
-#: ../../HyperSQL.py:2666
+#: ../../../lib/generator/commonhtml.py:93
 msgid "CSS-File"
 msgstr "CSS-File"
 
-#: ../../HyperSQL.py:143
+#: ../../../lib/parser/sqlfinder.py:266
 msgid "Cannot process Oracle Forms XML files - SAX API (pyxml) seems to be unavailable."
 msgstr "Cannot process Oracle Forms XML files - SAX API (pyxml) seems to be unavailable."
 
-#: ../../HyperSQL.py:73
+#: ../../../lib/generator/commonhtml.py:66
 msgid "Checking cache for copies of already deleted/moved files"
 msgstr "Checking cache for copies of already deleted/moved files"
 
-#: ../../HyperSQL.py:1442
-#: ../../HyperSQL.py:1878
-#: ../../HyperSQL.py:2291
+#: ../../../lib/generator/sqlstats.py:71
+#: ../../../lib/generator/db_html.py:286
+#: ../../../lib/generator/db_html.py:382
 msgid "Code"
 msgstr "Code"
 
-#: ../../HyperSQL.py:3109
-#: ../../lib/hypercore/config.py:116
+#: ../../../lib/hypercore/config.py:116
 msgid "Code Statistics"
 msgstr "Code Statistics"
 
-#: ../../HyperSQL.py:1443
+#: ../../../lib/generator/sqlstats.py:72
 msgid "Comment"
 msgstr "Comment"
 
-#: ../../HyperSQL.py:2657
+#: ../../../lib/generator/commonhtml.py:84
 msgid "Copying static files"
 msgstr "Copying static files"
 
-#: ../../HyperSQL.py:883
+#: ../../../lib/parser/sqlfinder.py:749
 #, python-format
 msgid "Could not find filename for %(otype)s %(name)s"
 msgstr "Could not find filename for %(otype)s %(name)s"
 
-#: ../../HyperSQL.py:2265
+#: ../../../lib/generator/db_html.py:264
 msgid "Creating \"package with functions and procedures\" index"
 msgstr "Creating detailed package index"
 
-#: ../../HyperSQL.py:2843
+#: ../../../lib/generator/db_html.py:1044
 msgid "Creating \"where used\" pages"
 msgstr "Creating 'where used' pages"
 
-#: ../../HyperSQL.py:1782
-#: ../../HyperSQL.py:1918
-#: ../../HyperSQL.py:1987
-#: ../../HyperSQL.py:1989
+#: ../../../lib/generator/db_html.py:41
+#: ../../../lib/generator/db_html.py:112
+#: ../../../lib/generator/db_html.py:114
+#: ../../../lib/generator/db_html.py:322
 #, python-format
 msgid "Creating %s index"
 msgstr "Creating %s index"
 
-#: ../../HyperSQL.py:2075
+#: ../../../lib/generator/db_html.py:425
 #, python-format
 msgid "Creating %s list"
 msgstr "Creating %s list"
 
-#: ../../HyperSQL.py:2933
+#: ../../../lib/generator/commonhtml.py:374
 msgid "Creating dependency graphs"
 msgstr "Creating dependency graphs"
 
-#: ../../HyperSQL.py:88
+#: ../../../HyperSQL.py:69
 msgid "Creating file list"
 msgstr "Creating file list"
 
-#: ../../HyperSQL.py:1711
+#: ../../../lib/generator/commonhtml.py:323
 msgid "Creating filename by path index"
 msgstr "Creating filename by path index"
 
-#: ../../HyperSQL.py:1708
+#: ../../../lib/generator/commonhtml.py:320
 msgid "Creating filename no path index"
 msgstr "Creating filename no path index"
 
-#: ../../HyperSQL.py:1854
+#: ../../../lib/generator/db_html.py:362
 msgid "Creating full form index"
 msgstr "Creating detailed form index"
 
-#: ../../HyperSQL.py:2392
+#: ../../../lib/generator/db_html.py:640
 msgid "Creating hyperlinked source file pages"
 msgstr "Creating hyperlinked source file pages"
 
-#: ../../HyperSQL.py:1320
+#: ../../../lib/generator/commonhtml.py:31
 msgid "Creating output subdirectories"
 msgstr "Creating output subdirectories"
 
-#: ../../HyperSQL.py:2222
+#: ../../../lib/generator/db_html.py:224
 msgid "Creating package index"
 msgstr "Creating package index"
 
-#: ../../HyperSQL.py:2678
+#: ../../../lib/generator/commonhtml.py:279
 msgid "Creating site index page"
 msgstr "Creating site index page"
 
-#: ../../HyperSQL.py:1398
+#: ../../../lib/generator/sqlstats.py:332
 msgid "Creating statistics page"
 msgstr "Creating statistics page"
 
-#: ../../HyperSQL.py:2994
-#: ../../HyperSQL.py:3012
+#: ../../../lib/generator/commonhtml.py:435
+#: ../../../lib/generator/commonhtml.py:453
 msgid "Dependency Graph"
 msgstr "Dependency Graph"
 
-#: ../../HyperSQL.py:3110
-#: ../../lib/hypercore/config.py:117
+#: ../../../lib/hypercore/config.py:117
 msgid "Dependency Graphs"
 msgstr "Dependency Graphs"
 
-#: ../../HyperSQL.py:1792
-#: ../../HyperSQL.py:1953
-#: ../../HyperSQL.py:2042
-#: ../../HyperSQL.py:2242
+#: ../../../lib/generator/db_html.py:72
+#: ../../../lib/generator/db_html.py:164
+#: ../../../lib/generator/db_html.py:240
+#: ../../../lib/generator/db_html.py:328
 msgid "Details"
 msgstr "Details"
 
-#: ../../HyperSQL.py:1444
+#: ../../../lib/generator/sqlstats.py:73
 msgid "Empty"
 msgstr "Empty"
 
-#: ../../HyperSQL.py:1444
+#: ../../../lib/generator/sqlstats.py:73
 msgid "Empty Lines"
 msgstr "Empty Lines"
 
-#: ../../HyperSQL.py:2644
+#: ../../../lib/generator/db_html.py:890
 #, python-format
 msgid "Encoding trouble writing sourcecode of %s:"
 msgstr "Encoding trouble writing sourcecode of %s:"
 
-#: ../../HyperSQL.py:2962
+#: ../../../lib/generator/commonhtml.py:403
 #, python-format
 msgid "Error while copying %s from cache"
 msgstr "Error while copying %s from cache"
 
-#: ../../HyperSQL.py:2972
+#: ../../../lib/generator/commonhtml.py:413
 #, python-format
 msgid "Error while copying %s to cache"
 msgstr "Error while copying %s to cache"
 
-#: ../../HyperSQL.py:958
+#: ../../../lib/parser/sqlfinder.py:830
 msgid "Excluding strings from where_used scan"
 msgstr "Excluding strings from where_used scan"
 
-#: ../../HyperSQL.py:713
+#: ../../../lib/generator/db_html.py:1135
 msgid "Extracting Unit-Tests"
 msgstr "Extracting Unit-Tests"
 
-#: ../../HyperSQL.py:2717
+#: ../../../lib/generator/db_html.py:920
 msgid "File"
 msgstr "File"
 
-#: ../../HyperSQL.py:3093
-#: ../../lib/hypercore/config.py:99
+#: ../../../lib/hypercore/config.py:99
 msgid "File Name Index"
 msgstr "File Names"
 
-#: ../../HyperSQL.py:3092
-#: ../../lib/hypercore/config.py:100
+#: ../../../lib/hypercore/config.py:100
 msgid "File Names by Path Index"
 msgstr "File Names by Path"
 
-#: ../../HyperSQL.py:1542
+#: ../../../lib/generator/sqlstats.py:171
 msgid "File Statistics"
 msgstr "File Statistics"
 
-#: ../../HyperSQL.py:1610
+#: ../../../lib/generator/sqlstats.py:239
 #, python-format
 msgid "Files between %(from)s and %(to)s"
 msgstr "Files between %(from)s and %(to)s"
 
-#: ../../HyperSQL.py:1612
+#: ../../../lib/generator/sqlstats.py:241
 #, python-format
 msgid "Files larger than %s"
 msgstr "Files larger than %s"
 
-#: ../../HyperSQL.py:1792
-#: ../../HyperSQL.py:2197
-#: ../../HyperSQL.py:2821
+#: ../../../lib/generator/db_html.py:328
+#: ../../../lib/generator/db_html.py:543
+#: ../../../lib/generator/db_html.py:1024
 msgid "Form"
 msgstr "Form"
 
-#: ../../HyperSQL.py:2544
+#: ../../../lib/generator/db_html.py:790
 msgid "Form Functions"
 msgstr "Form Functions"
 
-#: ../../HyperSQL.py:2199
+#: ../../../lib/generator/db_html.py:545
 msgid "Form General"
 msgstr "Form General"
 
-#: ../../HyperSQL.py:3104
-#: ../../lib/hypercore/config.py:111
+#: ../../../lib/hypercore/config.py:111
 msgid "Form Index"
 msgstr "Forms"
 
-#: ../../HyperSQL.py:2473
+#: ../../../lib/generator/db_html.py:720
 msgid "Form Overview"
 msgstr "Form Overview"
 
-#: ../../HyperSQL.py:2500
+#: ../../../lib/generator/db_html.py:747
 msgid "Form Packages"
 msgstr "Form Packages"
 
-#: ../../HyperSQL.py:2557
+#: ../../../lib/generator/db_html.py:803
 msgid "Form Procedures"
 msgstr "Form Procedures"
 
-#: ../../HyperSQL.py:3105
-#: ../../lib/hypercore/config.py:112
+#: ../../../lib/hypercore/config.py:112
 msgid "Full Forms Listing"
 msgstr "Full Forms Listing"
 
-#: ../../HyperSQL.py:3101
-#: ../../lib/hypercore/config.py:108
+#: ../../../lib/hypercore/config.py:108
 msgid "Full Package Listing"
 msgstr "Full Package Listing"
 
-#: ../../HyperSQL.py:1896
-#: ../../HyperSQL.py:1927
-#: ../../HyperSQL.py:2177
-#: ../../HyperSQL.py:2306
-#: ../../HyperSQL.py:2809
-#: ../../HyperSQL.py:2815
+#: ../../../lib/generator/db_html.py:46
+#: ../../../lib/generator/db_html.py:301
+#: ../../../lib/generator/db_html.py:400
+#: ../../../lib/generator/db_html.py:523
+#: ../../../lib/generator/db_html.py:1012
+#: ../../../lib/generator/db_html.py:1018
 msgid "Function"
 msgstr "Function"
 
-#: ../../HyperSQL.py:627
+#: ../../../lib/parser/sqlfinder.py:550
 #, python-format
 msgid "Function %(function)s in package %(package)s has no JavaDoc information attached"
 msgstr "Function %(function)s in package %(package)s has no JavaDoc information attached"
 
-#: ../../HyperSQL.py:3102
-#: ../../lib/hypercore/config.py:109
+#: ../../../lib/hypercore/config.py:109
 msgid "Function Index"
 msgstr "Functions"
 
-#: ../../HyperSQL.py:1502
-#: ../../HyperSQL.py:1532
-#: ../../HyperSQL.py:1896
-#: ../../HyperSQL.py:2169
-#: ../../HyperSQL.py:2202
-#: ../../HyperSQL.py:2306
-#: ../../HyperSQL.py:2461
-#: ../../HyperSQL.py:2489
-#: ../../HyperSQL.py:2525
-#: ../../HyperSQL.py:2546
-#: ../../HyperSQL.py:2583
-#: ../../HyperSQL.py:2584
+#: ../../../lib/generator/sqlstats.py:131
+#: ../../../lib/generator/sqlstats.py:161
+#: ../../../lib/generator/db_html.py:301
+#: ../../../lib/generator/db_html.py:400
+#: ../../../lib/generator/db_html.py:515
+#: ../../../lib/generator/db_html.py:548
+#: ../../../lib/generator/db_html.py:708
+#: ../../../lib/generator/db_html.py:736
+#: ../../../lib/generator/db_html.py:771
+#: ../../../lib/generator/db_html.py:792
+#: ../../../lib/generator/db_html.py:830
+#: ../../../lib/generator/db_html.py:831
 msgid "Functions"
 msgstr "Functions"
 
-#: ../../HyperSQL.py:2974
+#: ../../../lib/generator/commonhtml.py:415
 msgid "Graphviz threw an error:"
 msgstr "Graphviz threw an error:"
 
-#: ../../HyperSQL.py:2929
+#: ../../../lib/generator/commonhtml.py:370
 msgid "Graphviz trouble - unable to generate the graph"
 msgstr "Graphviz trouble - unable to generate the graph"
 
-#: ../../HyperSQL.py:1405
-#: ../../HyperSQL.py:2666
-#: ../../HyperSQL.py:2674
+#: ../../../lib/generator/commonhtml.py:93
+#: ../../../lib/generator/commonhtml.py:100
+#: ../../../lib/generator/sqlstats.py:339
 msgid "HTML-Dir"
 msgstr "HTML-Dir"
 
-#: ../../HyperSQL.py:2685
+#: ../../../lib/generator/commonhtml.py:286
 msgid "HyperSQL Reference"
 msgstr "HyperSQL Reference"
 
-#: ../../HyperSQL.py:3431
+#: ../../../HyperSQL.py:429
 #, python-format
 msgid "HyperSQL v%s exiting normally"
 msgstr "HyperSQL v%s exiting normally"
 
-#: ../../HyperSQL.py:3358
+#: ../../../HyperSQL.py:357
 #, python-format
 msgid "HyperSQL v%s initialized"
 msgstr "HyperSQL v%s initialized"
 
-#: ../../HyperSQL.py:1405
-#: ../../HyperSQL.py:2666
-#: ../../HyperSQL.py:2674
+#: ../../../lib/generator/commonhtml.py:93
+#: ../../../lib/generator/commonhtml.py:100
+#: ../../../lib/generator/sqlstats.py:339
 #, python-format
 msgid "I/O error while copying %(source)s to %(target)s"
 msgstr "I/O error while copying %(source)s to %(target)s"
 
-#: ../../HyperSQL.py:956
+#: ../../../lib/parser/sqlfinder.py:829
 msgid "Including strings in where_used scan"
 msgstr "Including strings in where_used scan"
 
-#: ../../HyperSQL.py:1709
+#: ../../../lib/generator/commonhtml.py:321
 msgid "Index Of All Files By File Name"
 msgstr "Index Of All Files By File Name"
 
-#: ../../HyperSQL.py:1712
+#: ../../../lib/generator/commonhtml.py:324
 msgid "Index Of All Files By Path Name"
 msgstr "Index Of All Files By Path Name"
 
-#: ../../HyperSQL.py:1790
+#: ../../../lib/generator/db_html.py:326
 msgid "Index Of All Forms"
 msgstr "Index Of All Forms"
 
-#: ../../HyperSQL.py:1926
+#: ../../../lib/generator/db_html.py:45
 msgid "Index Of All Functions"
 msgstr "Index Of All Functions"
 
-#: ../../HyperSQL.py:2004
+#: ../../../lib/generator/db_html.py:126
 msgid "Index Of All Materialized Views"
 msgstr "Index Of All Materialized Views"
 
-#: ../../HyperSQL.py:2240
+#: ../../../lib/generator/db_html.py:238
 msgid "Index Of All Packages"
 msgstr "Index Of All Packages"
 
-#: ../../HyperSQL.py:2283
+#: ../../../lib/generator/db_html.py:278
 msgid "Index Of All Packages, Their Functions And Procedures"
 msgstr "Index Of All Packages, Their Functions And Procedures"
 
-#: ../../HyperSQL.py:1929
+#: ../../../lib/generator/db_html.py:48
 msgid "Index Of All Procedures"
 msgstr "Index Of All Procedures"
 
-#: ../../HyperSQL.py:2007
+#: ../../../lib/generator/db_html.py:129
 msgid "Index Of All Sequences"
 msgstr "Index Of All Sequences"
 
-#: ../../HyperSQL.py:2010
+#: ../../../lib/generator/db_html.py:132
 msgid "Index Of All Synonyms"
 msgstr "Index Of All Synonyms"
 
-#: ../../HyperSQL.py:1998
+#: ../../../lib/generator/db_html.py:120
 msgid "Index Of All Tables"
 msgstr "Index Of All Tables"
 
-#: ../../HyperSQL.py:1995
+#: ../../../lib/generator/db_html.py:117
 msgid "Index Of All Triggers"
 msgstr "Index Of All Trigger"
 
-#: ../../HyperSQL.py:2001
+#: ../../../lib/generator/db_html.py:123
 msgid "Index Of All Views"
 msgstr "Index Of All Views"
 
-#: ../../HyperSQL.py:2013
+#: ../../../lib/generator/db_html.py:135
 #, python-format
 msgid "Index for unknown object type %s"
 msgstr "Index for unknown object type %s"
 
-#: ../../HyperSQL.py:1862
+#: ../../../lib/generator/db_html.py:366
 msgid "Index of all Forms including their ProgramUnits"
 msgstr "Index of all Forms including their ProgramUnits"
 
-#: ../../HyperSQL.py:217
+#: ../../../lib/parser/sqlfinder.py:109
 #, python-format
 msgid "Invalid object type \"%(otype)s\" passed to appendGlobalTasks for %(jotype)s %(name)s"
 msgstr "Invalid object type \"%(otype)s\" passed to appendGlobalTasks for %(jotype)s %(name)s"
 
-#: ../../HyperSQL.py:1657
+#: ../../../lib/generator/sqlstats.py:286
 msgid "JavaDoc Statistics"
 msgstr "JavaDoc Statistics"
 
-#: ../../HyperSQL.py:2150
+#: ../../../lib/generator/db_html.py:496
 msgid "JavaDoc Validation Report"
 msgstr "JavaDoc Validation Report"
 
-#: ../../HyperSQL.py:1686
+#: ../../../lib/generator/sqlstats.py:315
 msgid "JavaDoc Warnings"
 msgstr "JavaDoc Warnings"
 
-#: ../../HyperSQL.py:1671
+#: ../../../lib/generator/sqlstats.py:300
 msgid "JavaDoc validation warnings"
 msgstr "JavaDoc validation warnings"
 
-#: ../../HyperSQL.py:1687
+#: ../../../lib/generator/sqlstats.py:316
 msgid "Known Bugs"
 msgstr "Known Bugs"
 
-#: ../../HyperSQL.py:1672
+#: ../../../lib/generator/sqlstats.py:301
 msgid "Known Bugs (from your @bug tags)"
 msgstr "Known Bugs (from your @bug tags)"
 
-#: ../../HyperSQL.py:1629
+#: ../../../lib/generator/sqlstats.py:258
 msgid "Largest"
 msgstr "Largest"
 
-#: ../../HyperSQL.py:2717
+#: ../../../lib/generator/db_html.py:920
 msgid "Line"
 msgstr "Line"
 
-#: ../../HyperSQL.py:1421
+#: ../../../lib/generator/sqlstats.py:50
 msgid "Lines"
 msgstr "Lines"
 
-#: ../../HyperSQL.py:1420
+#: ../../../lib/generator/sqlstats.py:49
 msgid "Lines of Code"
 msgstr "Lines of Code"
 
-#: ../../HyperSQL.py:1445
+#: ../../../lib/generator/sqlstats.py:74
 msgid "Lines with Code and Comments"
 msgstr "Lines with Code and Comments"
 
-#: ../../HyperSQL.py:2146
+#: ../../../lib/generator/db_html.py:492
 msgid "List of open Bugs"
 msgstr "List of open Bugs"
 
-#: ../../HyperSQL.py:2148
+#: ../../../lib/generator/db_html.py:494
 msgid "List of things ToDo"
 msgstr "List of things ToDo"
 
-#: ../../HyperSQL.py:1584
+#: ../../../lib/generator/sqlstats.py:213
 msgid "Longest"
 msgstr "Longest"
 
-#: ../../HyperSQL.py:2181
+#: ../../../lib/generator/db_html.py:527
 msgid "MView"
 msgstr "MView"
 
-#: ../../HyperSQL.py:3095
-msgid "MView Index"
-msgstr "MView Index"
-
-#: ../../HyperSQL.py:1500
+#: ../../../lib/generator/sqlstats.py:129
 msgid "MViews"
 msgstr "MViews"
 
-#: ../../HyperSQL.py:1260
-#: ../../HyperSQL.py:1262
+#: ../../../lib/generator/commonhtml.py:125
+#: ../../../lib/generator/commonhtml.py:127
 msgid "Main Index"
 msgstr "Start Page"
 
-#: ../../HyperSQL.py:2005
-#: ../../HyperSQL.py:2793
+#: ../../../lib/generator/db_html.py:127
+#: ../../../lib/generator/db_html.py:996
 msgid "Materialized View"
 msgstr "Materialized View"
 
-#: ../../lib/hypercore/config.py:102
+#: ../../../lib/hypercore/config.py:102
 msgid "Materialized View Index"
 msgstr "Materialized Views"
 
-#: ../../HyperSQL.py:1530
-#: ../../HyperSQL.py:2443
+#: ../../../lib/generator/sqlstats.py:159
+#: ../../../lib/generator/db_html.py:690
 msgid "Materialized Views"
 msgstr "Materialized Views"
 
-#: ../../HyperSQL.py:1445
+#: ../../../lib/generator/sqlstats.py:74
 msgid "Mixed"
 msgstr "Mixed"
 
-#: ../../HyperSQL.py:638
-#: ../../HyperSQL.py:693
+#: ../../../lib/parser/sqlfinder.py:561
+#: ../../../lib/parser/sqlfinder.py:616
 #, python-format
 msgid "Multiple definitions for function %(package)s.%(function)s, parameters not verified"
 msgstr "Multiple definitions for function %(package)s.%(function)s, parameters not verified"
 
-#: ../../HyperSQL.py:1421
-#: ../../HyperSQL.py:1484
-#: ../../HyperSQL.py:1543
-#: ../../HyperSQL.py:1658
+#: ../../../lib/generator/sqlstats.py:50
+#: ../../../lib/generator/sqlstats.py:113
+#: ../../../lib/generator/sqlstats.py:172
+#: ../../../lib/generator/sqlstats.py:287
 msgid "Name"
 msgstr "Name"
 
-#: ../../HyperSQL.py:628
-#: ../../HyperSQL.py:683
-#: ../../HyperSQL.py:2541
-#: ../../HyperSQL.py:2553
-#: ../../HyperSQL.py:2566
+#: ../../../lib/generator/db_html.py:787
+#: ../../../lib/generator/db_html.py:799
+#: ../../../lib/generator/db_html.py:812
+#: ../../../lib/parser/sqlfinder.py:551
+#: ../../../lib/parser/sqlfinder.py:606
 msgid "No JavaDoc information available"
 msgstr "No JavaDoc information available"
 
-#: ../../HyperSQL.py:3349
-#: ../../HyperSQL.py:3364
+#: ../../../HyperSQL.py:347
+#: ../../../HyperSQL.py:363
 msgid "No config file found, using defaults."
 msgstr "No config file found, using defaults."
 
-#: ../../HyperSQL.py:2981
+#: ../../../lib/generator/commonhtml.py:422
 #, python-format
 msgid "No dependency data for %s"
 msgstr "No dependency data for %s"
 
-#: ../../HyperSQL.py:2014
-#: ../../HyperSQL.py:2717
+#: ../../../lib/generator/db_html.py:136
+#: ../../../lib/generator/db_html.py:920
 msgid "Object"
 msgstr "Object"
 
-#: ../../HyperSQL.py:1483
+#: ../../../lib/generator/sqlstats.py:112
 msgid "Object Statistics"
 msgstr "Object Statistics"
 
-#: ../../HyperSQL.py:1414
+#: ../../../lib/generator/db_html.py:1148
+#, python-format
+msgid "Object type %(otype)s is not supported for unit-tests, skipping \"%(oname)s\""
+msgstr "Object type %(otype)s is not supported for unit-tests, skipping \"%(oname)s\""
+
+#: ../../../lib/generator/sqlstats.py:43
 msgid "Oracle Forms are not considered for statistics"
 msgstr "Oracle Forms are not considered for statistics"
 
-#: ../../HyperSQL.py:2487
+#: ../../../lib/generator/db_html.py:734
 msgid "PL/SQL Code"
 msgstr "PL/SQL Code"
 
-#: ../../HyperSQL.py:1892
-#: ../../HyperSQL.py:2164
-#: ../../HyperSQL.py:2242
-#: ../../HyperSQL.py:2805
+#: ../../../lib/generator/db_html.py:240
+#: ../../../lib/generator/db_html.py:396
+#: ../../../lib/generator/db_html.py:510
+#: ../../../lib/generator/db_html.py:1008
 msgid "Package"
 msgstr "Package"
 
-#: ../../HyperSQL.py:584
+#: ../../../lib/parser/sqlfinder.py:507
 #, python-format
 msgid "Package %s has no JavaDoc information attached"
 msgstr "Package %s has no JavaDoc information attached"
 
-#: ../../HyperSQL.py:2166
+#: ../../../lib/generator/db_html.py:512
 msgid "Package General"
 msgstr "Package General"
 
-#: ../../HyperSQL.py:3100
-#: ../../lib/hypercore/config.py:107
+#: ../../../lib/hypercore/config.py:107
 msgid "Package Index"
 msgstr "Packages"
 
-#: ../../HyperSQL.py:2573
+#: ../../../lib/generator/db_html.py:819
 msgid "Package Overview"
 msgstr "Package Overview"
 
-#: ../../HyperSQL.py:1892
-#: ../../HyperSQL.py:2488
-#: ../../HyperSQL.py:2501
+#: ../../../lib/generator/db_html.py:396
+#: ../../../lib/generator/db_html.py:735
+#: ../../../lib/generator/db_html.py:748
 msgid "Packages"
 msgstr "Packages"
 
-#: ../../HyperSQL.py:1421
-#: ../../HyperSQL.py:1484
-#: ../../HyperSQL.py:1543
-#: ../../HyperSQL.py:1658
+#: ../../../lib/generator/sqlstats.py:50
+#: ../../../lib/generator/sqlstats.py:113
+#: ../../../lib/generator/sqlstats.py:172
+#: ../../../lib/generator/sqlstats.py:287
 msgid "Pct"
 msgstr "Pct"
 
-#: ../../HyperSQL.py:1442
+#: ../../../lib/generator/sqlstats.py:71
 msgid "Plain Code"
 msgstr "Plain Code"
 
-#: ../../HyperSQL.py:1443
+#: ../../../lib/generator/sqlstats.py:72
 msgid "Plain Comments"
 msgstr "Plain Comments"
 
-#: ../../HyperSQL.py:1900
-#: ../../HyperSQL.py:1930
-#: ../../HyperSQL.py:2178
-#: ../../HyperSQL.py:2312
-#: ../../HyperSQL.py:2812
-#: ../../HyperSQL.py:2818
+#: ../../../lib/generator/db_html.py:49
+#: ../../../lib/generator/db_html.py:307
+#: ../../../lib/generator/db_html.py:404
+#: ../../../lib/generator/db_html.py:524
+#: ../../../lib/generator/db_html.py:1015
+#: ../../../lib/generator/db_html.py:1021
 msgid "Procedure"
 msgstr "Procedure"
 
-#: ../../HyperSQL.py:682
+#: ../../../lib/parser/sqlfinder.py:605
 #, python-format
 msgid "Procedure %(procedure)s in package %(package)s has no JavaDoc information attached"
 msgstr "Procedure %(procedure)s in package %(package)s has no JavaDoc information attached"
 
-#: ../../HyperSQL.py:3103
-#: ../../lib/hypercore/config.py:110
+#: ../../../lib/hypercore/config.py:110
 msgid "Procedure Index"
 msgstr "Procedures"
 
-#: ../../HyperSQL.py:1503
-#: ../../HyperSQL.py:1533
-#: ../../HyperSQL.py:1900
-#: ../../HyperSQL.py:2172
-#: ../../HyperSQL.py:2205
-#: ../../HyperSQL.py:2312
-#: ../../HyperSQL.py:2467
-#: ../../HyperSQL.py:2490
-#: ../../HyperSQL.py:2535
-#: ../../HyperSQL.py:2559
-#: ../../HyperSQL.py:2592
-#: ../../HyperSQL.py:2593
+#: ../../../lib/generator/sqlstats.py:132
+#: ../../../lib/generator/sqlstats.py:162
+#: ../../../lib/generator/db_html.py:307
+#: ../../../lib/generator/db_html.py:404
+#: ../../../lib/generator/db_html.py:518
+#: ../../../lib/generator/db_html.py:551
+#: ../../../lib/generator/db_html.py:714
+#: ../../../lib/generator/db_html.py:737
+#: ../../../lib/generator/db_html.py:781
+#: ../../../lib/generator/db_html.py:805
+#: ../../../lib/generator/db_html.py:839
+#: ../../../lib/generator/db_html.py:840
 msgid "Procedures"
 msgstr "Procedures"
 
-#: ../../HyperSQL.py:64
+#: ../../../lib/hypercore/helpers.py:65
 #, python-format
 msgid "RegExp error searching for \"%s\""
 msgstr "RegExp error searching for \"%s\""
 
-#: ../../HyperSQL.py:3304
-msgid "Removing html files from previous run"
-msgstr "Removing html files from previous run"
+#: ../../../lib/generator/commonhtml.py:49
+msgid "Removing files generated by previous run"
+msgstr "Removing files generated by previous run"
 
-#: ../../HyperSQL.py:245
+#: ../../../lib/parser/sqlfinder.py:263
 msgid "Scanning source files for views and packages"
 msgstr "Scanning source files for objects"
 
-#: ../../HyperSQL.py:953
+#: ../../../lib/parser/sqlfinder.py:825
 msgid "Scanning source files for where views and packages are used"
 msgstr "Scanning source files for where objects are used"
 
-#: ../../HyperSQL.py:2008
-#: ../../HyperSQL.py:2182
-#: ../../HyperSQL.py:2799
+#: ../../../lib/generator/db_html.py:130
+#: ../../../lib/generator/db_html.py:528
+#: ../../../lib/generator/db_html.py:1002
 msgid "Sequence"
 msgstr "Sequence"
 
-#: ../../HyperSQL.py:3099
-#: ../../lib/hypercore/config.py:106
+#: ../../../lib/hypercore/config.py:106
 msgid "Sequence Index"
 msgstr "Sequences"
 
-#: ../../HyperSQL.py:1505
-#: ../../HyperSQL.py:1535
+#: ../../../lib/generator/sqlstats.py:134
+#: ../../../lib/generator/sqlstats.py:164
 msgid "Sequences"
 msgstr "Sequences"
 
-#: ../../HyperSQL.py:1582
+#: ../../../lib/generator/sqlstats.py:211
 msgid "Shortest"
 msgstr "Shortest"
 
-#: ../../HyperSQL.py:322
+#: ../../../lib/parser/sqlfinder.py:209
 #, python-format
 msgid "Skipped unknown form unit type \"%(type)s\" in %(file)s"
 msgstr "Skipped unknown form unit type \"%(type)s\" in %(file)s"
 
-#: ../../HyperSQL.py:1627
+#: ../../../lib/generator/sqlstats.py:256
 msgid "Smallest"
 msgstr "Smallest"
 
-#: ../../HyperSQL.py:2608
+#: ../../../lib/generator/db_html.py:855
 msgid "Source"
 msgstr "Source"
 
-#: ../../HyperSQL.py:2394
+#: ../../../lib/generator/db_html.py:642
 #, python-format
 msgid "Source code inclusion is limited to files smaller than %s"
 msgstr "Source code inclusion is limited to files smaller than %s"
 
-#: ../../HyperSQL.py:2485
+#: ../../../lib/generator/db_html.py:732
 msgid "Statistics"
 msgstr "Statistics"
 
-#: ../../HyperSQL.py:2011
-#: ../../HyperSQL.py:2183
-#: ../../HyperSQL.py:2796
+#: ../../../lib/generator/db_html.py:133
+#: ../../../lib/generator/db_html.py:529
+#: ../../../lib/generator/db_html.py:999
 msgid "Synonym"
 msgstr "Synonym"
 
-#: ../../HyperSQL.py:3098
-#: ../../lib/hypercore/config.py:105
+#: ../../../lib/hypercore/config.py:105
 msgid "Synonym Index"
 msgstr "Synonyms"
 
-#: ../../HyperSQL.py:1504
-#: ../../HyperSQL.py:1534
-#: ../../HyperSQL.py:2449
+#: ../../../lib/generator/sqlstats.py:133
+#: ../../../lib/generator/sqlstats.py:163
+#: ../../../lib/generator/db_html.py:696
 msgid "Synonyms"
 msgstr "Synonyms"
 
-#: ../../HyperSQL.py:1987
-#: ../../HyperSQL.py:1999
-#: ../../HyperSQL.py:2179
-#: ../../HyperSQL.py:2787
+#: ../../../lib/generator/db_html.py:112
+#: ../../../lib/generator/db_html.py:121
+#: ../../../lib/generator/db_html.py:525
+#: ../../../lib/generator/db_html.py:990
 msgid "Table"
 msgstr "Table"
 
-#: ../../HyperSQL.py:3096
-#: ../../lib/hypercore/config.py:103
+#: ../../../lib/hypercore/config.py:103
 msgid "Table Index"
 msgstr "Tables"
 
-#: ../../HyperSQL.py:1499
-#: ../../HyperSQL.py:1529
-#: ../../HyperSQL.py:2431
+#: ../../../lib/generator/sqlstats.py:128
+#: ../../../lib/generator/sqlstats.py:158
+#: ../../../lib/generator/db_html.py:678
 msgid "Tables"
 msgstr "Tables"
 
-#: ../../HyperSQL.py:1688
+#: ../../../lib/generator/sqlstats.py:317
 msgid "Todo Items"
 msgstr "Todo Items"
 
-#: ../../HyperSQL.py:3107
-#: ../../lib/hypercore/config.py:114
+#: ../../../lib/hypercore/config.py:114
 msgid "Todo List"
 msgstr "Dependency Graph"
 
-#: ../../HyperSQL.py:1673
+#: ../../../lib/generator/sqlstats.py:302
 msgid "Todo items (from your @todo tags)"
 msgstr "Todo items (from your @todo tags)"
 
-#: ../../HyperSQL.py:1673
+#: ../../../lib/generator/sqlstats.py:302
 msgid "Todos"
 msgstr "Todos"
 
-#: ../../HyperSQL.py:1594
+#: ../../../lib/generator/sqlstats.py:223
 msgid "Total Bytes"
 msgstr "Total Bytes"
 
-#: ../../HyperSQL.py:1570
+#: ../../../lib/generator/sqlstats.py:199
 msgid "Total Files"
 msgstr "Total Files"
 
-#: ../../HyperSQL.py:1996
-#: ../../HyperSQL.py:2184
-#: ../../HyperSQL.py:2802
+#: ../../../lib/generator/db_html.py:118
+#: ../../../lib/generator/db_html.py:530
+#: ../../../lib/generator/db_html.py:1005
 msgid "Trigger"
 msgstr "Trigger"
 
-#: ../../HyperSQL.py:3097
-#: ../../lib/hypercore/config.py:104
+#: ../../../lib/hypercore/config.py:104
 msgid "Trigger Index"
 msgstr "Trigger"
 
-#: ../../HyperSQL.py:1506
-#: ../../HyperSQL.py:1536
-#: ../../HyperSQL.py:2455
-#: ../../HyperSQL.py:2491
+#: ../../../lib/generator/sqlstats.py:135
+#: ../../../lib/generator/sqlstats.py:165
+#: ../../../lib/generator/db_html.py:702
+#: ../../../lib/generator/db_html.py:738
 msgid "Triggers"
 msgstr "Trigger"
 
-#: ../../HyperSQL.py:1792
-#: ../../HyperSQL.py:1832
-#: ../../HyperSQL.py:1953
-#: ../../HyperSQL.py:2042
-#: ../../HyperSQL.py:2242
+#: ../../../lib/generator/db_html.py:72
+#: ../../../lib/generator/db_html.py:164
+#: ../../../lib/generator/db_html.py:199
+#: ../../../lib/generator/db_html.py:240
+#: ../../../lib/generator/db_html.py:328
 msgid "Usage"
 msgstr "Usage"
 
-#: ../../HyperSQL.py:3362
+#: ../../../HyperSQL.py:361
 msgid "Using config file(s) "
 msgstr "Using config file(s) "
 
-#: ../../lib/hypercore/config.py:115
+#: ../../../lib/hypercore/config.py:115
 msgid "Validation Report"
 msgstr "Validation Report"
 
-#: ../../HyperSQL.py:1484
-#: ../../HyperSQL.py:1543
-#: ../../HyperSQL.py:1658
+#: ../../../lib/generator/sqlstats.py:113
+#: ../../../lib/generator/sqlstats.py:172
+#: ../../../lib/generator/sqlstats.py:287
 msgid "Value"
 msgstr "Value"
 
-#: ../../HyperSQL.py:3108
-msgid "Verification Report"
-msgstr "%(from)s to %(to)s lines"
-
-#: ../../HyperSQL.py:2002
-#: ../../HyperSQL.py:2180
-#: ../../HyperSQL.py:2790
+#: ../../../lib/generator/db_html.py:124
+#: ../../../lib/generator/db_html.py:526
+#: ../../../lib/generator/db_html.py:993
 msgid "View"
 msgstr "View"
 
-#: ../../HyperSQL.py:3094
-#: ../../lib/hypercore/config.py:101
+#: ../../../lib/hypercore/config.py:101
 msgid "View Index"
 msgstr "Views"
 
-#: ../../HyperSQL.py:1501
-#: ../../HyperSQL.py:1531
-#: ../../HyperSQL.py:2437
+#: ../../../lib/generator/sqlstats.py:130
+#: ../../../lib/generator/sqlstats.py:160
+#: ../../../lib/generator/db_html.py:684
 msgid "Views"
 msgstr "Views"
 
-#: ../../HyperSQL.py:1671
+#: ../../../lib/generator/sqlstats.py:300
 msgid "Warnings"
 msgstr "Warnings"
 
-#: ../../HyperSQL.py:2715
-#: ../../HyperSQL.py:2782
+#: ../../../lib/generator/db_html.py:918
+#: ../../../lib/generator/db_html.py:985
 #, python-format
 msgid "What Used List for %s"
 msgstr "Objects used by %s"
 
-#: ../../HyperSQL.py:2713
-#: ../../HyperSQL.py:2777
+#: ../../../lib/generator/db_html.py:916
+#: ../../../lib/generator/db_html.py:980
 #, python-format
 msgid "Where Used List for %s"
 msgstr "Objects using %s"
 
-#: ../../HyperSQL.py:2486
+#: ../../../lib/generator/db_html.py:733
 msgid "XML Size"
 msgstr "XML Size"
 
-#: ../../HyperSQL.py:2091
-#: ../../HyperSQL.py:2174
-#: ../../HyperSQL.py:2207
-#: ../../HyperSQL.py:2647
+#: ../../../lib/generator/db_html.py:441
+#: ../../../lib/generator/db_html.py:520
+#: ../../../lib/generator/db_html.py:553
+#: ../../../lib/generator/db_html.py:893
 msgid "^ Top"
 msgstr "^ Top"
 
-#: ../../HyperSQL.py:3424
-msgid "done"
-msgstr "done"
-
-#: ../../HyperSQL.py:2976
-#: ../../HyperSQL.py:2998
+#: ../../../lib/generator/commonhtml.py:417
+#: ../../../lib/generator/commonhtml.py:439
 msgid "file to file"
 msgstr "file to file"
 
-#: ../../HyperSQL.py:2977
-#: ../../HyperSQL.py:3000
+#: ../../../lib/generator/commonhtml.py:418
+#: ../../../lib/generator/commonhtml.py:441
 msgid "file to object"
 msgstr "file to object"
 
-#: ../../HyperSQL.py:1953
-#: ../../HyperSQL.py:2808
-#: ../../HyperSQL.py:2809
-#: ../../HyperSQL.py:2811
-#: ../../HyperSQL.py:2812
+#: ../../../lib/generator/db_html.py:72
+#: ../../../lib/generator/db_html.py:1011
+#: ../../../lib/generator/db_html.py:1012
+#: ../../../lib/generator/db_html.py:1014
+#: ../../../lib/generator/db_html.py:1015
 msgid "from package"
 msgstr "from package"
 
-#: ../../HyperSQL.py:1405
+#: ../../../lib/generator/sqlstats.py:339
 msgid "javascript file"
 msgstr "javascript file"
 
-#: ../../HyperSQL.py:1563
+#: ../../../lib/generator/sqlstats.py:192
 #, python-format
 msgid "less than %s lines"
 msgstr "less than %s lines"
 
-#: ../../HyperSQL.py:2823
+#: ../../../lib/generator/db_html.py:1026
 #, python-format
 msgid "makeUsagePage called for undefined type \"%s\""
 msgstr "makeUsagePage called for undefined type \"%s\""
 
-#: ../../HyperSQL.py:1768
+#: ../../../lib/generator/commonhtml.py:265
 msgid "no use found"
 msgstr "no use found"
 
-#: ../../HyperSQL.py:2978
-#: ../../HyperSQL.py:3002
+#: ../../../lib/generator/commonhtml.py:419
+#: ../../../lib/generator/commonhtml.py:443
 msgid "object to file"
 msgstr "object to file"
 
-#: ../../HyperSQL.py:2979
-#: ../../HyperSQL.py:3004
+#: ../../../lib/generator/commonhtml.py:420
+#: ../../../lib/generator/commonhtml.py:445
 msgid "object to object"
 msgstr "object to object"
 
-#: ../../HyperSQL.py:2674
+#: ../../../lib/generator/commonhtml.py:100
 msgid "project logo"
 msgstr "project logo"
 
-#: ../../HyperSQL.py:3372
+#: ../../../HyperSQL.py:371
 #, python-format
 msgid "top_level_directory \"%s\" does not exist - terminating."
 msgstr "top_level_directory \"%s\" does not exist - terminating."
 
-#: ../../HyperSQL.py:2980
+#: ../../../lib/generator/commonhtml.py:421
 msgid "unknown dependency graph type"
 msgstr "unknown dependency graph type"
 
-#: ../../HyperSQL.py:1771
+#: ../../../lib/generator/commonhtml.py:268
 msgid "what used"
 msgstr "what used"
 
-#: ../../HyperSQL.py:1765
+#: ../../../lib/generator/commonhtml.py:262
 msgid "where used"
 msgstr "where used"
 
-#: ../../HyperSQL.py:3368
+#: ../../../HyperSQL.py:367
 msgid "where_used shortref scan disabled"
 msgstr "where_used shortref scan disabled"
 
-#: ../../HyperSQL.py:3366
+#: ../../../HyperSQL.py:365
 msgid "where_used shortref scan enabled"
 msgstr "where_used shortref scan enabled"
+
+#~ msgid "MView Index"
+#~ msgstr "MView Index"
+#~ msgid "Verification Report"
+#~ msgstr "%(from)s to %(to)s lines"
+#~ msgid "done"
+#~ msgstr "done"
 
 #, fuzzy
 #~ msgid "Full Form Listing"
