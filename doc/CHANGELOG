@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.8.5
+v3.8.5 (12.09.2010)
 -------------------
 * code reorg for better maintenance and re-usability
 + HTML files now get more "static" names so one can link to them directly
