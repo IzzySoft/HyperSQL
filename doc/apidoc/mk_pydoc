@@ -9,22 +9,32 @@ rm -f *.html
 rm -f *.pyc
 rm -f *.py
 
+# prepare packages
+for d in iz_tools hypercore generator parser; do
+  [ -d $d ] && rm -rf $d
+  mkdir -p $d;
+  cp ../../lib/$d/*.py $d/
+  [ -f $d/setup.py ] && rm $d/setup.py
+done
+
 # get the code here
 cp ../../HyperSQL.py .
 cp ../../lib/*.py .
 cp ../../hypersql.css .
-rm test*.py
+[ -f test*.py ] && rm test*.py
 
 # Generate the apidoc
-for file in *.py; do
+for file in *.py iz_tools/*.py hypercore/*.py generator/*.py parser/*.py; do
   pydoc ./$file >${file%.py}.txt
   pydoc -w ./$file
 done
-#pydoc ./HyperSQL.py > HyperSQL.txt
-#pydoc -w ./HyperSQL.py
 
 # cleanup
+rm -f __init__.html
 rm -f *.py*
+for d in iz_tools hypercore generator parser; do
+  rm -rf $d
+done
 
 # Generate an index
 echo '<HTML><HEAD>
