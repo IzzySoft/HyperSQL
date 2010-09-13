@@ -13,6 +13,10 @@ The Javadoc element is defined as:
     name  { word };                 # name of the unit -- ONE WORD only.
     param { word text };            # var val (assignment) -- the first WORD is the name of the parameter
                                     # to pass, everything following it is the value
+    basetype { word word };         # base data type for the given parameter -- first word is the
+                                    # parameter name, second the base type. Useful if the original
+                                    # parameter was specified with something like TABLE.COL%TYPE
+                                    # but you want to tell your JUnit creator it's basically a VARCHAR
     check_param { word OP text };   # var operator value (test OUT) -- OUT param to test:
                                     # first WORD is the name of the param, second the operator,
                                     # everything following the value. OP uses only <>!=
@@ -20,6 +24,8 @@ The Javadoc element is defined as:
                                     # as above, just no name
     message { text };               # text returned/displayed on failure. May contain placeholders etc.
     comment { text };               # a comment on this unittest for closer description
+    pre_sql { sql };                # SQL to run immediately before the test itself ("setup")
+    post_sql { sql };               # SQL to run immediately after the test itself ("teardown")
 
 One short example:
 name { foobar_one };
@@ -69,6 +75,7 @@ def testcase_split(block):
     params  = []
     check   = []
     ret     = []
+    basetype= []
     tc            = {}
     tc['name']    = ''
     tc['params']  = []
@@ -76,6 +83,9 @@ def testcase_split(block):
     tc['ret']     = None
     tc['message'] = ''
     tc['comment'] = ''
+    tc['presql']  = None
+    tc['postsql']  = None
+    tc['basetypes'] = []
 
     # First get the elements
     elems  = regElem.findall(block) # collect all elements in (name, value) tuples
@@ -88,12 +98,18 @@ def testcase_split(block):
         elif ename in ['return','check-return','check_return','checkreturn']: ret = retCheck.findall(elems[i][1])
         elif ename == 'message': tc['message'] = elems[i][1].strip()
         elif ename == 'comment': tc['comment'] = elems[i][1].strip()
+        elif ename in ['pre','pre_sql','presql']: tc['presql'] = elems[i][1].strip()
+        elif ename in ['post','post_sql','postsql']: tc['postsql'] = elems[i][1].strip()
+        elif ename == 'basetype': basetype.append(regParam.findall(elems[i][1]))
     for par in params:
         if len(par)!=1 or len(par[0])!=2: continue # must be [('var','val')]
         tc['params'].append( dict(var=par[0][0].strip(),val=par[0][1].strip()) )
     for chk in check:
         if len(chk)!=1 or len(chk[0])!=3: continue # must be [('var','op','val')]
         tc['check'].append( dict(var=chk[0][0].strip(),op=chk[0][1].strip(),val=chk[0][2].strip()) )
+    for par in basetype:
+        if len(par)!=1 or len(par[0])!=2: continue # must be [('var','val')]
+        tc['basetypes'].append( dict(var=par[0][0].strip(),val=par[0][1].strip()) )
     if len(ret)>0:               # just if we have (at least) one, take the first
         if len(ret[0])==2:       # must be 'op val'
             tc['ret'] = dict(op=ret[0][0].strip(),val=ret[0][1].strip())
@@ -113,11 +129,17 @@ def testcase(block):
         if tc['comment'] != '': xml += '        <COMMENT><![CDATA['+tc['comment']+']]></COMMENT>\n'
         if tc['message'] != '': xml += '        <MESSAGE><![CDATA['+tc['message']+']]></MESSAGE>\n'
         for par in tc['params']:
-            xml += '        <PARAM NAME="'+par['var']+'"><![CDATA['+par['val']+']]></PARAM>\n';
+            xml += '        <PARAM NAME="'+par['var']+'"><![CDATA['+par['val']+']]></PARAM>\n'
+        for par in tc['basetypes']:
+            xml += '        <BASETYPE NAME="'+par['var']+'" TYPE="'+par['val']+'" />\n'
         for par in tc['check']:
-            xml += '        <CHECK NAME="'+par['var']+'" OP="'+par['op']+'"><![CDATA['+par['val']+']]></CHECK>\n';
+            xml += '        <CHECK NAME="'+par['var']+'" OP="'+par['op']+'"><![CDATA['+par['val']+']]></CHECK>\n'
         if tc['ret'] is not None:
-            xml += '        <RET OP="'+tc['ret']['op']+'"><![CDATA['+tc['ret']['val']+']]></RET>\n';
+            xml += '        <RET OP="'+tc['ret']['op']+'"><![CDATA['+tc['ret']['val']+']]></RET>\n'
+        if tc['presql'] is not None:
+            xml += '        <PRESQL><![CDATA['+tc['presql']+']]></PRESQL>\n'
+        if tc['postsql'] is not None:
+            xml += '        <POSTSQL><![CDATA['+tc['postsql']+']]></POSTSQL>\n'
         xml += '      </TESTCASE>\n'
     return xml
 

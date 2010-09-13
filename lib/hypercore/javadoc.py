@@ -51,6 +51,13 @@ def setJDocEncoding(encoding):
         pass
 
 
+class nullDict(dict):
+    """ A dictionary without KeyErrors (returning None instead) """
+    def __missing__(self,key):
+        return None
+
+
+
 def HyperScan(text):
     """
     Search for URLS and make them clickable
@@ -324,10 +331,12 @@ class JavaDoc(object):
                 if tc['message'] != '':
                     html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Error Message')+':&nbsp;</TD><TD>'+tc['message']+'</TD></TR>'
                     i = (i+1) % 2
+                basetypes = nullDict()
+                for bt in tc['basetypes']: basetypes[bt['var']] = bt['val']
                 if len(tc['params'])>0:
                     html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Parameters')+':&nbsp;</TD><TD><TABLE>'
-                    html += '<TR><TD><B>'+_('Name')+'</B></TD><TD><B>'+_('Value')+'</B></TD></TR>'
-                    for par in tc['params']: html += '<TR><TD>'+par['var']+'</TD><TD>'+par['val']+'</TD></TR>'
+                    html += '<TR><TD><B>'+_('Name')+'</B></TD><TD><B>'+_('Basetype')+'</B></TD><TD><B>'+_('Value')+'</B></TD></TR>'
+                    for par in tc['params']: html += '<TR><TD>'+par['var']+'</TD><TD>'+(basetypes[par['var']] or '')+'</TD><TD>'+par['val']+'</TD></TR>'
                     html += '</TABLE></TD></TR>'
                     i = (i+1) % 2
                 if len(tc['check'])>0:
@@ -336,7 +345,14 @@ class JavaDoc(object):
                     for par in tc['check']: html += '<TR><TD>'+par['var']+'</TD><TD ALIGN="center">'+par['op']+'</TD><TD>'+par['val']+'</TD></TR>'
                     html += '</TABLE></TD></TR>'
                     i = (i+1) % 2
-                if tc['ret'] is not None: html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Return values')+':&nbsp;</TD><TD>'+tc['ret']['op']+' '+tc['ret']['val']+'</TD></TR>'
+                if tc['ret'] is not None:
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Return values')+':&nbsp;</TD><TD>'+tc['ret']['op']+' '+tc['ret']['val']+'</TD></TR>'
+                    i = (i+1) % 2
+                if tc['presql']:
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Testcase PreSQL')+':&nbsp;</TD><TD><PRE>'+tc['presql']+'</PRE></TD></TR>'
+                    i = (i+1) % 2
+                if tc['postsql']:
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Testcase PostSQL')+':&nbsp;</TD><TD><PRE>'+tc['postsql']+'</PRE></TD></TR>'
             html += '</TABLE></DD>\n'
 
         if len(self.author) > 0:
@@ -730,7 +746,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     reTagEnd    = r'(\n\s*\**\s*@|\*\/)' # end of tag/desc definition
     reLineStart = r'(\n\s*\**\s*)'       # start of a line, incl. optional '*'
     pattLeading = re.compile(r'^\s*\**\s*')
-    pattTag     = re.compile(reLineStart+r'(@\w+)([ \t\f\v]*)([^\n]*.*?)\s*'+reTagEnd, re.M|re.S)
+    pattTag     = re.compile(reLineStart+r'(@\w+)([ \t\f\v]*)([^\n]*.*?)\s*'+reTagEnd, re.M|re.S|re.I)
     pattBreak   = re.compile(reLineStart) # line break inside a tag desc
 
     blocks = []
@@ -777,17 +793,17 @@ def ScanJavaDoc(text,fileName,lineNo=0):
                     else:
                       p = JavaDocParam()
                       doc = cont.split()
-                      if doc[0] in ['in','out','inout']:
+                      if doc[0].lower() in ['in','out','inout']:
                         p.inout   = doc[0].upper()
                         p.sqltype = doc[1].upper()
                         if len(doc) > 2:
-                            p.name = doc[2]
-                            for w in range(3,len(doc)):
-                              p.desc += doc[w] + ' '
-                            p.desc = p.desc.strip()
-                        else:
-                            p.sqltype = doc[0]
-                            if len(doc) > 1:
+                          p.name = doc[2]
+                          for w in range(3,len(doc)):
+                            p.desc += doc[w] + ' '
+                          p.desc = p.desc.strip()
+                      else:
+                          p.sqltype = doc[0]
+                          if len(doc) > 1:
                               p.name = doc[1]
                               for w in range(2,len(doc)):
                                 p.desc += doc[w] + ' '

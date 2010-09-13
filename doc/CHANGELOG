@@ -1,5 +1,13 @@
 # History of Changes for HyperSQL
 
+v3.9.0
+-------------------
+! Javadoc parser was case sensitive - which could lead to trouble if one
+  uppercased keywords (tnx Martin for the hint!)
++ Unittests: Added presql ("setup") and postsql ("teardown") to testcases
++ Unittests: Added basetype (to specify the basic type, e.g. VARCHAR, for some
+  parameter originally defined like e.g. TABLE.COL%TYPE, to JUnit)
+
 v3.8.5 (12.09.2010)
 -------------------
 * code reorg for better maintenance and re-usability
