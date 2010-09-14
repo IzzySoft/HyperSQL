@@ -7,7 +7,7 @@ __revision__ = '$Id$'
 from .gettext_init import langpath, langs
 from sys import maxint, argv as pargs
 from .unittest import testcase_split
-from iz_tools.typecheck import is_list # for ScanJavaDoc
+from iz_tools.typecheck import is_list, nullDict # for ScanJavaDoc, JavaDoc
 import re, gettext, locale, os
 from hypercore.logger import logg
 logger = logg.getLogger('JavaDoc')
@@ -49,13 +49,6 @@ def setJDocEncoding(encoding):
         gettext.bind_textdomain_codeset('hyperjdoc',encoding.upper())
     except:
         pass
-
-
-class nullDict(dict):
-    """ A dictionary without KeyErrors (returning None instead) """
-    def __missing__(self,key):
-        return None
-
 
 
 def HyperScan(text):
@@ -353,6 +346,9 @@ class JavaDoc(object):
                     i = (i+1) % 2
                 if tc['postsql']:
                     html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Testcase PostSQL')+':&nbsp;</TD><TD><PRE>'+tc['postsql']+'</PRE></TD></TR>'
+                    i = (i+1) % 2
+                if tc['checksql']:
+                    html += '<TR CLASS="tr'+str(i)+'"><TD>'+_('Testcase CheckSQL')+':&nbsp;</TD><TD><PRE>'+tc['checksql']+'</PRE></TD></TR>'
             html += '</TABLE></DD>\n'
 
         if len(self.author) > 0:

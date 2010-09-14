@@ -100,10 +100,10 @@ def MakeElemIndex(objectType):
     Generate HTML index page for all tables, (m)views, synonyms, sequences or
     triggers
     @param string objectType what the index should be created for?
-           ('tab','view','mview','synonym','sequence','trigger')
+           ('tab','view','mview','synonym','sequence','trigger','type')
     """
 
-    if objectType not in ['tab','view','mview','synonym','sequence','trigger']: # not a valid/supported objectType
+    if objectType not in ['tab','view','mview','synonym','sequence','trigger','type']: # not a valid/supported objectType
         return
     if metaInfo.indexPage[objectType] == '': # Index was turned off
         return
@@ -116,6 +116,9 @@ def MakeElemIndex(objectType):
     if objectType == 'trigger':
       html_title = _('Index Of All Triggers')
       object_name = _('Trigger')
+    elif objectType == 'type':
+      html_title = _('Index Of All Types')
+      object_name = _('Type')
     elif objectType == 'tab':
       html_title = _('Index Of All Tables')
       object_name = _('Table')
@@ -142,6 +145,8 @@ def MakeElemIndex(objectType):
             continue        
         if objectType == 'trigger':
           objectList = file_info.triggerInfoList
+        elif objectType == 'type':
+          objectList = file_info.typeInfoList
         elif objectType == 'tab':
           objectList = file_info.tabInfoList
         elif objectType == 'view':
@@ -447,6 +452,7 @@ def MakeTaskList(taskType):
     syntuplelist       = []
     seqtuplelist       = []
     triggertuplelist   = []
+    typetuplelist      = []
     functiontuplelist  = []
     proceduretuplelist = []
     formtuplelist      = []
@@ -468,6 +474,8 @@ def MakeTaskList(taskType):
             seqtuplelist.append((seqInfo.name.upper(), seqInfo, file_info))
         for triggerInfo in file_info.triggerInfoList:
             triggertuplelist.append((triggerInfo.name.upper(), triggerInfo, file_info))
+        for typeInfo in file_info.typeInfoList:
+            typetuplelist.append((typeInfo.name.upper(), typeInfo, file_info))
         for functionInfo in file_info.functionInfoList:
             functiontuplelist.append((functionInfo.name.upper(), functionInfo, file_info))
         for procInfo in file_info.procedureInfoList:
@@ -482,6 +490,7 @@ def MakeTaskList(taskType):
     syntuplelist.sort(key=lambda x: x[0])
     seqtuplelist.sort(key=lambda x: x[0])
     triggertuplelist.sort(key=lambda x: x[0])
+    typetuplelist.sort(key=lambda x: x[0])
     functiontuplelist.sort(key=lambda x: x[0])
     proceduretuplelist.sort(key=lambda x: x[0])
     formtuplelist.sort(key=lambda x: x[0])
@@ -528,6 +537,7 @@ def MakeTaskList(taskType):
     for seqtuple in seqtuplelist: appendStandAloneItems(seqtuple,_('Sequence'))
     for seqtuple in syntuplelist: appendStandAloneItems(seqtuple,_('Synonym'))
     for triggertuple in triggertuplelist: appendStandAloneItems(triggertuple,_('Trigger'))
+    for typetuple in typetuplelist: appendStandAloneItems(typetuple,_('Type'))
 
     # Walk the forms
     for formtuple in formtuplelist:
@@ -702,6 +712,12 @@ def CreateHyperlinkedSourceFilePages():
             outfile.write('<H2 CLASS="api">'+_('Triggers')+'</H2>\n')
             for v in range(len(file_info.triggerInfoList)):
                 outfile.write(file_info.triggerInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.triggerInfoList[v].uniqueNumber][0]))
+
+        # Types
+        if len(file_info.typeInfoList) > 0:
+            outfile.write('<H2 CLASS="api">'+_('Types')+'</H2>\n')
+            for v in range(len(file_info.typeInfoList)):
+                outfile.write(file_info.typeInfoList[v].javadoc.getHtml(file_info.anchorNames[file_info.typeInfoList[v].uniqueNumber][0]))
 
         # Do we have stand-alone functions?
         if len(file_info.functionInfoList) > 0:
@@ -1003,6 +1019,9 @@ def CreateWhereUsedPages():
         elif otype=='trigger':
             outfile.write(MakeHTMLHeader(pname))
             outfile.write( makeUsageTableHead(_('Trigger'),obj.name,page) )
+        elif otype=='type':
+            outfile.write(MakeHTMLHeader(pname))
+            outfile.write( makeUsageTableHead(_('Type'),obj.name,page) )
         elif otype=='pkg':
             outfile.write(MakeHTMLHeader(obj.name + ' ' + pname))
             outfile.write( makeUsageTableHead(_('Package'),obj.name,page) )
@@ -1084,6 +1103,11 @@ def CreateWhereUsedPages():
         # loop through triggers
         for trigger_info in file_info.triggerInfoList:
             makeWhat(trigger_info,'trigger')
+
+        # loop through types
+        for type_info in file_info.typeInfoList:
+            makeWhere(type_info,'type')
+            makeWhat(type_info,'type')
 
         # loop through stand-alone functions
         for func_info in file_info.functionInfoList:

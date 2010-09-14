@@ -8,6 +8,7 @@ from __future__ import division ### temporary to verify Python v3 compatibility
 __revision__ = '$Id$'
 
 from .javadoc import JavaDoc, PackageTaskList
+from iz_tools.typecheck import nullDict
 
 class ElemInfo(object):
     """ Object to hold information about a function, or procedure """
@@ -132,6 +133,7 @@ class FileInfo(object):
         self.functionInfoList = []
         self.procedureInfoList = []
         self.triggerInfoList = []
+        self.typeInfoList = []
         self.formInfoList = []
         self.uniqueNumber = 0 # used to create unique file name for where used list (old variant)
         self.uniqueName = ''  # used to create unique file name for where used list (new variant)
@@ -175,8 +177,8 @@ class MetaInfo:
         self.linesOfCode['code'] = 0
         self.linesOfCode['comment'] = 0
         self.linesOfCode['empty'] = 0
-        self.indexPage = {} # filename
-        self.indexPageName = {}
+        self.indexPage = nullDict() # filename
+        self.indexPageName = nullDict()
         self.depGraph = {}
         self.depGraph['file2file'] = []
         self.depGraph['file2object'] = []

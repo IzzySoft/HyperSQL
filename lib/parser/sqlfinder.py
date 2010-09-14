@@ -375,8 +375,25 @@ def ScanFilesForObjects():
                 continue
 
             for token_index in range(len(token_list)):
+                # find types
+                if metaInfo.indexPage['type']:
+                    # look for CREATE [OR REPLACE] TRIGGER [schema.]trigger (...), making sure enough tokens exist
+                    if len(token_list) > token_index+1 \
+                    and token_list[token_index+1].upper() == "TYPE" \
+                    and token_list[token_index].upper() in ['CREATE','REPLACE']:
+                        tab_info = StandAloneElemInfo()
+                        tab_info.parent = file_info
+                        if len(token_list) > token_index+2:
+                          tab_info.name = token_list[token_index+2]
+                        else:
+                          tab_info.name = token_list1[0]
+                        tab_info.name = fixQuotedName(tab_info.name)
+                        ElemInfoAppendJdoc(tab_info,'type',lineNumber+1,jdoc)
+                        file_info.typeInfoList.append(tab_info)
+                        continue
+
                 # find trigger.
-                if metaInfo.indexPage['trigger'] != '':
+                if metaInfo.indexPage['trigger']:
                     # look for CREATE [OR REPLACE] TRIGGER [schema.]trigger (...), making sure enough tokens exist
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "TRIGGER" \
@@ -393,7 +410,7 @@ def ScanFilesForObjects():
                         continue
 
                 # find tables.
-                if metaInfo.indexPage['tab'] != '':
+                if metaInfo.indexPage['tab']:
                     # look for CREATE [GLOBAL TEMPORARY] TABLE [schema.]table (...), making sure enough tokens exist
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "TABLE" \
@@ -409,8 +426,8 @@ def ScanFilesForObjects():
                         file_info.tabInfoList.append(tab_info)
                         continue
 
-                # find views.  Loop through looking for the different styles of view definition
-                if metaInfo.indexPage['view'] != '':
+                # find views
+                if metaInfo.indexPage['view']:
                     # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "VIEW" \
@@ -427,7 +444,7 @@ def ScanFilesForObjects():
                         continue
 
                 # find mviews.
-                if metaInfo.indexPage['mview'] != '':
+                if metaInfo.indexPage['mview']:
                     # CREATE MATERIALIZED VIEW [schema.]mview ...
                     if len(token_list) > token_index+2 \
                     and token_list[token_index+2].upper() == "VIEW" \
@@ -645,52 +662,46 @@ def findUsingObject(fInfo,lineNumber):
     sqObj = ElemInfo()
     syObj = ElemInfo()
     trObj = ElemInfo()
+    tyObj = ElemInfo()
     PObj = PackageInfo()
     foObj = FormInfo()
-    if len(fInfo.triggerInfoList)!=0:
-        for sInfo in fInfo.triggerInfoList:
-            if sInfo.lineNumber < lineNumber: trObj = sInfo
-            else: break;
-    if len(fInfo.seqInfoList)!=0:
-        for sInfo in fInfo.seqInfoList:
-            if sInfo.lineNumber < lineNumber: sqObj = sInfo
-            else: break;
-    if len(fInfo.synInfoList)!=0:
-        for sInfo in fInfo.synInfoList:
-            if sInfo.lineNumber < lineNumber: syObj = sInfo
-            else: break;
-    if len(fInfo.tabInfoList)!=0:
-        for tInfo in fInfo.tabInfoList:
-            if tInfo.lineNumber < lineNumber: tObj = tInfo
+    for sInfo in fInfo.triggerInfoList:
+        if sInfo.lineNumber < lineNumber: trObj = sInfo
+        else: break;
+    for sInfo in fInfo.typeInfoList:
+        if sInfo.lineNumber < lineNumber: tyObj = sInfo
+        else: break;
+    for sInfo in fInfo.seqInfoList:
+        if sInfo.lineNumber < lineNumber: sqObj = sInfo
+        else: break;
+    for sInfo in fInfo.synInfoList:
+        if sInfo.lineNumber < lineNumber: syObj = sInfo
+        else: break;
+    for sInfo in fInfo.tabInfoList:
+        if sInfo.lineNumber < lineNumber: tObj = sInfo
+        else: break
+    for sInfo in fInfo.viewInfoList:
+        if sInfo.lineNumber < lineNumber: vObj = sInfo
+        else: break
+    for sInfo in fInfo.mviewInfoList:
+        if sInfo.lineNumber < lineNumber: mObj = sInfo
+        else: break
+    for sInfo in fInfo.functionInfoList:
+        if sInfo.lineNumber < lineNumber: fuObj = sInfo
+        else: break
+    for sInfo in fInfo.procedureInfoList:
+        if sInfo.lineNumber < lineNumber: prObj = sInfo
+        else: break
+    for pInfo in fInfo.packageInfoList:
+        if pInfo.lineNumber < lineNumber: PObj = pInfo
+        for vInfo in pInfo.functionInfoList:
+            if vInfo.lineNumber < lineNumber: fObj = vInfo
             else: break
-    if len(fInfo.viewInfoList)!=0:
-        for vInfo in fInfo.viewInfoList:
-            if vInfo.lineNumber < lineNumber: vObj = vInfo
+        for vInfo in pInfo.procedureInfoList:
+            if vInfo.lineNumber < lineNumber: pObj = vInfo
             else: break
-    if len(fInfo.mviewInfoList)!=0:
-        for mInfo in fInfo.mviewInfoList:
-            if mInfo.lineNumber < lineNumber: mObj = mInfo
-            else: break
-    if len(fInfo.functionInfoList)!=0:
-        for vinfo in fInfo.functionInfoList:
-            if vinfo.lineNumber < lineNumber: fuObj = vinfo
-            else: break
-    if len(fInfo.procedureInfoList)!=0:
-        for vinfo in fInfo.procedureInfoList:
-            if vinfo.lineNumber < lineNumber: prObj = vinfo
-            else: break
-    if len(fInfo.packageInfoList)!=0:
-        for pInfo in fInfo.packageInfoList:
-            if pInfo.lineNumber < lineNumber: PObj = pInfo
-            for vInfo in pInfo.functionInfoList:
-                if vInfo.lineNumber < lineNumber: fObj = vInfo
-                else: break
-            for vInfo in pInfo.procedureInfoList:
-                if vInfo.lineNumber < lineNumber: pObj = vInfo
-                else: break
-    if len(fInfo.formInfoList)>0:
-        for foInfo in fInfo.formInfoList:
-            if foInfo.lineNumber < lineNumber: foObj = foInfo
+    for sInfo in fInfo.formInfoList:
+        if sInfo.lineNumber < lineNumber: foObj = sInfo
     sobj = [
             ['sequence',sqObj.lineNumber,sqObj],
             ['synonym',syObj.lineNumber,syObj],
@@ -700,6 +711,7 @@ def findUsingObject(fInfo,lineNumber):
             ['pkg',PObj.lineNumber,PObj],
             ['func',fObj.lineNumber,fObj],
             ['trigger',trObj.lineNumber,trObj],
+            ['type',tyObj.lineNumber,tyObj],
             ['proc',pObj.lineNumber,pObj],
             ['func',fuObj.lineNumber,fuObj],
             ['proc',prObj.lineNumber,prObj],
@@ -734,7 +746,7 @@ def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
 
     # now care for the what_used
     if uType != 'file':
-      if otype in ['view','mview','pkg','synonym','sequence','tab','trigger','form']:
+      if otype in ['view','mview','pkg','synonym','sequence','tab','trigger','type','form']:
         fname = objectInfo.parent.fileName
         finfo = objectInfo.parent
       elif otype in ['func','proc']:
@@ -923,15 +935,22 @@ def ScanFilesForUsage():
             usage_flag = 1
             for token_index in range(len(token_list)):
 
-                # look for CREATE [OR REPLACE] TRIGGER
-                if metaInfo.indexPage['trigger'] != '' and len(token_list) > token_index+1 \
+                # CREATE [OR REPLACE] TYPE
+                if metaInfo.indexPage['type'] and len(token_list) > token_index+1 \
+                and token_list[token_index+1].upper() == "TYPE" \
+                and token_list[token_index].upper() in ['CREATE','REPLACE','DROP','ALTER']:
+                    # we are creating, dropping, altering, or commenting - not using.  Set flag to 0
+                    usage_flag = 0
+
+                # CREATE [OR REPLACE] TRIGGER
+                if metaInfo.indexPage['trigger'] and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "TRIGGER" \
                 and token_list[token_index].upper() in ['CREATE','REPLACE','DROP','ALTER']:
                     # we are creating, dropping, altering, or commenting - not using.  Set flag to 0
                     usage_flag = 0
 
-                # look for CREATE [GLOBAL TEMPORARY] TABLE
-                if metaInfo.indexPage['tab'] != '' and len(token_list) > token_index+1 \
+                # CREATE [GLOBAL TEMPORARY] TABLE
+                if metaInfo.indexPage['tab'] and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "TABLE" \
                 and token_list[token_index].upper() in ['CREATE','TEMPORARY','DROP','ALTER']:
                     # we are creating, dropping, or altering - not using.  Set flag to 0
@@ -973,14 +992,14 @@ def ScanFilesForUsage():
                     # we are creating, altering, or dropping - not using.  Set flag to 0
                     usage_flag = 0
 
-                # look for SYNONYMs
+                # CREATE SYNONYMs
                 if metaInfo.indexPage['synonym'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "SYNONYM" \
                 and token_list[token_index].upper() in ['CREATE','REPLACE','DROP','PUBLIC']:
                     # we are creating, or dropping - not using.  Set flag to 0
                     usage_flag = 0
 
-                # look for PACKAGE (CREATE|ALTER|DROP)
+                # PACKAGE (CREATE|ALTER|DROP)
                 if token_list[token_index].upper() == "PACKAGE" \
                 and len(token_list) > token_index+2:
                     #and token_list[token_index+1].upper() == "BODY": # commented out - creates trouble if package spec is in the same file
@@ -1008,62 +1027,69 @@ def ScanFilesForUsage():
         # Loop through all previously found views and packages to see if they are used in this line of text
         for inner_file_info in metaInfo.fileInfoList:
 
-            # if this FileInfo instance has triggers
-            for tab_info in inner_file_info.triggerInfoList:
+            # if this FileInfo instance has types
+            for elem in inner_file_info.typeInfoList:
                 # perform case insensitive find
-                res = getWordLineNr(new_text,'\\b'+tab_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 for ires in res:
-                    addWhereUsed(tab_info, outer_file_info, ires[0], 'trigger')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'type')
+
+            # if this FileInfo instance has triggers
+            for elem in inner_file_info.triggerInfoList:
+                # perform case insensitive find
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
+                for ires in res:
+                    addWhereUsed(elem, outer_file_info, ires[0], 'trigger')
 
             # if this FileInfo instance has tables
-            for tab_info in inner_file_info.tabInfoList:
+            for elem in inner_file_info.tabInfoList:
                 # perform case insensitive find
                 try:
-                    res = getWordLineNr(new_text,'\\b'+tab_info.name+'\\b')
+                    res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 except:
                     logger.error('RegExp error searching for "'+tab_info.name+'"')
                 for ires in res:
-                    addWhereUsed(tab_info, outer_file_info, ires[0], 'tab')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'tab')
 
             # if this FileInfo instance has views
-            for view_info in inner_file_info.viewInfoList:
+            for elem in inner_file_info.viewInfoList:
                 # perform case insensitive find
-                res = getWordLineNr(new_text,'\\b'+view_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 for ires in res:
-                    addWhereUsed(view_info, outer_file_info, ires[0], 'view')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'view')
 
             # if this FileInfo instance has materialized views
-            for view_info in inner_file_info.mviewInfoList:
+            for elem in inner_file_info.mviewInfoList:
                 # perform case insensitive find
-                res = getWordLineNr(new_text,'\\b'+view_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 for ires in res:
-                    addWhereUsed(view_info, outer_file_info, ires[0], 'mview')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'mview')
 
             # if this FileInfo instance has synonyms
-            for syn_info in inner_file_info.synInfoList:
+            for elem in inner_file_info.synInfoList:
                 # perform case insensitive find
-                res = getWordLineNr(new_text,'\\b'+syn_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 for ires in res:
-                    addWhereUsed(syn_info, outer_file_info, ires[0], 'synonym')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'synonym')
 
             # if this FileInfo instance has sequences
-            for seq_info in inner_file_info.seqInfoList:
+            for elem in inner_file_info.seqInfoList:
                 # perform case insensitive find
-                res = getWordLineNr(new_text,'\\b'+seq_info.name+'\\b')
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 for ires in res:
-                    addWhereUsed(seq_info, outer_file_info, ires[0], 'sequence')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'sequence')
 
             # if this FileInfo instance has stand-alone functions
-            for func_info in inner_file_info.functionInfoList:
-                res = getWordLineNr(new_text,'\\b'+func_info.name+'\\b')
+            for elem in inner_file_info.functionInfoList:
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 for ires in res:
-                    addWhereUsed(func_info, outer_file_info, ires[0], 'function')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'function')
 
             # if this FileInfo instance has stand-alone procedures
-            for func_info in inner_file_info.procedureInfoList:
-                res = getWordLineNr(new_text,'\\b'+func_info.name+'\\b')
+            for elem in inner_file_info.procedureInfoList:
+                res = getWordLineNr(new_text,'\\b'+elem.name+'\\b')
                 for ires in res:
-                    addWhereUsed(func_info, outer_file_info, ires[0], 'procedure')
+                    addWhereUsed(elem, outer_file_info, ires[0], 'procedure')
 
             # if this FileInfo instance has packages
             for package_info in inner_file_info.packageInfoList:

@@ -26,6 +26,8 @@ The Javadoc element is defined as:
     comment { text };               # a comment on this unittest for closer description
     pre_sql { sql };                # SQL to run immediately before the test itself ("setup")
     post_sql { sql };               # SQL to run immediately after the test itself ("teardown")
+    check_sql { sql };              # SQL to verify successful execution. Must return something to
+                                    # be evaluated to Boolean (e.g. SELECT COUNT() or SELECT 1)
 
 One short example:
 name { foobar_one };
@@ -85,6 +87,7 @@ def testcase_split(block):
     tc['comment'] = ''
     tc['presql']  = None
     tc['postsql']  = None
+    tc['checksql'] = None
     tc['basetypes'] = []
 
     # First get the elements
@@ -101,6 +104,7 @@ def testcase_split(block):
         elif ename in ['pre','pre_sql','presql']: tc['presql'] = elems[i][1].strip()
         elif ename in ['post','post_sql','postsql']: tc['postsql'] = elems[i][1].strip()
         elif ename == 'basetype': basetype.append(regParam.findall(elems[i][1]))
+        elif ename in ['checksql','check_sql']: tc['checksql'] = elems[i][1].strip()
     for par in params:
         if len(par)!=1 or len(par[0])!=2: continue # must be [('var','val')]
         tc['params'].append( dict(var=par[0][0].strip(),val=par[0][1].strip()) )
@@ -140,6 +144,8 @@ def testcase(block):
             xml += '        <PRESQL><![CDATA['+tc['presql']+']]></PRESQL>\n'
         if tc['postsql'] is not None:
             xml += '        <POSTSQL><![CDATA['+tc['postsql']+']]></POSTSQL>\n'
+        if tc['checksql'] is not None:
+            xml += '        <CHECKSQL>\n          <STATEMENT><![CDATA['+tc['checksql']+']]></STATEMENT>\n        </CHECKSQL>\n'
         xml += '      </TESTCASE>\n'
     return xml
 

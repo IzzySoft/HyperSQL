@@ -7,6 +7,9 @@ v3.9.0
 + Unittests: Added presql ("setup") and postsql ("teardown") to testcases
 + Unittests: Added basetype (to specify the basic type, e.g. VARCHAR, for some
   parameter originally defined like e.g. TABLE.COL%TYPE, to JUnit)
++ Unittests: Added check_sql to evaluate a "void" procedure. The SQL statement
+  used here must be evaluable to Boolean -- e.g. SELECT COUNT() or SELECT 1
++ Object Type "TYPE" supported now (JavaDoc: @type)
 
 v3.8.5 (12.09.2010)
 -------------------

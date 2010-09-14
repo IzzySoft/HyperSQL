@@ -67,15 +67,17 @@ Supported Tags
 
 Object types:
 
+ * @form
  * @function <name>
- * @procedure <name>
- * @table <name>
- * @view <name>
  * @mview <name>
  * @pkg <name>
- * @synonym <name>
+ * @procedure <name>
  * @sequence <name>
- * @form
+ * @synonym <name>
+ * @table <name>
+ * @trigger
+ * @type
+ * @view <name>
 
 Object properties:
 

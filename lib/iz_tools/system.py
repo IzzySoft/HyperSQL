@@ -1,15 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# $Id$
 """
 Some useful system functions which mostly mimic PHP (or Shell) equivalents
 """
-__revision__ = '$Id$'
 
 #====================================================[ Imports and Presets ]===
 import os       # for which() and getCallingModule()
 import sys      # for which()
 from subprocess import Popen,PIPE   # for popen()
-from typecheck import *             # for file_put_contents (local module typecheck)
+from .typecheck import is_string, is_list  # for file_put_contents (local module typecheck)
 from traceback import extract_stack # for getCaller()
 
 # prepare for fopen (encoding fallback)
@@ -171,12 +171,13 @@ def file_put_contents(filename,content,enc=None,append=False):
     return bytes
 
 #---------------------------------------------------------------[ makeRDir ]---
-def makeRDir(dname):
+def makeRDir(pathname):
     """
     Create recursive directory structur, if it not exists already
     (similar to 'mkdir -p' on *nix)
+    @param string pathname path/to/create
     """
-    splitted = dname.split(os.sep)
+    splitted = pathname.split(os.sep)
     temp = ""
     for path_element in splitted: # loop through path components, making directories as needed
         temp += path_element + os.sep

@@ -30,7 +30,7 @@
        izzysoft AT qumran DOT org
 """
 __revision__ = '$Id$'
-__version__  = '3.8.5'
+__version__  = '3.8.7'
 
 
 # first import standard modules we use
@@ -156,13 +156,11 @@ def configRead():
     metaInfo.css_file           = config.get('FileNames','css_file','hypersql.css')
     metaInfo.css_url            = config.get('FileNames','css_url','')
     metaInfo.unittest_dir       = config.get('FileNames','unittest_dir',os.path.split(sys.argv[0])[0] + os.sep + "unittests" + os.sep)
-    metaInfo.indexPage          = {}
     metaInfo.indexPageCount     = 1 # We at least have the main index page
-    metaInfo.indexPageName      = {}
     if metaInfo.cmdOpts.pages is None:   metaInfo.cmdOpts.pages = []
     if metaInfo.cmdOpts.nopages is None: metaInfo.cmdOpts.nopages = []
     # order of metaInfo.pages defines the order of the navbar!
-    metaInfo.pages = ['package','package_full','function','procedure','tab','view','mview','synonym','sequence','trigger','form','form_full','file','filepath','bug','todo','report','stat','depgraph']
+    metaInfo.pages = ['package','package_full','function','procedure','tab','view','mview','synonym','sequence','type','trigger','form','form_full','file','filepath','bug','todo','report','stat','depgraph']
     for page in metaInfo.pages:
         confPage(page)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
@@ -274,7 +272,8 @@ def configRead():
               'synonym':   dict(name='synonym',   otags=[]),
               'sequence':  dict(name='sequence',  otags=[]),
               'pkg':       dict(name='package',   otags=[]),
-              'form':      dict(name='form',      otags=[])
+              'form':      dict(name='form',      otags=[]),
+              'type':      dict(name='type',      otags=[])
     } # supported object types
     JavaDocVars['supertypes'] = ['pkg','form'] # object types with subobjects
 
@@ -399,6 +398,7 @@ if __name__ == "__main__":
     MakeElemIndex('synonym')
     MakeElemIndex('sequence')
     MakeElemIndex('trigger')
+    MakeElemIndex('type')
     MakePackageIndex()
     MakePackagesWithFuncsAndProcsIndex()
     MakeMethodIndex('function')

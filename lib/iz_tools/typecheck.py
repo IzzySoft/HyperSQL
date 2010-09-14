@@ -9,6 +9,12 @@ functions. Of course, adapted to the types available in Python.
 #====================================================[ Imports and Presets ]===
 from types import *
 
+#==============================================================[ Own Types ]===
+class nullDict(dict):
+    """ A dictionary without KeyErrors (returning None instead) """
+    def __missing__(self,key):
+        return None
+
 #==============================================================[ Functions ]===
 #----------------------------------------------------------[ Type checking ]---
 """
