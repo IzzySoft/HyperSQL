@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: hypersql\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-09-11 21:49+0200\n"
-"PO-Revision-Date: 2010-09-11 21:53+0100\n"
+"PO-Revision-Date: 2011-02-27 16:02+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -719,7 +719,7 @@ msgstr "Todo Items"
 
 #: ../../../lib/hypercore/config.py:114
 msgid "Todo List"
-msgstr "Dependency Graph"
+msgstr "Todo List"
 
 #: ../../../lib/generator/sqlstats.py:302
 msgid "Todo items (from your @todo tags)"
