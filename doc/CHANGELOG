@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.9.0
+v3.9.0 (14.07.2011)
 -------------------
 ! Javadoc parser was case sensitive - which could lead to trouble if one
   uppercased keywords (tnx Martin for the hint!)
