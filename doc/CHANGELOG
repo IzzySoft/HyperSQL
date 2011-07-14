@@ -10,6 +10,8 @@ v3.9.0
 + Unittests: Added check_sql to evaluate a "void" procedure. The SQL statement
   used here must be evaluable to Boolean -- e.g. SELECT COUNT() or SELECT 1
 + Object Type "TYPE" supported now (JavaDoc: @type)
+! fixes to make it work with Windows (tnx Eremenko for the hints!)
+
 
 v3.8.5 (12.09.2010)
 -------------------

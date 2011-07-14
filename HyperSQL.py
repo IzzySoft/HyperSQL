@@ -30,14 +30,14 @@
        izzysoft AT qumran DOT org
 """
 __revision__ = '$Id$'
-__version__  = '3.8.7'
+__version__  = '3.9.0'
 
 
 # first import standard modules we use
 import os, sys, re, gettext
 
 # now import our own modules
-sys.path.insert(0,os.path.split(sys.argv[0])[0] + os.sep + 'lib')
+sys.path.insert(0, (os.path.split(sys.argv[0])[0] or os.getcwd()) + os.sep + 'lib')
 from hypercore.logger import logg
 from hypercore.elements import *
 from hypercore.helpers import *
@@ -52,7 +52,7 @@ from generator.commonhtml import *
 from generator.db_html import *
 from generator.sqlstats import MakeStatsPage
 import hypercore.cache
-import parser.sqlfinder
+import parsers.sqlfinder
 
 
 #------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ def FindFilesAndBuildFileList(sdir, fileInfoList, init=True):
     @param string sdir directory to scan
     @param list fileInfoList where to store results
     """
-    from parser.filefinder import getFileList
+    from parsers.filefinder import getFileList
     printProgress(_("Creating file list"), logName)
 
     # setup wanted file extensions
@@ -380,8 +380,8 @@ if __name__ == "__main__":
 
     purge_cache()
     FindFilesAndBuildFileList(metaInfo.topLevelDirectory, metaInfo.fileInfoList)
-    parser.sqlfinder.ScanFilesForObjects()
-    parser.sqlfinder.ScanFilesForUsage()
+    parsers.sqlfinder.ScanFilesForObjects()
+    parsers.sqlfinder.ScanFilesForUsage()
 
     purge_html()
 

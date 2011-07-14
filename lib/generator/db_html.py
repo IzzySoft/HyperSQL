@@ -653,11 +653,11 @@ def CreateHyperlinkedSourceFilePages():
 
     sqlkeywords = []
     sqltypes    = []
-    for line in fileinput.input(os.path.split(argv[0])[0] + os.sep + 'sql.keywords'):
+    for line in fileinput.input((os.path.split(argv[0])[0] or os.getcwd()) + os.sep + 'sql.keywords'):
       if line.strip()[0]=='#':
         continue
       sqlkeywords.append(line.strip())
-    for line in fileinput.input(os.path.split(argv[0])[0] + os.sep + 'sql.types'):
+    for line in fileinput.input((os.path.split(argv[0])[0] or os.getcwd()) + os.sep + 'sql.types'):
       if line.strip()[0]=='#':
         continue
       sqltypes.append(line.strip())
