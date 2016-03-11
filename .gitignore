@@ -1,0 +1,6 @@
+*.bak
+*.ini
+*.log
+*.pyc
+cache
+html
