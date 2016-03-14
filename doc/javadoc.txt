@@ -81,28 +81,31 @@ Object types:
 
 Object properties:
 
+ * @col <type> [<name> [<description>]
  * @param [in|out|inout] <type> [<name> [<description>]
  * @return <type> [<name> [<description>]
- * @col <type> [<name> [<description>]
  * @throws <name> [<description>]
 
 Other object information:
 
- * @version <text>
  * @author <text>
- * @info <text>
- * @example <text>
- * @todo <text>
  * @bug <text>
  * @copyright <text>
  * @deprecated <text>
+ * @example <text>
+ * @ignore
+ * @info <text>
  * @private
  * @see <text>
  * @since <text>
  * @testcase <text>
+ * @ticket <[id] text>
+ * @todo <text>
  * @used <object> [<object> ...]
  * @uses <object> [<object> ...]
+ * @version <text>
  * @webpage <text>
+ * @wiki <page> [text]
 
 Further Information
 -------------------
