@@ -10,3 +10,7 @@ Known issues and limitations
 - used_by for types not always recognized (e.g. not in RETURNS of functions, with "PIPE ROW( <type>",
   or when used by other types)
 - @used/@uses are added to JavaDoc, but not to depency links. They are intended to point to "outside resources".
+- doesn't match full-qualified names between code and JavaDoc (e.g. "table_name" and "schema.table_name").
+  Consider this intended, as code might cover multiple database schemata and thus mappings are not clear
+  by default.
+
