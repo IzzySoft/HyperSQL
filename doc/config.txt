@@ -214,16 +214,18 @@ very large files).
 The following settings define colors for database objects, and are used for
 statistic and dependency graphs:
 
+ * file: Colors for files
+ * form: Colors for forms
+ * func: Colors for functions
+ * mview: Colors for materialized views
  * pkg: Colors for packages
  * proc: Colors for procedures
- * func: Colors for functions
- * tab: Colors for tables
- * mview: Colors for materialized views
- * view: Colors for views
  * sequence: Colors for sequences
  * synonym: Colors for synonyms
+ * tab: Colors for tables
+ * trigger: Colors for trigger
  * typ: Colors for types
- * file: Colors for files
+ * view: Colors for views
 
 For statistic graphs, we additionally have the following definitions:
 
