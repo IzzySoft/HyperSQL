@@ -971,8 +971,12 @@ def CreateWhereUsedPages():
                 html += uname + '</TD><TD>'
                 codesize = utuple[0].bytes
             else:
-                html += '<A HREF="' + html_file + '#' + utuple[0].anchorNames[uObj.uniqueNumber][0] + '">' + uname + '</A></TD><TD>'
-                codesize = utuple[0].bytes
+                try:
+                    html += '<A HREF="' + html_file + '#' + utuple[0].anchorNames[uObj.uniqueNumber][0] + '">' + uname + '</A></TD><TD>'
+                    codesize = utuple[0].bytes
+                except KeyError, detail:
+                    logger.error(_('KeyError (anchor not found): failed linking object %s for %s. Missing key ID: %s'), uname, page, detail)
+                    html += uname + '</TD><TD>'
             if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
                 html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
                 html += '<A href="' + html_file + '#L%d">%d</A>' % (line_number, line_number)
