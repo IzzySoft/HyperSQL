@@ -936,11 +936,13 @@ def CreateWhereUsedPages():
         html += '  <TR><TH>'+_('Object')+'</TH><TH>'+_('File')+'</TH><TH>'+_('Line')+'</TH></TR>\n'
         return html
 
-    def makeUsageColumn(filename,utuple,trclass=''):
+    def makeUsageColumn(filename,utuple,page,trclass=''):
         """
         Create the usage table
         @param string filename name of the file the usage was found in
         @param tuple utuple usage tuple
+        @param string page what or where used?
+        @param string trclass CSS class for the row
         @return string html usage table
         """
         if trclass!='': trclass = ' CLASS="'+trclass+'"'
@@ -959,11 +961,18 @@ def CreateWhereUsedPages():
         if utype=='func'  : utype = 'function'
         elif utype=='proc': utype = 'procedure'
         elif utype=='pkg' : utype = 'package'
+        if page=='what':
+            if hasattr(uObj,'fileName'): fn2 = uObj.fileName                 # fileInfo object
+            elif hasattr(uObj.parent,'fileName'): fn2 = uObj.parent.fileName # StandAlone
+            else: fn2 = uObj.parent.parent.fileName
+            fn2_short = fn2[len(metaInfo.topLevelDirectory)+1:]
+            html_file2 = fileMap[fn2].getHtmlName()
 
         html = '  <TR'+trclass+'><TD>' + utype + ' '
 
         # only make hypertext references for SQL files for now
         if utuple[0].fileType in ['sql','xml']:
+            # the documented object itself (first column):
             if utuple[0].fileType == 'xml':
                 html += '<A HREF="' + html_file + '#' + utuple[0].anchorNames[uObj.uniqueNumber][0] + '">' + uObj.name + '</A></TD><TD>'
                 codesize = utuple[0].formInfoList[0].codesize
@@ -975,13 +984,23 @@ def CreateWhereUsedPages():
                     html += '<A HREF="' + html_file + '#' + utuple[0].anchorNames[uObj.uniqueNumber][0] + '">' + uname + '</A></TD><TD>'
                     codesize = utuple[0].bytes
                 except KeyError, detail:
+                    #print 'EXCEPTION: ',uObj,filename_short
                     logger.error(_('KeyError (anchor not found): failed linking object %s for %s. Missing key ID: %s'), uname, page, detail)
+                    #print utuple
                     html += uname + '</TD><TD>'
+            # the referenced/referencing object /cols 2+3):
             if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
-                html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
-                html += '<A href="' + html_file + '#L%d">%d</A>' % (line_number, line_number)
+                if page=='where':
+                    html += '<A HREF="' + html_file + '">' + filename_short + '</A></TD><TD ALIGN="right">'
+                    html += '<A href="' + html_file + '#L%d">%d</A>' % (line_number, line_number)
+                else: # what
+                    html += '<A HREF="' + html_file2 + '">' + fn2_short + '</A></TD><TD ALIGN="right">'
+                    html += '<A href="' + html_file2 + '#L%d">%d</A>' % (line_number, line_number)
         else:
-            html += uname + '</TD><TD>' + filename_short + '</TD><TD ALIGN="right">%d' % line_number
+            if page=='where':
+                html += uname + '</TD><TD>' + filename_short + '</TD><TD ALIGN="right">%d' % line_number
+            else:
+                html += uname + '</TD><TD>' + fn2_short + '</TD><TD ALIGN="right">%d' % line_number
 
         html += '</TD></TR>\n'
         return html
@@ -1051,7 +1070,7 @@ def CreateWhereUsedPages():
         k = 0;
         for key in used_keys:
             for usedtuple in used_list[key]:
-                outfile.write( makeUsageColumn(key,usedtuple,'tr%d' % (k % 2)) )
+                outfile.write( makeUsageColumn(key,usedtuple,page,'tr%d' % (k % 2)) )
                 k += 1
         outfile.write('</TABLE>')
         outfile.write(MakeHTMLFooter(pname))
