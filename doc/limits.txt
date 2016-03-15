@@ -1,7 +1,7 @@
 Known issues and limitations
 ============================
 
-- stand-alone procedures/functions (i.e. those not part of any package) are not dealt with
+- JavaDoc on stand-alone objects (functions/procedures) is not included in check for mandatory tags
 - if two objects have the same name (e.g. a table and its synonym), the dependency graph cannot tell them apart
   (same for where/what used currently)
 - if the parameter list of an object (e.g. "PROCEDURE foobar (<parameter_list>)") contains comments,
@@ -9,8 +9,11 @@ Known issues and limitations
   thus reported by JavaDoc verification as mismatch in parameter count)
 - used_by for types not always recognized (e.g. not in RETURNS of functions, with "PIPE ROW( <type>",
   or when used by other types)
+
+Known, but intended:
+--------------------
+
 - @used/@uses are added to JavaDoc, but not to depency links. They are intended to point to "outside resources".
 - doesn't match full-qualified names between code and JavaDoc (e.g. "table_name" and "schema.table_name").
   Consider this intended, as code might cover multiple database schemata and thus mappings are not clear
   by default.
-

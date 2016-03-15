@@ -962,9 +962,10 @@ def CreateWhereUsedPages():
         elif utype=='proc': utype = 'procedure'
         elif utype=='pkg' : utype = 'package'
         if page=='what':
-            if hasattr(uObj,'fileName'): fn2 = uObj.fileName                 # fileInfo object
-            elif hasattr(uObj.parent,'fileName'): fn2 = uObj.parent.fileName # StandAlone
-            else: fn2 = uObj.parent.parent.fileName
+            if hasattr(uObj,'fileName'): file2 = uObj                 # fileInfo object
+            elif hasattr(uObj.parent,'fileName'): file2 = uObj.parent # StandAlone
+            else: file2 = uObj.parent.parent
+            fn2 = file2.fileName
             fn2_short = fn2[len(metaInfo.topLevelDirectory)+1:]
             html_file2 = fileMap[fn2].getHtmlName()
 
@@ -980,14 +981,11 @@ def CreateWhereUsedPages():
                 html += uname + '</TD><TD>'
                 codesize = utuple[0].bytes
             else:
-                try:
+                codesize = utuple[0].bytes
+                if page=='where':
                     html += '<A HREF="' + html_file + '#' + utuple[0].anchorNames[uObj.uniqueNumber][0] + '">' + uname + '</A></TD><TD>'
-                    codesize = utuple[0].bytes
-                except KeyError, detail:
-                    #print 'EXCEPTION: ',uObj,filename_short
-                    logger.error(_('KeyError (anchor not found): failed linking object %s for %s. Missing key ID: %s'), uname, page, detail)
-                    #print utuple
-                    html += uname + '</TD><TD>'
+                else:
+                    html += '<A HREF="' + html_file2 + '#' + file2.anchorNames[uObj.uniqueNumber][0] + '">' + uname + '</A></TD><TD>'
             # the referenced/referencing object /cols 2+3):
             if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
                 if page=='where':
