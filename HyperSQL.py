@@ -9,7 +9,7 @@
     Copyright 2001 El Paso Energy, Inc.  All Rights Reserved
 
     Version 1.1+ written by Itzchak Rehberg
-    Copyright 2010 Itzchak Rehberg & IzzySoft
+    Copyright 2010-2016 Itzchak Rehberg & IzzySoft
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
        izzysoft AT qumran DOT org
 """
 __revision__ = '$Id$'
-__version__  = '3.9.0'
+__version__  = '3.9.2'
 
 
 # first import standard modules we use
