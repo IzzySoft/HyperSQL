@@ -631,7 +631,7 @@ def ScanFilesForObjects():
                             mands = jd.verify_params(cparms)
                         else:
                             if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
-                        if len(cparms)<2:
+                        if len(cparms)<200: # 2016-03-16: With its initial commit (1e0ecb5 on 2010-03-15), this was limited to "<2" parameters. Why is this relevant here?
                             for mand in mands:
                                 file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
                   if package_count != -1:
@@ -754,6 +754,7 @@ def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
             fname = objectInfo.parent.parent.fileName
             finfo = objectInfo.parent.parent
         except: # stand-alone
+            logger.info('-> Parsing what_used for %s %s',otype,objectInfo.name) # OI! Never happens?
             try:
                 fname = objectInfo.parent.fileName
                 finfo = objectInfo.parent
