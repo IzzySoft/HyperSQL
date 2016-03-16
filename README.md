@@ -39,3 +39,7 @@ the code to *Github*, to make this part easier – especially as I currently do 
 
 ## License
 As stated above, *HyperSQL* uses the GPLv2 license. For details, see the [License file](doc/COPYING).
+
+
+## Mentions
+* [HyperSQL automatically documents SQL code](https://sourceforge.net/blog/hypersql-automatically-documents-sql-code/) (SourceForge blog 7/2010)
