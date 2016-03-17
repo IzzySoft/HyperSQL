@@ -84,7 +84,18 @@ Pages
 At this place you can define which pages shall be created. Again the same naming
 as above (so please look there). The value is interpreted as Boolean - so best
 is to use 0 to turn a page off, and 1 to turn it on. By default, all except the
-views are enabled. 
+views are enabled.
+
+Display
+-------
+
+This section is about "cosmetical stuff" (how content is displayed).
+
+ * navbar_elems_per_row: How many items to display per row in the navigation bar
+   (at the top and bottom of each page). Default is 4 (for "backwards
+   compatibility": this was the previously hardcoded value). If you want the
+   navigation bar to automatically adjust to screen width, set this to 0 to
+   disable "hard line breaks".
 
 Process
 -------

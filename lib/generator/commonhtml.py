@@ -111,6 +111,7 @@ def MakeNavBar(current_page):
     itemCount = 0
     s = "<TABLE CLASS='topbar' WIDTH='98%'><TR>\n"
     s += "  <TD CLASS='navbar'>\n"
+    elems_per_row = metaInfo.navbar_elems_per_row
     for item in metaInfo.pages:
         if metaInfo.indexPage[item] == '':
             continue
@@ -119,7 +120,7 @@ def MakeNavBar(current_page):
         else:
             s += '    <A HREF="' + metaInfo.indexPage[item] + '">' + metaInfo.indexPageName[item] + '</A> &nbsp;&nbsp; \n'
         itemCount += 1
-        if itemCount %4 == 0:
+        if ( elems_per_row > 0 and itemCount % elems_per_row == 0 ):
             s += '    <BR>\n'
     if current_page == 'Index':
         s += '    <SPAN CLASS="active_element">'+_('Main Index')+'</SPAN>\n'

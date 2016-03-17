@@ -164,6 +164,8 @@ def configRead():
     for page in metaInfo.pages:
         confPage(page)
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
+    # Section DISPLAY
+    metaInfo.navbar_elems_per_row = abs(config.getInt('Display','navbar_elems_per_row',4))
     # Section PROCESS
     if metaInfo.cmdOpts.blind_offset is None:
         metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer

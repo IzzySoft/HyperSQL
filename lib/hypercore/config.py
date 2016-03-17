@@ -141,6 +141,10 @@ class HyperConf(IniParser):
             stat = '0',
             depgraph = '1'
         )
+        # Section DISPLAY
+        display = dict (
+            navbar_elems_per_row = '4'
+        )
         # Section PROCESS
         process = dict (
             purge_on_start = '0',
