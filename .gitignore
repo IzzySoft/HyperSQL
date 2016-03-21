@@ -4,3 +4,7 @@
 *.pyc
 cache
 html
+doc/apidoc/*.py?
+doc/apidoc/*.txt
+doc/apidoc/*.html
+doc/apidoc/*.css

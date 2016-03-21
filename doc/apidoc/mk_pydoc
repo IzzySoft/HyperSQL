@@ -10,7 +10,7 @@ rm -f *.pyc
 rm -f *.py
 
 # prepare packages
-for d in iz_tools hypercore generator parser; do
+for d in iz_tools hypercore generator parsers; do
   [ -d $d ] && rm -rf $d
   mkdir -p $d;
   cp ../../lib/$d/*.py $d/
@@ -24,7 +24,7 @@ cp ../../hypersql.css .
 [ -f test*.py ] && rm test*.py
 
 # Generate the apidoc
-for file in *.py iz_tools/*.py hypercore/*.py generator/*.py parser/*.py; do
+for file in *.py iz_tools/*.py hypercore/*.py generator/*.py parsers/*.py; do
   pydoc ./$file >${file%.py}.txt
   pydoc -w ./$file
 done
@@ -32,7 +32,7 @@ done
 # cleanup
 rm -f __init__.html
 rm -f *.py*
-for d in iz_tools hypercore generator parser; do
+for d in iz_tools hypercore generator parsers; do
   rm -rf $d
 done
 
