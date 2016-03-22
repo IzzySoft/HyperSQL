@@ -431,7 +431,7 @@ def ScanFilesForObjects():
                     # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW, making sure enough tokens exist
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "VIEW" \
-                    and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE']:
+                    and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE','EDITIONABLE']:
                         view_info = StandAloneElemInfo()
                         view_info.parent = file_info
                         if len(token_list) > token_index+2:
