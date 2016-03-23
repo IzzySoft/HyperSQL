@@ -4,6 +4,11 @@
 showing all code locations where these are used, while some basic syntax highlighting is applied to the SQL code. The internal "where used"
 functionality also scans C++ and Java source files.
 
+***HyperSQL*** doesn't connect to any database, but rather works on files. Hence it should work for databases other than Oracle (which it was
+designed for initially) as well, though I've not tested that. If you do not maintain your database objects that way (but rather develop directly
+inside the database), some scripts in the `tools/` directory of the HyperSQL distribution might help you extract those from your Oracle database.
+For objects you can `COMMENT ON` (tables, views) they even create basic JavaDoc comments along.
+
 
 ## History
 The original version (1.0) was written by Randy Phillips in September 2001. A customer of mine required a script like this, but some additions

@@ -10,6 +10,14 @@ these are used. The internal "where used" functionality also scans C++ and Java
 source files. You can use JavaDoc-style "inline documentation", and even embed
 unit-tests with it. See the feature list for more details.
 
+HyperSQL doesn't connect to any database, but rather works on files. Hence it
+should work for databases other than Oracle (which it was designed for initially)
+as well, though I've not tested that. If you do not maintain your database
+objects that way (but rather develop directly inside the database), some scripts
+in the tools/ directory of the HyperSQL distribution might help you extract
+those from your Oracle database. For objects you can COMMENT ON (tables, views)
+they even create basic JavaDoc comments along.
+
 History
 -------
 
