@@ -795,36 +795,45 @@ def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
         dep = '"' + uname + '" -> "' + oto + '";'
         if not dep in metaInfo.depGraph['object2file']:
             metaInfo.depGraph['object2file'].append(dep)
-            props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
-            if not props in metaInfo.depGraph['object2file']:
-                metaInfo.depGraph['object2file'].append(props)
+            try: # might fail due to inline-comments
+                props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
+                if not props in metaInfo.depGraph['object2file']:
+                    metaInfo.depGraph['object2file'].append(props)
+            except:
+                logger.debug(_('DepGraph: could not set properties from element %s to file %s line %d'),uObj.name or '<unknown>',oto,lineNumber)
         # medium: file -> object
         if otype in ['proc','func'] and type(objectInfo.parent).__name__=='PackageInfo': oto = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
         else: oto = objectInfo.name.lower()
         dep = '"' + ofrom + '" -> "' + oto + '";'
         if not dep in metaInfo.depGraph['file2object']:
             metaInfo.depGraph['file2object'].append(dep)
-            props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
-            if not props in metaInfo.depGraph['file2object']:
-                metaInfo.depGraph['file2object'].append(props)
-            props = '"' + oto + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
-            if not props in metaInfo.depGraph['file2object']:
-                metaInfo.depGraph['file2object'].append(props)
+            try:
+                props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
+                if not props in metaInfo.depGraph['file2object']:
+                    metaInfo.depGraph['file2object'].append(props)
+                props = '"' + oto + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
+                if not props in metaInfo.depGraph['file2object']:
+                    metaInfo.depGraph['file2object'].append(props)
+            except:
+                logger.debug(_('DepGraph: could not set properties for element %s (to file %s)'),uObj.name or '<unknown>',oto)
         # full: object -> object
         if otype in ['proc','func'] and type(objectInfo.parent).__name__=='PackageInfo': oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
         else: oname = objectInfo.name.lower()
         dep = '"' + uname + '" -> "' + oname + '";'
         if not dep in metaInfo.depGraph['object2object']:
             metaInfo.depGraph['object2object'].append(dep)
-            props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
-            if not props in metaInfo.depGraph['object2object']:
-                metaInfo.depGraph['object2object'].append(props)
-            props = '"' + oname + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
-            if not props in metaInfo.depGraph['object2object']:
-                metaInfo.depGraph['object2object'].append(props)
-            props = '"' + oto + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
-            if not props in metaInfo.depGraph['file2object']:
-                metaInfo.depGraph['file2object'].append(props)
+            try:
+                props = '"' + uname + '" [color="'+metaInfo.colors[uType][0]+'",fontcolor="'+metaInfo.colors[uType][1] + '"];'
+                if not props in metaInfo.depGraph['object2object']:
+                    metaInfo.depGraph['object2object'].append(props)
+                props = '"' + oname + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
+                if not props in metaInfo.depGraph['object2object']:
+                    metaInfo.depGraph['object2object'].append(props)
+                props = '"' + oto + '" [color="'+metaInfo.colors[otype][0]+'",fontcolor="'+metaInfo.colors[otype][1] + '"];'
+                if not props in metaInfo.depGraph['file2object']:
+                    metaInfo.depGraph['file2object'].append(props)
+            except:
+                logger.debug(_('DepGraph: could not set properties for objects %s/%s'),uObj.name or '<unknown>',objectInfo.name or '<unknown>')
 
 
 
