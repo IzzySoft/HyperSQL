@@ -18,9 +18,9 @@ cd ${0%%/*}
   -o ../../../lib/generator/commonhtml.py -nt hypersql.pot \
   -o ../../../lib/generator/sqlstats.py -nt hypersql.pot \
   -o ../../../lib/generator/db_html.py -nt hypersql.pot \
-  -o ../../../lib/parser/sqlfinder.py -nt hypersql.pot \
+  -o ../../../lib/parsers/sqlfinder.py -nt hypersql.pot \
   -o ../../../lib/hypercore/helpers.py -nt hypersql.pot \
-] && xgettext -o hypersql.pot $ARGS $hsql ../../../HyperSQL.py ../../../lib/hypercore/config.py ../../../lib/generator/commonhtml.py ../../../lib/generator/sqlstats.py ../../../lib/generator/db_html.py ../../../lib/parser/sqlfinder.py ../../../lib/hypercore/helpers.py
+] && xgettext -o hypersql.pot $ARGS $hsql ../../../HyperSQL.py ../../../lib/hypercore/config.py ../../../lib/generator/commonhtml.py ../../../lib/generator/sqlstats.py ../../../lib/generator/db_html.py ../../../lib/parsers/sqlfinder.py ../../../lib/hypercore/helpers.py
 [ ../../../lib/hyperjdoc.py -nt hyperjdoc.pot ] && xgettext -o hyperjdoc.pot $ARGS $jdoc ../../../lib/hyperjdoc.py
 [ ../../../lib/depgraph.py -nt depgraph.pot ] && xgettext -o depgraph.pot $ARGS $graf ../../../lib/depgraph.py
 [ ../../../lib/hyperopts.py -nt hyperopts.pot ] && xgettext -o hyperopts.pot $ARGS $hopt ../../../lib/hyperopts.py
