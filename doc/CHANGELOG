@@ -1,8 +1,12 @@
 # History of Changes for HyperSQL
 
-v3.9.3
+v3.9.3 (30.03.2016)
 -------------------
 * cosmetical: navbar adjustments
+* added scripts to extract object definitions from database
+* updated READMEs and "full ini"
+* updated translations
+* several minor fixes
 
 v3.9.2 (16.03.2016)
 -------------------
