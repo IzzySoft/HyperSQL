@@ -1,5 +1,9 @@
 # History of Changes for HyperSQL
 
+v3.9.4
+-------------------
+* new config keyword "custom_css_files" allowing for multiple custom CSS files
+
 v3.9.3 (30.03.2016)
 -------------------
 * cosmetical: navbar adjustments

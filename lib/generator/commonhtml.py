@@ -91,6 +91,12 @@ def CopyStaticFiles():
         copy2(metaInfo.css_file,os_path.join(metaInfo.htmlDir,os_path.split(metaInfo.css_file)[1]))
       except IOError:
         logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('CSS-File'),'target':_('HTML-Dir')})
+    for css in metaInfo.custom_css_files:
+      if os_path.exists(css):
+        try:
+          copy2(css,os_path.join(metaInfo.htmlDir,os_path.split(css)[1]))
+        except IOError:
+          logger.error(_('I/O error while copying %(source)s to %(target)s'), {'source':_('CSS-File')+' '+css,'target':_('HTML-Dir')})
 
     # Copy project logo (if any)
     if metaInfo.projectLogo != '':
@@ -151,6 +157,8 @@ def MakeHTMLHeader(title_name, charts=False, onload=''):
     s += '<HTML><HEAD>\n'
     s += '  <TITLE>' + metaInfo.title_prefix + ': ' + title_text + '</TITLE>\n'
     s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + metaInfo.css_file + '">\n'
+    for css in metaInfo.custom_css_files:
+        s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + os_path.split(css)[1] + '">\n'
     s += '  <META HTTP-EQUIV="Content-Type" CONTENT="text/html;charset='+metaInfo.encoding+'">\n'
     if charts:
         s += '  <SCRIPT Language="JavaScript" src="diagram.js" TYPE="text/javascript"></SCRIPT>\n'

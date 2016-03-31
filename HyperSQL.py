@@ -155,6 +155,7 @@ def configRead():
     metaInfo.htmlDir            = metaInfo.cmdOpts.htmlDir or config.get('FileNames','htmlDir',os.path.split(sys.argv[0])[0] + os.sep + "html" + os.sep)
     metaInfo.css_file           = config.get('FileNames','css_file','hypersql.css')
     metaInfo.css_url            = config.get('FileNames','css_url','')
+    metaInfo.custom_css_files   = config.getList('FileNames','custom_css_files',[])
     metaInfo.unittest_dir       = config.get('FileNames','unittest_dir',os.path.split(sys.argv[0])[0] + os.sep + "unittests" + os.sep)
     metaInfo.indexPageCount     = 1 # We at least have the main index page
     if metaInfo.cmdOpts.pages is None:   metaInfo.cmdOpts.pages = []

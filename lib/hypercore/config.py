@@ -73,6 +73,7 @@ class HyperConf(IniParser):
             htmldir = 'html/',
             css_file = 'hypersql.css',
             css_url = '',
+            custom_css_files = '',
             unittest_dir = 'unittests/',
             file = 'FileNameIndexNoPathnames.html',
             filepath = 'FileNameIndexWithPathnames.html',
