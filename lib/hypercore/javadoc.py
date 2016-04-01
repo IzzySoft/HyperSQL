@@ -33,11 +33,11 @@ JavaDocVars = dict(
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
               'see', 'webpage', 'license', 'ticket', 'wiki', 'since',
-              'uses', 'ignore', 'throws', 'col', 'used', 'testcase'], # other supported tags
+              'uses', 'ignore', 'throws', 'col', 'used', 'verbatim', 'testcase'], # other supported tags
     txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
                'copyright', 'deprecated', 'see', 'webpage', 'license',
                'ticket', 'wiki', 'desc', 'since', 'uses', 'throws',
-               'used', 'testcase'] # values of these tags are plain text
+               'used', 'verbatim', 'testcase'] # values of these tags are plain text
 )
 
 def setJDocEncoding(encoding):
@@ -118,6 +118,7 @@ class JavaDoc(object):
         self.uses = []
         self.used = []
         self.throws = []
+        self.verbatim = []
         self.testcase = []
 
     def __repr__(self):
@@ -377,6 +378,10 @@ class JavaDoc(object):
           html += '<DT>'+_('Version Info')+':</DT><DD>' + HyperScan(listItemHtml(self.version)) + '</DD>'
         if len(self.info) > 0:
           html += '<DT>'+_('Additional Info')+':</DT><DD>' + HyperScan(listItemHtml(self.info)) + '</DD>'
+        if len(self.verbatim) > 0:
+            html += '<DT>'+_('Verbatim')+':</DT>'
+            for p in range(len(self.verbatim)):
+                html += '<DD class="verbatim">' + self.verbatim[p] + '</DD>'
         if len(self.ticket) > 0:
           html += '<DT>'+_('Ticket')+':</DT>'
           for i in range(len(self.ticket)):

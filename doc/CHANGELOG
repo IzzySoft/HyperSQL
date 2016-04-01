@@ -3,6 +3,7 @@
 v3.9.4
 -------------------
 * new config keyword "custom_css_files" allowing for multiple custom CSS files
+* Javadoc: implemented @verbatim tag
 
 v3.9.3 (30.03.2016)
 -------------------
