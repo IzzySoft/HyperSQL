@@ -104,6 +104,7 @@ Other object information:
  * @used <object> [<object> ...]
  * @uses <object> [<object> ...]
  * @version <text>
+ * @verbatim <text>
  * @webpage <text>
  * @wiki <page> [text]
 
