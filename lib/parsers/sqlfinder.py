@@ -377,7 +377,7 @@ def ScanFilesForObjects():
             for token_index in range(len(token_list)):
                 # find types
                 if metaInfo.indexPage['type']:
-                    # look for CREATE [OR REPLACE] TRIGGER [schema.]trigger (...), making sure enough tokens exist
+                    # look for CREATE [OR REPLACE] TYPE [schema.]trigger (...), making sure enough tokens exist
                     if len(token_list) > token_index+1 \
                     and token_list[token_index+1].upper() == "TYPE" \
                     and token_list[token_index].upper() in ['CREATE','REPLACE']:
