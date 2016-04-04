@@ -28,6 +28,8 @@ JavaDocVars = dict(
     verification_log = False,
     author_in_report = False,
     mandatory_tags = [],
+    mandatory_code_tags = [],
+    mandatory_codetag_objects = [],
     otypes = {}, # supported object types
     supertypes = [], # object types with subobjects
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
@@ -157,7 +159,11 @@ class JavaDoc(object):
         faillist = []
         if self.isDefault() or self.ignore or not JavaDocVars['verification']:
             return faillist
-        for tag in JavaDocVars['mandatory_tags']:
+        if self.objectType in JavaDocVars['mandatory_codetag_objects']:
+            checktags = JavaDocVars['mandatory_code_tags']
+        else:
+            checktags = JavaDocVars['mandatory_tags']
+        for tag in checktags:
             if tag in JavaDocVars['txttags']:
                 jdvar = self.__getattribute__(tag)
                 if len(jdvar)==0 or (len(jdvar)==1 and len(jdvar[0])==0):

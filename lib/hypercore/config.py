@@ -176,6 +176,8 @@ class HyperConf(IniParser):
             verify_javadoc = '0',
             author_in_report = '0',
             mandatory_tags = '',
+            mandatory_code_tags = '',
+            mandatory_codetag_objects = 'func proc pkg',
             stats_javadoc_forms = '0',
             verify_forms = '0'
         )

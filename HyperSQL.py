@@ -198,6 +198,9 @@ def configRead():
     else: JavaDocVars['verification'] = metaInfo.cmdOpts.verifyJavadoc
     JavaDocVars['author_in_report'] = config.getBool('Verification','author_in_report',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
+    JavaDocVars['mandatory_code_tags'] = config.getList('Verification','mandatory_code_tags',[])
+    JavaDocVars['mandatory_code_tags'] = list(set(JavaDocVars['mandatory_code_tags']+JavaDocVars['mandatory_tags']))
+    JavaDocVars['mandatory_codetag_objects'] = config.getList('Verification','mandatory_codetag_objects',['func','proc','pkg'])
     JavaDocVars['form_stats'] = config.getBool('Verification','stats_javadoc_forms',False)
     JavaDocVars['verify_forms'] = config.getBool('Verification','verify_forms',False)
     # Section DEPGRAPH

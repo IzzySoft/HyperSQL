@@ -4,6 +4,11 @@ v3.9.4
 -------------------
 * new config keyword "custom_css_files" allowing for multiple custom CSS files
 * Javadoc: implemented @verbatim tag
+* Javadoc verification: added config vars "mandatory_code_tags" (def.: empty) and
+  "mandatory_codetag_objects" (def: "proc func pkg") to be able defining
+  mandatory objects for code objects only (e.g. @author is not always useful
+  for tables). mandatory_code_tags inherits mandatory_tags automatically,
+  so mandatory_tags keep being applied to all objects.
 
 v3.9.3 (30.03.2016)
 -------------------
