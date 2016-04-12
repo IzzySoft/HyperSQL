@@ -431,22 +431,8 @@ class JavaDoc(object):
         """
         if len(self.desc) < 1:
           return ''
-        dot = []
-        if self.desc[0].find('?')>0:
-          dot.append( self.desc[0].find('?') )
-        if self.desc[0].find('!')>0:
-          dot.append( self.desc[0].find('!') )
-        if self.desc[0].find('.')>0:
-          dot.append( self.desc[0].find('.') )
-        if self.desc[0].find(';')>0:
-          dot.append( self.desc[0].find(';') )
-        if self.desc[0].find('\n')>0:
-          dot.append( self.desc[0].find('\n') )
-        if len(dot)>0:
-          cut = min(dot)
-          return self.desc[0][0:cut]
-        else:
-          return self.desc[0]
+        shorty = re.match(r"""(.+?([\.\!\?;]\s|\n)|.+)""",self.desc[0])
+        return shorty.group(1).strip() or self.desc[0]
 
 
 class JavaDocParam:

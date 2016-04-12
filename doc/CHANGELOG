@@ -9,6 +9,8 @@ v3.9.4
   mandatory objects for code objects only (e.g. @author is not always useful
   for tables). mandatory_code_tags inherits mandatory_tags automatically,
   so mandatory_tags keep being applied to all objects.
+* Javadoc short desc fixed (no longer cutting at the "first dot" if it is
+  in e.g. a number like "version 3.9.4")
 
 v3.9.3 (30.03.2016)
 -------------------
