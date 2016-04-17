@@ -800,7 +800,7 @@ def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
                 if not props in metaInfo.depGraph['object2file']:
                     metaInfo.depGraph['object2file'].append(props)
             except:
-                logger.debug(_('DepGraph: could not set properties from element %s to file %s line %d'),uObj.name or '<unknown>',oto,lineNumber)
+                logger.debug(_('DepGraph: could not set properties from element %(object)s to file %(file)s line %(line)d'),{'object':uObj.name or '<unknown>', 'file':oto, 'line':lineNumber})
         # medium: file -> object
         if otype in ['proc','func'] and type(objectInfo.parent).__name__=='PackageInfo': oto = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
         else: oto = objectInfo.name.lower()
@@ -815,7 +815,7 @@ def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
                 if not props in metaInfo.depGraph['file2object']:
                     metaInfo.depGraph['file2object'].append(props)
             except:
-                logger.debug(_('DepGraph: could not set properties for element %s (to file %s)'),uObj.name or '<unknown>',oto)
+                logger.debug(_('DepGraph: could not set properties for element %(object)s (to file %(file)s)'),{'object':uObj.name or '<unknown>', 'file':oto})
         # full: object -> object
         if otype in ['proc','func'] and type(objectInfo.parent).__name__=='PackageInfo': oname = objectInfo.parent.name.lower() + '.' + objectInfo.name.lower()
         else: oname = objectInfo.name.lower()
@@ -833,7 +833,7 @@ def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
                 if not props in metaInfo.depGraph['file2object']:
                     metaInfo.depGraph['file2object'].append(props)
             except:
-                logger.debug(_('DepGraph: could not set properties for objects %s/%s'),uObj.name or '<unknown>',objectInfo.name or '<unknown>')
+                logger.debug(_('DepGraph: could not set properties for objects %(object)s/%(info)s'),{'object':uObj.name or '<unknown>', 'info':objectInfo.name or '<unknown>'})
 
 
 

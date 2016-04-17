@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hypersql\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-24 19:53+0100\n"
-"PO-Revision-Date: 2016-03-27 13:10+0100\n"
+"POT-Creation-Date: 2016-04-17 12:19+0200\n"
+"PO-Revision-Date: 2016-04-17 12:24+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -34,7 +34,7 @@ msgstr "%s Zeilen und mehr"
 msgid "%s obsolete files removed from cache"
 msgstr "%s obsolete Dateien aus dem Cache entfernt"
 
-#: ../../../lib/generator/commonhtml.py:438
+#: ../../../lib/generator/commonhtml.py:446
 msgid "Access from"
 msgstr "Zugriff von"
 
@@ -51,7 +51,7 @@ msgstr "Avg Bytes"
 msgid "Avg Lines"
 msgstr "Avg Zeilen"
 
-#: ../../../lib/hypercore/config.py:115
+#: ../../../lib/hypercore/config.py:116
 msgid "Bug List"
 msgstr "Bug Liste"
 
@@ -60,6 +60,7 @@ msgid "Bugs"
 msgstr "Bugs"
 
 #: ../../../lib/generator/commonhtml.py:93
+#: ../../../lib/generator/commonhtml.py:99
 msgid "CSS-File"
 msgstr "CSS-Datei"
 
@@ -77,7 +78,7 @@ msgstr "Überprüfe Cache auf Kopien entfernter Dateien"
 msgid "Code"
 msgstr "Code"
 
-#: ../../../lib/hypercore/config.py:118
+#: ../../../lib/hypercore/config.py:119
 msgid "Code Statistics"
 msgstr "Code Statistiken"
 
@@ -115,7 +116,7 @@ msgstr "Erstelle %s Index"
 msgid "Creating %s list"
 msgstr "Erstelle %s Liste"
 
-#: ../../../lib/generator/commonhtml.py:375
+#: ../../../lib/generator/commonhtml.py:383
 msgid "Creating dependency graphs"
 msgstr "Erstelle Abhängigkeits-Graphen"
 
@@ -123,11 +124,11 @@ msgstr "Erstelle Abhängigkeits-Graphen"
 msgid "Creating file list"
 msgstr "Erstelle Dateiliste"
 
-#: ../../../lib/generator/commonhtml.py:324
+#: ../../../lib/generator/commonhtml.py:332
 msgid "Creating filename by path index"
 msgstr "Erstelle Dateinamen-Index mit Pfad"
 
-#: ../../../lib/generator/commonhtml.py:321
+#: ../../../lib/generator/commonhtml.py:329
 msgid "Creating filename no path index"
 msgstr "Erstelle Dateinamen-Index ohne Pfad"
 
@@ -147,7 +148,7 @@ msgstr "Erstelle Ausgabeverzeichnisse"
 msgid "Creating package index"
 msgstr "Erstelle Package Index"
 
-#: ../../../lib/generator/commonhtml.py:280
+#: ../../../lib/generator/commonhtml.py:288
 msgid "Creating site index page"
 msgstr "Erstelle Startseite"
 
@@ -157,25 +158,25 @@ msgstr "Erstelle Statistikseite"
 
 #: ../../../lib/parsers/sqlfinder.py:818
 #, python-format
-msgid "DepGraph: could not set properties for element %s (to file %s)"
-msgstr "DepGraph: Eigenschaften für Element %s (auf Datei %s) können nicht gesetzt werden"
+msgid "DepGraph: could not set properties for element %(object)s (to file %(file)s)"
+msgstr "DepGraph: Eigenschaften für Element %(object)s (auf Datei %(file)s) können nicht gesetzt werden"
 
 #: ../../../lib/parsers/sqlfinder.py:836
 #, python-format
-msgid "DepGraph: could not set properties for objects %s/%s"
-msgstr "DepGraph: Eigenschaften für die Objekte %s/%s konnten nicht gesetzt werden"
+msgid "DepGraph: could not set properties for objects %(object)s/%(info)s"
+msgstr "DepGraph: Eigenschaften für die Objekte %(object)s/%(info)s konnten nicht gesetzt werden"
 
 #: ../../../lib/parsers/sqlfinder.py:803
 #, python-format
-msgid "DepGraph: could not set properties from element %s to file %s line %d"
-msgstr "DepGraph: Eigenschaften für Element %s auf Datei %s Zeile %d konnten nicht gesetzt werden"
+msgid "DepGraph: could not set properties from element %(object)s to file %(file)s line %(line)d"
+msgstr "DepGraph: Eigenschaften für Element %(object)s auf Datei %(file)s Zeile %(line)d konnten nicht gesetzt werden"
 
-#: ../../../lib/generator/commonhtml.py:436
-#: ../../../lib/generator/commonhtml.py:454
+#: ../../../lib/generator/commonhtml.py:444
+#: ../../../lib/generator/commonhtml.py:462
 msgid "Dependency Graph"
 msgstr "Abhängigkeits-Graph"
 
-#: ../../../lib/hypercore/config.py:119
+#: ../../../lib/hypercore/config.py:120
 msgid "Dependency Graphs"
 msgstr "Abhängigkeits-Graphen"
 
@@ -199,12 +200,12 @@ msgstr "Leerzeilen"
 msgid "Encoding trouble writing sourcecode of %s:"
 msgstr "Kodierungs-Problem beim Schreiben des Sourcecodes von %s:"
 
-#: ../../../lib/generator/commonhtml.py:404
+#: ../../../lib/generator/commonhtml.py:412
 #, python-format
 msgid "Error while copying %s from cache"
 msgstr "%s konnte nicht aus dem Cache-Verzeichnis kopiert werden."
 
-#: ../../../lib/generator/commonhtml.py:414
+#: ../../../lib/generator/commonhtml.py:422
 #, python-format
 msgid "Error while copying %s to cache"
 msgstr "%s konnte nicht in das Cache-Verzeichnis kopiert werden."
@@ -221,11 +222,11 @@ msgstr "Extrahiere Unit-Tests"
 msgid "File"
 msgstr "Datei"
 
-#: ../../../lib/hypercore/config.py:100
+#: ../../../lib/hypercore/config.py:101
 msgid "File Name Index"
 msgstr "Dateien"
 
-#: ../../../lib/hypercore/config.py:101
+#: ../../../lib/hypercore/config.py:102
 msgid "File Names by Path Index"
 msgstr "Dateien mit Pfadnamen"
 
@@ -257,7 +258,7 @@ msgstr "Form Funktionen"
 msgid "Form General"
 msgstr "Form allgemein"
 
-#: ../../../lib/hypercore/config.py:113
+#: ../../../lib/hypercore/config.py:114
 msgid "Form Index"
 msgstr "Forms"
 
@@ -273,11 +274,11 @@ msgstr "Form Packages"
 msgid "Form Procedures"
 msgstr "Form Prozeduren"
 
-#: ../../../lib/hypercore/config.py:114
+#: ../../../lib/hypercore/config.py:115
 msgid "Full Forms Listing"
 msgstr "Vollständige Forms Liste"
 
-#: ../../../lib/hypercore/config.py:110
+#: ../../../lib/hypercore/config.py:111
 msgid "Full Package Listing"
 msgstr "Vollständige Package Liste"
 
@@ -295,7 +296,7 @@ msgstr "Funktion"
 msgid "Function %(function)s in package %(package)s has no JavaDoc information attached"
 msgstr "Für die Funktion %(package)s.%(function)s wurden keine JavaDoc Informationen bereitgestellt"
 
-#: ../../../lib/hypercore/config.py:111
+#: ../../../lib/hypercore/config.py:112
 msgid "Function Index"
 msgstr "Funktionen"
 
@@ -314,36 +315,38 @@ msgstr "Funktionen"
 msgid "Functions"
 msgstr "Funktionen"
 
-#: ../../../lib/generator/commonhtml.py:416
+#: ../../../lib/generator/commonhtml.py:424
 msgid "Graphviz threw an error:"
 msgstr "Graphviz hat einen Fehler gemeldet:"
 
-#: ../../../lib/generator/commonhtml.py:371
+#: ../../../lib/generator/commonhtml.py:379
 msgid "Graphviz trouble - unable to generate the graph"
 msgstr "Probleme mit Graphviz - kann keine Abhängigkeits-Graphen erstellen"
 
 #: ../../../lib/generator/commonhtml.py:93
-#: ../../../lib/generator/commonhtml.py:100
+#: ../../../lib/generator/commonhtml.py:99
+#: ../../../lib/generator/commonhtml.py:106
 #: ../../../lib/generator/sqlstats.py:339
 msgid "HTML-Dir"
 msgstr "HTML-Verzeichnis"
 
-#: ../../../lib/generator/commonhtml.py:287
+#: ../../../lib/generator/commonhtml.py:295
 msgid "HyperSQL Reference"
 msgstr "HyperSQL Referenz"
 
-#: ../../../HyperSQL.py:431
+#: ../../../HyperSQL.py:435
 #, python-format
 msgid "HyperSQL v%s exiting normally"
 msgstr "HyperSQL v%s normal beendet"
 
-#: ../../../HyperSQL.py:358
+#: ../../../HyperSQL.py:362
 #, python-format
 msgid "HyperSQL v%s initialized"
 msgstr "HyperSQL v%s initialisiert"
 
 #: ../../../lib/generator/commonhtml.py:93
-#: ../../../lib/generator/commonhtml.py:100
+#: ../../../lib/generator/commonhtml.py:99
+#: ../../../lib/generator/commonhtml.py:106
 #: ../../../lib/generator/sqlstats.py:339
 #, python-format
 msgid "I/O error while copying %(source)s to %(target)s"
@@ -353,11 +356,11 @@ msgstr "Fehler beim Kopieren: Quelle: %(source)s => Ziel: %(target)s"
 msgid "Including strings in where_used scan"
 msgstr "Strings werden beim where_used Scan berücksichtigt"
 
-#: ../../../lib/generator/commonhtml.py:322
+#: ../../../lib/generator/commonhtml.py:330
 msgid "Index Of All Files By File Name"
 msgstr "Index aller Dateien nach Dateiname"
 
-#: ../../../lib/generator/commonhtml.py:325
+#: ../../../lib/generator/commonhtml.py:333
 msgid "Index Of All Files By Path Name"
 msgstr "Index aller Dateien nach Pfadname"
 
@@ -487,8 +490,8 @@ msgstr "MView"
 msgid "MViews"
 msgstr "MViews"
 
-#: ../../../lib/generator/commonhtml.py:126
-#: ../../../lib/generator/commonhtml.py:128
+#: ../../../lib/generator/commonhtml.py:132
+#: ../../../lib/generator/commonhtml.py:134
 msgid "Main Index"
 msgstr "Startseite"
 
@@ -497,7 +500,7 @@ msgstr "Startseite"
 msgid "Materialized View"
 msgstr "Materialized View"
 
-#: ../../../lib/hypercore/config.py:103
+#: ../../../lib/hypercore/config.py:104
 msgid "Materialized View Index"
 msgstr "Materialized Views"
 
@@ -531,12 +534,12 @@ msgstr "Name"
 msgid "No JavaDoc information available"
 msgstr "Keine JavaDoc Informationen verfügbar"
 
-#: ../../../HyperSQL.py:348
-#: ../../../HyperSQL.py:364
+#: ../../../HyperSQL.py:352
+#: ../../../HyperSQL.py:368
 msgid "No config file found, using defaults."
 msgstr "Keine Konfigurationsdatei gefunden, verwende Standardwerte."
 
-#: ../../../lib/generator/commonhtml.py:423
+#: ../../../lib/generator/commonhtml.py:431
 #, python-format
 msgid "No dependency data for %s"
 msgstr "Für \"%s\" gibt es keine Abhängigkeits-Daten"
@@ -579,7 +582,7 @@ msgstr "Für das Package %s wurden keine JavaDoc Informationen bereitgestellt"
 msgid "Package General"
 msgstr "Package allgemein"
 
-#: ../../../lib/hypercore/config.py:109
+#: ../../../lib/hypercore/config.py:110
 msgid "Package Index"
 msgstr "Packages"
 
@@ -622,7 +625,7 @@ msgstr "Prozedur"
 msgid "Procedure %(procedure)s in package %(package)s has no JavaDoc information attached"
 msgstr "Für die Prozedur %(package)s.%(procedure)s wurden keine JavaDoc Informationen bereitgestellt"
 
-#: ../../../lib/hypercore/config.py:112
+#: ../../../lib/hypercore/config.py:113
 msgid "Procedure Index"
 msgstr "Prozeduren"
 
@@ -664,7 +667,7 @@ msgstr "Scanne Quelldaten nach Aufrufen von Objekten"
 msgid "Sequence"
 msgstr "Sequenz"
 
-#: ../../../lib/hypercore/config.py:108
+#: ../../../lib/hypercore/config.py:109
 msgid "Sequence Index"
 msgstr "Sequenzen"
 
@@ -705,7 +708,7 @@ msgstr "Statistiken"
 msgid "Synonym"
 msgstr "Synonym"
 
-#: ../../../lib/hypercore/config.py:107
+#: ../../../lib/hypercore/config.py:108
 msgid "Synonym Index"
 msgstr "Synonyme"
 
@@ -722,7 +725,7 @@ msgstr "Synonyme"
 msgid "Table"
 msgstr "Tabelle"
 
-#: ../../../lib/hypercore/config.py:104
+#: ../../../lib/hypercore/config.py:105
 msgid "Table Index"
 msgstr "Tabellen"
 
@@ -736,7 +739,7 @@ msgstr "Tabellen"
 msgid "Todo Items"
 msgstr "Todo Punkte"
 
-#: ../../../lib/hypercore/config.py:116
+#: ../../../lib/hypercore/config.py:117
 msgid "Todo List"
 msgstr "Todo-Liste"
 
@@ -762,7 +765,7 @@ msgstr "Dateien insgesamt"
 msgid "Trigger"
 msgstr "Trigger"
 
-#: ../../../lib/hypercore/config.py:105
+#: ../../../lib/hypercore/config.py:106
 msgid "Trigger Index"
 msgstr "Trigger"
 
@@ -779,7 +782,7 @@ msgstr "Trigger"
 msgid "Type"
 msgstr "Typ"
 
-#: ../../../lib/hypercore/config.py:106
+#: ../../../lib/hypercore/config.py:107
 msgid "Type Index"
 msgstr "Typen"
 
@@ -795,11 +798,11 @@ msgstr "Typen"
 msgid "Usage"
 msgstr "Verwendung"
 
-#: ../../../HyperSQL.py:362
+#: ../../../HyperSQL.py:366
 msgid "Using config file(s) "
 msgstr "Verwende Konfigurationsdatei(en)"
 
-#: ../../../lib/hypercore/config.py:117
+#: ../../../lib/hypercore/config.py:118
 msgid "Validation Report"
 msgstr "Validierungs-Report"
 
@@ -815,7 +818,7 @@ msgstr "Wert"
 msgid "View"
 msgstr "View"
 
-#: ../../../lib/hypercore/config.py:102
+#: ../../../lib/hypercore/config.py:103
 msgid "View Index"
 msgstr "Views"
 
@@ -852,13 +855,13 @@ msgstr "XML Dateigröße"
 msgid "^ Top"
 msgstr "^ Top"
 
-#: ../../../lib/generator/commonhtml.py:418
-#: ../../../lib/generator/commonhtml.py:440
+#: ../../../lib/generator/commonhtml.py:426
+#: ../../../lib/generator/commonhtml.py:448
 msgid "file to file"
 msgstr "Datei auf Datei"
 
-#: ../../../lib/generator/commonhtml.py:419
-#: ../../../lib/generator/commonhtml.py:442
+#: ../../../lib/generator/commonhtml.py:427
+#: ../../../lib/generator/commonhtml.py:450
 msgid "file to object"
 msgstr "Datei auf Objekt"
 
@@ -884,46 +887,46 @@ msgstr "weniger als %s Zeilen"
 msgid "makeUsagePage called for undefined type \"%s\""
 msgstr "makeUsagePage mit undefiniertem Typ \"%s\" aufgerufen"
 
-#: ../../../lib/generator/commonhtml.py:266
+#: ../../../lib/generator/commonhtml.py:274
 msgid "no use found"
 msgstr "nichts gefunden"
 
-#: ../../../lib/generator/commonhtml.py:420
-#: ../../../lib/generator/commonhtml.py:444
+#: ../../../lib/generator/commonhtml.py:428
+#: ../../../lib/generator/commonhtml.py:452
 msgid "object to file"
 msgstr "Objekt auf Datei"
 
-#: ../../../lib/generator/commonhtml.py:421
-#: ../../../lib/generator/commonhtml.py:446
+#: ../../../lib/generator/commonhtml.py:429
+#: ../../../lib/generator/commonhtml.py:454
 msgid "object to object"
 msgstr "Objekt auf Objekt"
 
-#: ../../../lib/generator/commonhtml.py:100
+#: ../../../lib/generator/commonhtml.py:106
 msgid "project logo"
 msgstr "Projektlogo"
 
-#: ../../../HyperSQL.py:372
+#: ../../../HyperSQL.py:376
 #, python-format
 msgid "top_level_directory \"%s\" does not exist - terminating."
 msgstr "top_level_directory \"%s\" existiert nicht - terminiere."
 
-#: ../../../lib/generator/commonhtml.py:422
+#: ../../../lib/generator/commonhtml.py:430
 msgid "unknown dependency graph type"
 msgstr "Unbekannter Abhängigkeitsgraph-Typ"
 
-#: ../../../lib/generator/commonhtml.py:269
+#: ../../../lib/generator/commonhtml.py:277
 msgid "what used"
 msgstr "ruft auf"
 
-#: ../../../lib/generator/commonhtml.py:263
+#: ../../../lib/generator/commonhtml.py:271
 msgid "where used"
 msgstr "benutzt von"
 
-#: ../../../HyperSQL.py:368
+#: ../../../HyperSQL.py:372
 msgid "where_used shortref scan disabled"
 msgstr "where_used shortref Scan deaktiviert"
 
-#: ../../../HyperSQL.py:366
+#: ../../../HyperSQL.py:370
 msgid "where_used shortref scan enabled"
 msgstr "where_used shortref Scan aktiviert"
 
