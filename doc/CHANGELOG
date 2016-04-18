@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.9.4
+v3.9.4 (18.04.2016)
 -------------------
 * new config keyword "custom_css_files" allowing for multiple custom CSS files
 * Javadoc: implemented @verbatim tag
