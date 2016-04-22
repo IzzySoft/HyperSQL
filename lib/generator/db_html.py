@@ -516,7 +516,11 @@ def MakeTaskList(taskType):
         if task.allItemCount() < 1:
             continue
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
-        outfile.write('  <TR><TH COLSPAN="2">' + _('Package') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower(),package_tuple[2].bytes) + '</TH></TR>\n');
+        if not package_tuple[1].javadoc.author:
+          aut = ''
+        else:
+          aut = ' (' + _('Author') + ': ' + ', '.join(package_tuple[1].javadoc.author) + ')'
+        outfile.write('  <TR><TH COLSPAN="2">' + _('Package') + ' ' + makeDualCodeRef(HTMLref,HTMLjref,package_tuple[1].name.lower(),package_tuple[2].bytes) + aut + '</TH></TR>\n');
         if task.taskCount() > 0:
             outfile.write('  <TR><TD COLSPAN="2" ALIGN="center"><B><I>'+_('Package General')+'</I></B></TD></TR>\n')
             outfile.write('  <TR><TD COLSPAN="2">' + task.getHtml() + '</TD></TR>\n')
