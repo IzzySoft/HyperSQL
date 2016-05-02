@@ -162,6 +162,10 @@ Verification
 
 In this section you may setup some JavaDoc verification stuff:
 
+ * javadoc_shortdesc_mode: where to cut the (full) description to obtain a
+   short_description for overviews. Possible values: 'line' (cut off at the
+   first line break), 'unit' (cut of at first line break or punctuation mark;
+   this is the default and was hard coded until v3.9.4)
  * verify_javadoc: shall JavaDoc be verified at all? (Default: 0)
  * verify_forms: as above - shall we do so for forms as well? (Default: 0)
  * stats_javadoc_forms: Include bugs/todos/verification for forms into the stats?

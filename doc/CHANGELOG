@@ -1,5 +1,11 @@
 # History of Changes for HyperSQL
 
+v3.9.5
+-------------------
+* adding author name(s) to packages in bug/todo lists
+* new config keyword javadoc_shortdesc_mode to define how the short desc
+  is cut out of the full desc
+
 v3.9.4 (18.04.2016)
 -------------------
 * new config keyword "custom_css_files" allowing for multiple custom CSS files

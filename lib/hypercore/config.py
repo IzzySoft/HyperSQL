@@ -172,6 +172,7 @@ class HyperConf(IniParser):
         )
         # Section VERIFICATION
         verification = dict (
+            javadoc_shortdesc_mode = 'unit',
             javadoc_mandatory = '0',
             verify_javadoc = '0',
             author_in_report = '0',

@@ -196,6 +196,7 @@ def configRead():
     if metaInfo.cmdOpts.verifyJavadoc is None:
         JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
     else: JavaDocVars['verification'] = metaInfo.cmdOpts.verifyJavadoc
+    JavaDocVars['javadoc_shortdesc_mode'] = config.get('Verification','javadoc_shortdesc_mode','unit')
     JavaDocVars['author_in_report'] = config.getBool('Verification','author_in_report',False)
     JavaDocVars['mandatory_tags'] = config.getList('Verification','mandatory_tags',[])
     JavaDocVars['mandatory_code_tags'] = config.getList('Verification','mandatory_code_tags',[])

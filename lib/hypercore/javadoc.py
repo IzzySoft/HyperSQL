@@ -23,6 +23,7 @@ JavaDocVars = dict(
     wiki_url     = '',
     ticket_url = '',
     top_level_dir_len = 0,
+    javadoc_shortdesc_mode = 'unit',
     javadoc_mandatory = False,
     verification = False,
     verification_log = False,
@@ -431,7 +432,10 @@ class JavaDoc(object):
         """
         if len(self.desc) < 1:
           return ''
-        shorty = re.match(r"""(.+?([\.\!\?;]\s|\n)|.+)""",self.desc[0])
+        if JavaDocVars['javadoc_shortdesc_mode'] == 'line':
+          shorty = re.match(r"""(.+?(\n)|.+)""",self.desc[0])
+        else:
+          shorty = re.match(r"""(.+?([\.\!\?;]\s|\n)|.+)""",self.desc[0])
         return shorty.group(1).strip() or self.desc[0]
 
 
