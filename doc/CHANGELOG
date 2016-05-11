@@ -5,6 +5,8 @@ v3.9.5
 * adding author name(s) to packages in bug/todo lists
 * new config keyword javadoc_shortdesc_mode to define how the short desc
   is cut out of the full desc
+* fixes for whereused_scan_shortrefs: no more self-references or
+  crashes with "index out of range"
 
 v3.9.4 (18.04.2016)
 -------------------

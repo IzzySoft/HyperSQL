@@ -732,6 +732,10 @@ def addWhereUsed(objectInfo,fileInfo,lineNumber,otype):
     @param int lineNumber file line number where the usage was found
     @param string otype object type of the used object
     """
+    # skip self-reference (should only happen with scanShortRefs==true)
+    if lineNumber == objectInfo.lineNumber:
+        return
+
     uType,uObj = findUsingObject(fileInfo,lineNumber)
 
     # check for what_used
@@ -1129,7 +1133,8 @@ def ScanFilesForUsage():
                     for function_info in package_info.functionInfoList:
                         res = getWordLineNr(new_text,'(^|\\s|[(;,])'+function_info.name+'([ (;,)]|$)')
                         for ires in res:
-                            if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
+                            # sometimes crashes with "list index out of range" when ires[0]<len(fileLines) is omitted (somehow new_text has an additional newline)
+                            if not (ires[0] > len(fileLines) and fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
                                 addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
                                 addWhereUsed(function_info, outer_file_info, ires[0], 'func')
 
@@ -1137,7 +1142,7 @@ def ScanFilesForUsage():
                     for procedure_info in package_info.procedureInfoList:
                         res = getWordLineNr(new_text,'(^|\\s|[(;,])'+procedure_info.name+'([ (;,)]|$)')
                         for ires in res:
-                            if not (fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
+                            if not (ires[0] > len(fileLines) and fileLines[ires[0]].find('--') > -1 and fileLines[ires[0]].find('--') < ires[1]): # check for inline comments to be excluded
                                 addWhereUsed(package_info, outer_file_info, ires[0], 'pkg')
                                 addWhereUsed(procedure_info, outer_file_info, ires[0], 'proc')
 
