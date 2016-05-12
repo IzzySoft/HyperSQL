@@ -7,6 +7,7 @@ __revision__ = '$Id$'
 import time # for makeHTMLFooter
 import os
 from hypercore.elements import metaInfo
+from hypercore.javadoc import JavaDocVars
 from .commonhtml import getDualCodeLink,makeDualCodeRef,makeUsageCol,MakeHTMLHeader,MakeHTMLFooter
 from progress import *
 from iz_tools.system import fopen
@@ -516,7 +517,7 @@ def MakeTaskList(taskType):
         if task.allItemCount() < 1:
             continue
         HTMLref,HTMLjref,HTMLpref,HTMLpjref = getDualCodeLink(package_tuple)
-        if not package_tuple[1].javadoc.author:
+        if not (JavaDocVars['author_in_report'] and package_tuple[1].javadoc.author):
           aut = ''
         else:
           aut = ' (' + _('Author') + ': ' + ', '.join(package_tuple[1].javadoc.author) + ')'
