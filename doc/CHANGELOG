@@ -7,6 +7,7 @@ v3.9.5
   is cut out of the full desc
 * fixes for whereused_scan_shortrefs: no more self-references or
   crashes with "index out of range"
+* new Javadoc tag @ignorevalidation (e.g. for objects subject to refacturing/obsolidation)
 
 v3.9.4 (18.04.2016)
 -------------------

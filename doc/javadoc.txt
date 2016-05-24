@@ -94,6 +94,7 @@ Other object information:
  * @deprecated <text>
  * @example <text>
  * @ignore
+ * @ignorevalidation
  * @info <text>
  * @private
  * @see <text>

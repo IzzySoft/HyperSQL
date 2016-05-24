@@ -36,7 +36,7 @@ JavaDocVars = dict(
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
               'todo', 'bug', 'copyright', 'deprecated', 'private',
               'see', 'webpage', 'license', 'ticket', 'wiki', 'since',
-              'uses', 'ignore', 'throws', 'col', 'used', 'verbatim', 'testcase'], # other supported tags
+              'uses', 'ignore','ignorevalidation', 'throws', 'col', 'used', 'verbatim', 'testcase'], # other supported tags
     txttags = ['version', 'author', 'info', 'example', 'todo', 'bug',
                'copyright', 'deprecated', 'see', 'webpage', 'license',
                'ticket', 'wiki', 'desc', 'since', 'uses', 'throws',
@@ -112,6 +112,7 @@ class JavaDoc(object):
         self.deprecated = []
         self.private = False
         self.ignore = False
+        self.ignorevalidation = False
         self.see = []
         self.webpage = []
         self.license = []
@@ -158,7 +159,7 @@ class JavaDoc(object):
         @return list
         """
         faillist = []
-        if self.isDefault() or self.ignore or not JavaDocVars['verification']:
+        if self.isDefault() or self.ignore or self.ignorevalidation or not JavaDocVars['verification']:
             return faillist
         if self.objectType in JavaDocVars['mandatory_codetag_objects']:
             checktags = JavaDocVars['mandatory_code_tags']
@@ -828,6 +829,7 @@ def ScanJavaDoc(text,fileName,lineNo=0):
                     else: item.cols.append(p)
                 elif tag == 'private': item.private = True
                 elif tag == 'ignore' : item.ignore  = True
+                elif tag == 'ignorevalidation' : item.ignorevalidation = True
                 else: # kick the developers brain - one never should get here!
                     logger.warn(_('JavaDoc tag "%s" failed - kick the developers brain!'), tag)
             else:             # unsupported tag, ignore
