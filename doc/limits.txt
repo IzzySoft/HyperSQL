@@ -6,7 +6,12 @@ Known issues and limitations
   (same for where/what used currently)
 - if the parameter list of an object (e.g. "PROCEDURE foobar (<parameter_list>)") contains comments,
   parameter parsing stops at that place (i.e. parameters following the comment are not recognized, and
-  thus reported by JavaDoc verification as mismatch in parameter count)
+  thus reported by JavaDoc verification as mismatch in parameter count). Seems to affect inline-comments
+  ("-- comment") only.
+- using paranthesis in comments inside function/procedure declarations leads to parameters following
+  that comment staying unrecognised – example: "function foo (p1 in char /* yuck (no) */, p2 char)"
+  would leave p2 undetected. This is due to the REGEX currently used matching them '\((.*?)\)'.
+  Improved REGEX welcome :)
 - used_by for types not always recognized (e.g. not in RETURNS of functions, with "PIPE ROW( <type>",
   or when used by other types)
 
