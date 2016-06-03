@@ -8,6 +8,8 @@ v3.9.5
 ! fixes for whereused_scan_shortrefs: no more self-references or
   crashes with "index out of range"
 + new Javadoc tag @ignorevalidation (e.g. for objects subject to refacturing/obsolidation)
+* filtering out code comments ("-- comment" and "/* comment */") before checking
+  parameters to functions/procedures to avoid "wrong parameter evaluation"
 
 v3.9.4 (18.04.2016)
 -------------------

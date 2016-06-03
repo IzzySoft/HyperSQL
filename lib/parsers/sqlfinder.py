@@ -307,6 +307,9 @@ def ScanFilesForObjects():
 
         metaInfo.incLoc('totals',len(fileLines))
         filetext = '\n'.join(fileLines) # complete file in one string
+        filetextnoc  = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,filetext) # remove /* comments */
+        filetextnoc  = re.sub(re.compile("\n\s*--.*\n" ) ,"" ,filetextnoc) # remove full-line -- comments
+        filetextnoc  = re.sub(re.compile("--[^']*?\n" )  ,"" ,filetextnoc) # remove in-line -- comments
         for lineNumber in range(file_info.lines):
             if len(fileLines[lineNumber].strip()) < 0:
                 metaInfo.incLoc('empty')
@@ -567,8 +570,8 @@ def ScanFilesForObjects():
                         if JavaDocVars['verification_log']: logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
                         file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'),jd.author,fi.uniqueNumber)
                     if JavaDocVars['verification']:
-                        fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)')
-                        cparms = re.findall(fupatt,filetext)
+                        fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)\s*return')
+                        cparms = re.findall(fupatt,filetextnoc)
                         if len(cparms)==0:
                             mands = jd.verify_params([])
                         elif len(cparms)==1:
@@ -622,8 +625,8 @@ def ScanFilesForObjects():
                         if JavaDocVars['verification_log']: logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
                         file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'),jd.author,pi.uniqueNumber)
                     if JavaDocVars['verification']:
-                        fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)')
-                        cparms = re.findall(fupatt,filetext)
+                        fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)\s*[ia]s')
+                        cparms = re.findall(fupatt,filetextnoc)
                         if len(cparms)==0:
                             mands = jd.verify_params([])
                         elif len(cparms)==1:
