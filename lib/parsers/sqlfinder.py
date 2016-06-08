@@ -306,10 +306,11 @@ def ScanFilesForObjects():
         new_file = 1
 
         metaInfo.incLoc('totals',len(fileLines))
-        filetext = '\n'.join(fileLines) # complete file in one string
+        filetext = '\n'.join(fileLines) # filetext: complete file in one string; filetextnoc: without comments etc (just used for parameter parsing)
         filetextnoc  = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,filetext) # remove /* comments */
-        filetextnoc  = re.sub(re.compile("\n\s*--.*\n" ) ,"" ,filetextnoc) # remove full-line -- comments
-        filetextnoc  = re.sub(re.compile("--[^']*?\n" )  ,"" ,filetextnoc) # remove in-line -- comments
+        filetextnoc  = re.sub(re.compile("\n\s*--.*\n" ) ,"" ,filetextnoc)   # remove full-line -- comments
+        filetextnoc  = re.sub(re.compile("--[^']*?\n" )  ,"" ,filetextnoc)   # remove in-line -- comments
+        filetextnoc  = re.sub(re.compile(":=\s*'.*?'\s*([,\)])",re.MULTILINE),r"\1" ,filetextnoc) # filter out defaults from parameters (catches more, we don't care here)
         for lineNumber in range(file_info.lines):
             if len(fileLines[lineNumber].strip()) < 0:
                 metaInfo.incLoc('empty')
