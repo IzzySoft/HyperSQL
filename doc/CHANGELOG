@@ -10,6 +10,9 @@ v3.9.5
 + new Javadoc tag @ignorevalidation (e.g. for objects subject to refacturing/obsolidation)
 * ignoring comments ("-- comment" and "/* comment */") and string contents when checking
   parameters to functions/procedures to avoid "wrong parameter (count) evaluation"
++ adding check for "ignorefile" (default name: ".hsqlignore", configurable in the FileNames
+  section). If that file is found in a directory, contents of this directory (including
+  sub-directories) will be ignored by HyperSQL.
 
 v3.9.4 (18.04.2016)
 -------------------

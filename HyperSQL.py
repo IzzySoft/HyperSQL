@@ -73,7 +73,7 @@ def FindFilesAndBuildFileList(sdir, fileInfoList, init=True):
     if metaInfo.indexPage['form'] != '': fileExts.append(('xml',['xml']))
 
     # retrieve the list
-    fileInfoList += getFileList(sdir,fileExts,metaInfo.rcsnames)
+    fileInfoList += getFileList(sdir,fileExts,metaInfo.rcsnames,metaInfo.ignorefile)
     cpos  = len(sdir)
     if sdir[cpos-1] != os.sep: cpos += 1
 
@@ -145,6 +145,7 @@ def configRead():
     metaInfo.topLevelDirectory  = metaInfo.cmdOpts.sourceDir or config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned
     JavaDocVars['top_level_dir_len'] = len(metaInfo.topLevelDirectory)
     metaInfo.rcsnames           = config.getList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
+    metaInfo.ignorefile         = config.get('FileNames','ignorefile','.hsqlignore') # flag-file indicating to ignore contents of a directory
     metaInfo.sql_file_exts      = config.getList('FileNames','sql_file_exts',['sql', 'pkg', 'pkb', 'pks', 'pls']) # Extensions for files to treat as SQL
     metaInfo.cpp_file_exts      = config.getList('FileNames','cpp_file_exts',['c', 'cpp', 'h']) # Extensions for files to treat as C
     if len(metaInfo.cmdArgs)>0: defCacheDir = os.path.split(sys.argv[0])[0] + os.sep + "cache" + os.sep + metaInfo.cmdArgs[0] + os.sep

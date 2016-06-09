@@ -4,8 +4,7 @@ Known issues and limitations
 - JavaDoc on stand-alone objects (functions/procedures) is not included in check for mandatory tags
 - if two objects have the same name (e.g. a table and its synonym), the dependency graph cannot tell them apart
   (same for where/what used currently)
-- default values to parameters on functions/procedures containing commata leads to false "parameter mismatch"
-  reports on validation (e.g. "foo in varchar2 := ', '")
+- filtering "/* block comments */" on parameter parse doesn't filter "/* nested /* comments */ */" correctly
 - used_by for types not always recognized (e.g. not in RETURNS of functions, with "PIPE ROW( <type>",
   or when used by other types)
 

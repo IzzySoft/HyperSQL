@@ -6,11 +6,12 @@ __revision__ = '$Id$'
 import os
 from hypercore.elements import FileInfo
 
-def getFileList(sdir, fileExts, skipDirs=[]):
+def getFileList(sdir, fileExts, skipDirs=[], ignorefile='.hsqlignore'):
     """
     Recursively scans the source directory specified for relevant files according
     to the file extensions passed by the second parameter, while excluding files/
-    directories given with the third (useful to exclude '.svn' and the like)
+    directories given with the third (useful to exclude '.svn' and the like) and
+    directories containing an ignore flag file (usually '.hsqlignore')
     Information for matching files will be returned as a list of FileInfo objects.
     @param string dir directory to scan
     @param list fileExts file extensions to consider. Each element must be a tuple
@@ -33,6 +34,8 @@ def getFileList(sdir, fileExts, skipDirs=[]):
     for i in names: 
 
       if i in skipDirs: # do not look in RCS/CVS/SVN/... special dirs
+        continue
+      if os.path.isfile( os.path.join(sdir, i, ignorefile) ):
         continue
 
       # convert from relative to absolute addressing

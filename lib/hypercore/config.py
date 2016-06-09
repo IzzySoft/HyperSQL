@@ -68,6 +68,7 @@ class HyperConf(IniParser):
         filenames = dict (
             top_level_directory = '.',
             rcsnames = 'RCS CVS .svn',
+            ignorefile = '.hsqlignore',
             sql_file_exts = 'sql pks pkb pkg pls',
             cpp_file_exts = 'c cpp h',
             htmldir = 'html/',
