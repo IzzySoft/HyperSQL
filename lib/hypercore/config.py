@@ -175,6 +175,7 @@ class HyperConf(IniParser):
         verification = dict (
             javadoc_shortdesc_mode = 'unit',
             javadoc_mandatory = '0',
+            javadoc_mandatory_objects = 'func proc pkg',
             verify_javadoc = '0',
             author_in_report = '0',
             mandatory_tags = '',

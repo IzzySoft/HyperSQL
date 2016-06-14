@@ -54,7 +54,7 @@ def ElemInfoAppendJdoc(oInfo,oType,lineNumber,jdoc):
         mands = oInfo.javadoc.verify_mandatory()
         for mand in mands:
             oInfo.verification.addItem(mname,mand)
-        if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault():
+        if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault() and oType in JavaDocVars['javadoc_mandatory_objects']:
             logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
             oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
 
@@ -78,7 +78,7 @@ def FormInfoAppendJavadoc(oInfo,oType,jdoc):
       oInfo.verification = PackageTaskList(oInfo.name.lower())
       for mand in mands:
           oInfo.verification.addItem(mname,mand)
-      if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault():
+      if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault() and oType in JavaDocVars['javadoc_mandatory_objects']:
           logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
           oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
 
@@ -128,7 +128,7 @@ def appendGlobalTasks(otype,master,jd,uid=0,jdverify=None):
             for mand in mands:
                 if otype == 'formpkgfunc':   master.verification.addFunc(mname,mand,jdverify.javadoc.author,jdverify.uniqueNumber)
                 elif otype == 'formpkgproc': master.verification.addProc(mname,mand,jdverify.javadoc.author,jdverify.uniqueNumber)
-            if JavaDocVars['javadoc_mandatory'] and jdverify.javadoc.isDefault():
+            if JavaDocVars['javadoc_mandatory'] and jdverify.javadoc.isDefault() and oType in JavaDocVars['javadoc_mandatory_objects']:
                 logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(otype.capitalize()),'name':jdverify.name})
                 master.verification.addFunc(jdverify.name,'No JavaDoc information available')
         #elif otype == 'proc'      : master.verification.addProc(jd.name,ver,jd.author,master.uniqueNumber)
@@ -524,7 +524,7 @@ def ScanFilesForObjects():
                           mands = jd.verify_mandatory()
                           for mand in mands:
                             pi.verification.addItem(mname,mand)
-                          if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault():
+                          if JavaDocVars['javadoc_mandatory'] and package_info.javadoc.isDefault() and 'pkg' in JavaDocVars['javadoc_mandatory_objects']:
                             logger.warn(_('Package %s has no JavaDoc information attached'), mname)
                             pi.verification.addItem(mname,'No JavaDoc information available')
                           file_info.packageInfoList.append(pi) # permanent storage
@@ -567,7 +567,7 @@ def ScanFilesForObjects():
                     mands = jd.verify_mandatory()
                     for mand in mands:
                         file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
-                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
+                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault() and 'func' in JavaDocVars['javadoc_mandatory_objects']:
                         if JavaDocVars['verification_log']: logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
                         file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'),jd.author,fi.uniqueNumber)
                     if JavaDocVars['verification']:
@@ -622,7 +622,7 @@ def ScanFilesForObjects():
                     mands = jd.verify_mandatory()
                     for mand in mands:
                         file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
-                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault():
+                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault() and 'proc' in JavaDocVars['javadoc_mandatory_objects']:
                         if JavaDocVars['verification_log']: logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
                         file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'),jd.author,pi.uniqueNumber)
                     if JavaDocVars['verification']:

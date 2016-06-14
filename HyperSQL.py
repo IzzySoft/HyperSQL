@@ -194,6 +194,7 @@ def configRead():
         metaInfo.scanInString = metaInfo.cmdOpts.scanInString
     # Section VERIFICATION
     JavaDocVars['javadoc_mandatory'] = config.getBool('Verification','javadoc_mandatory',False)
+    JavaDocVars['javadoc_mandatory_objects'] = config.getList('Verification','javadoc_mandatory_objects',['func','proc','pkg'])
     if metaInfo.cmdOpts.verifyJavadoc is None:
         JavaDocVars['verification'] = config.getBool('Verification','verify_javadoc',False)
     else: JavaDocVars['verification'] = metaInfo.cmdOpts.verifyJavadoc

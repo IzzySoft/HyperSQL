@@ -25,6 +25,7 @@ JavaDocVars = dict(
     top_level_dir_len = 0,
     javadoc_shortdesc_mode = 'unit',
     javadoc_mandatory = False,
+    javadoc_mandatory_objects = ['func','proc','pkg'],
     verification = False,
     verification_log = False,
     author_in_report = False,

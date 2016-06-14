@@ -1,5 +1,10 @@
 # History of Changes for HyperSQL
 
+v3.9.6
+-------------------
++ introducing javadoc_mandatory_objects keyword in config, accompanying
+  javadoc_mandatory to tell for which objects Javadoc should be mandatory
+
 v3.9.5 (11.06.2016)
 -------------------
 * adding author name(s) to packages in bug/todo lists (honoring author_in_report setting)
