@@ -79,7 +79,7 @@ def FindFilesAndBuildFileList(sdir, fileInfoList, init=True):
 
     # some adjustments are required
     for f in fileInfoList:
-        f.uniqueName = f.fileName[cpos:].replace('.','_').replace('/','--') # unique Name (for new-style refs)
+        f.uniqueName = f.fileName[cpos:].replace('.','_').replace(os.path.sep,'--') # unique Name (for new-style refs)
         if f.uniqueNumber == 0: f.uniqueNumber = metaInfo.NextIndex()       # unique Number (old style, deprecated)
 
 
