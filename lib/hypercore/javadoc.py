@@ -209,7 +209,7 @@ class JavaDoc(object):
         @return list
         """
         faillist = []
-        if self.isDefault() or not JavaDocVars['verification']:
+        if self.isDefault() or self.ignore or self.ignorevalidation or not JavaDocVars['verification']:
             return faillist
         if len(cparms) != len(self.params):
             faillist.append(_('Parameter count mismatch: Code has %(cparms)s parameters, Javadoc %(jparms)s') % { 'cparms':len(cparms), 'jparms':len(self.params)})
