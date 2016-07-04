@@ -143,6 +143,7 @@ def configRead():
     JavaDocVars['wiki_url']     = config.get('General','wiki_url','')
     # Section FILENAMES
     metaInfo.topLevelDirectory  = metaInfo.cmdOpts.sourceDir or config.get('FileNames','top_level_directory','.') # directory under which all files will be scanned
+    metaInfo.topLevelDirectory  = os.path.normpath(metaInfo.topLevelDirectory) # get rid of trailing DirSeps, if any
     JavaDocVars['top_level_dir_len'] = len(metaInfo.topLevelDirectory)
     metaInfo.rcsnames           = config.getList('FileNames','rcsnames',['RCS','CVS','.svn']) # directories to ignore
     metaInfo.ignorefile         = config.get('FileNames','ignorefile','.hsqlignore') # flag-file indicating to ignore contents of a directory
