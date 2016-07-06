@@ -7,6 +7,7 @@ v3.9.6
 ! fixing path issue on Windows causing IOError with subdirectories
 * do not spit errors on missing params if the object is set to @ignore*
 * normalizing top_level_directory (remove trailing slashes if any)
+* remove inline comments before scanning for objects to avoid "wrong findings"
 
 v3.9.5 (11.06.2016)
 -------------------

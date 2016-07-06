@@ -311,6 +311,7 @@ def ScanFilesForObjects():
         filetextnoc  = re.sub(re.compile("\n\s*--.*\n" ) ,"" ,filetextnoc)   # remove full-line -- comments
         filetextnoc  = re.sub(re.compile("--[^']*?\n" )  ,"" ,filetextnoc)   # remove in-line -- comments
         filetextnoc  = re.sub(re.compile(":=\s*'.*?'\s*([,\)])",re.MULTILINE),r"\1" ,filetextnoc) # filter out defaults from parameters (catches more, we don't care here)
+        fileLines[0] = re.sub(re.compile("--[^']*?$" )  ,"" ,fileLines[0])   # remove in-line -- comments for object parse (EXPERIMENTAL!)
         for lineNumber in range(file_info.lines):
             if len(fileLines[lineNumber].strip()) < 0:
                 metaInfo.incLoc('empty')
@@ -323,6 +324,7 @@ def ScanFilesForObjects():
             new_file = 0
             # len()-1 because we start with index 0
             if len(fileLines)-1 > lineNumber:
+                fileLines[lineNumber+1] = re.sub(re.compile("--[^']*?$" )  ,"" ,fileLines[lineNumber+1])   # remove in-line -- comments for object parse (EXPERIMENTAL!)
                 fileLines[lineNumber+1], matched_string = eatStrings(fileLines[lineNumber+1])
                 token_list1 = fileLines[lineNumber+1].split()
                 if matched_string and len(token_list1) < 1: # that line was completely eaten
