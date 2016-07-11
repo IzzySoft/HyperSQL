@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.9.6
+v3.9.6 (11.07.2016)
 -------------------
 + introducing javadoc_mandatory_objects keyword in config, accompanying
   javadoc_mandatory to tell for which objects Javadoc should be mandatory

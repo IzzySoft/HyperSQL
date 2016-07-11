@@ -30,7 +30,7 @@
        izzysoft AT qumran DOT org
 """
 __revision__ = '$Id$'
-__version__  = '3.9.5'
+__version__  = '3.9.6'
 
 
 # first import standard modules we use
