@@ -322,6 +322,7 @@ if __name__ == "__main__":
 
     metaInfo.versionString = __version__
     metaInfo.scriptName = sys.argv[0]
+    metaInfo.scriptpath = os.path.split(sys.argv[0])[0]
     logName = os.path.splitext(os.path.basename(metaInfo.scriptName))[0]
 
     # Option parser
@@ -339,7 +340,6 @@ if __name__ == "__main__":
         if os.path.exists(metaInfo.cmdOpts.config): confName.append(metaInfo.cmdOpts.config)
         else: print 'specified config file %s not found' % metaInfo.cmdOpts.config
     if len(confName)==0:
-        metaInfo.scriptpath = os.path.split(sys.argv[0])[0]
         for proj in ['HyperSQL','hypersql']:
             pfile = os.path.join(metaInfo.scriptpath, proj) + '.ini'
             if not pfile in confName and os.path.exists(pfile):

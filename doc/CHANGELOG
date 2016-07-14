@@ -1,5 +1,9 @@
 # History of Changes for HyperSQL
 
+v3.9.7
+-------------------
+* make sure --config can point to a config file in any directory
+
 v3.9.6 (11.07.2016)
 -------------------
 + introducing javadoc_mandatory_objects keyword in config, accompanying
