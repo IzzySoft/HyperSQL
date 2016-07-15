@@ -18,11 +18,11 @@ were required as well. At this time, the latest release was version 1.0 from 200
 So I decided to adopt the project at least temporarily (after establishing contact with Randy, he decided to hand over the project to
 me completely). It was (and still is) using the GPL, so there were no problems from the license side. As said, I very much liked the idea of
 ***HyperSQL***, but felt it needs some polish. So on one day in February 2010, I sat down and wrote version 1.1. Versions 1.2 and 1.3 followed
-the next day - and as you can see here, development still goes on.
+the next day - and as you can see here, development still goes on (with a few breaks sometimes).
 
 For quite a while, I was using SVN on my own server to maintain the code, and you can still find the project pages over there [at
 IzzySoft.DE](http://projects.izzysoft.de/trac/hypersql). But due to demand of other users who wanted to participate, I've decided to move
-the code to *Github*, to make this part easier – especially as I currently do not work myself on the project (due to lack of demand).
+the code to *Github*, to make this part easier – especially as there are times I do not work myself on the project (due to lack of demand).
 
 
 ## Features
@@ -41,6 +41,8 @@ the code to *Github*, to make this part easier – especially as I currently do 
 * checks validity of your JavaDoc style comments up to a certain degree, and you even may define "mandatory tags"
 * generates XML for UnitTests from your JavaDoc-embedded `@testcase`s
 
+[![Code Statistics](https://i.imgur.com/m1UhJvwm.png)](https://i.imgur.com/m1UhJvw.png) [![Dependency Graphs](https://i.imgur.com/oM1CYkZm.png)](https://i.imgur.com/oM1CYkZ.png)
+
 
 ## License
 As stated above, *HyperSQL* uses the GPLv2 license. For details, see the [License file](doc/COPYING).
@@ -48,3 +50,4 @@ As stated above, *HyperSQL* uses the GPLv2 license. For details, see the [Licens
 
 ## Mentions
 * [HyperSQL automatically documents SQL code](https://sourceforge.net/blog/hypersql-automatically-documents-sql-code/) (SourceForge blog 7/2010)
+* [Javadoc-style Documentation for PL/SQL](http://www.idmworks.com/tips-and-tricks-javadoc-style-documentation-for-plsql/) (IDMWorks Blog 9/2011)
