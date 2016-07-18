@@ -55,7 +55,7 @@ def ElemInfoAppendJdoc(oInfo,oType,lineNumber,jdoc):
         for mand in mands:
             oInfo.verification.addItem(mname,mand)
         if JavaDocVars['javadoc_mandatory'] and oInfo.javadoc.isDefault() and oType in JavaDocVars['javadoc_mandatory_objects']:
-            logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
+            if JavaDocVars['verification_log']: logger.warn(_('%(otype)s %(name)s has no JavaDoc information attached'), {'otype':_(oType.capitalize()),'name':oInfo.name})
             oInfo.verification.addItem(oInfo.name,'No JavaDoc information available')
 
 
@@ -561,20 +561,21 @@ def ScanFilesForObjects():
                         if abs(ln) < function_info.javadoc.lndiff: # this desc is closer to the object
                           function_info.javadoc = jdoc[j]
                           function_info.javadoc.lndiff = abs(ln)
-                  if not function_info.javadoc.ignore and package_count != -1: ###TODO: need alternative for standalone
-                    fi = function_info
-                    jd = fi.javadoc
+                  fi = function_info
+                  jd = fi.javadoc
+                  mname = jd.name or fi.name
+                  mands = jd.verify_mandatory()
+                  if JavaDocVars['verification']:
+                    fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)\s*return')
+                    cparms = re.findall(fupatt,filetextnoc)
+                  if not function_info.javadoc.ignore and package_count != -1: # Package.Function
                     appendGlobalTasks('func',file_info.packageInfoList[package_count],jd,fi.uniqueNumber)
-                    mname = jd.name or fi.name
-                    mands = jd.verify_mandatory()
                     for mand in mands:
                         file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
                     if JavaDocVars['javadoc_mandatory'] and jd.isDefault() and 'func' in JavaDocVars['javadoc_mandatory_objects']:
                         if JavaDocVars['verification_log']: logger.warn(_('Function %(function)s in package %(package)s has no JavaDoc information attached'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
                         file_info.packageInfoList[package_count].verification.addFunc(mname,_('No JavaDoc information available'),jd.author,fi.uniqueNumber)
                     if JavaDocVars['verification']:
-                        fupatt = re.compile('(?ims)function\s+'+mname+'\s*\((.*?)\)\s*return')
-                        cparms = re.findall(fupatt,filetextnoc)
                         if len(cparms)==0:
                             mands = jd.verify_params([])
                         elif len(cparms)==1:
@@ -582,9 +583,26 @@ def ScanFilesForObjects():
                             mands = jd.verify_params(cparms)
                         else:
                             if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'package': file_info.packageInfoList[package_count].name, 'function': mname})
-                        if len(cparms)<2:
+                        if len(cparms)<200: # 2016-07-18: With its initial commit (1e0ecb5 on 2010-03-15), this was limited to "<2" parameters. Why is this relevant here?
                             for mand in mands:
-                                file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,function_info.uniqueNumber)
+                                file_info.packageInfoList[package_count].verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
+                  else: # StandAlone function
+                    for mand in mands:
+                        function_info.verification.addItem(mname,mand,jd.author,fi.uniqueNumber)
+                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault() and 'func' in JavaDocVars['javadoc_mandatory_objects']:
+                        if JavaDocVars['verification_log']: logger.warn(_('StandAlone Function %(function)s has no JavaDoc information attached'), {'function': mname})
+                        function_info.verification.addItem(mname,_('No JavaDoc information available'),jd.author,fi.uniqueNumber)
+                    if JavaDocVars['verification']:
+                        if len(cparms)==0:
+                            mands = jd.verify_params([])
+                        elif len(cparms)==1:
+                            cparms = cparms[0].split(',')
+                            mands = jd.verify_params(cparms)
+                        else:
+                            if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for stand-alone function %(function)s, parameters not verified'), {'function': mname})
+                        if len(cparms)<200: # 2016-07-18: With its initial commit (1e0ecb5 on 2010-03-15), this was limited to "<2" parameters. Why is this relevant here?
+                            for mand in mands:
+                                function_info.verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
                   if package_count != -1:
                     if not function_info.javadoc.ignore: file_info.packageInfoList[package_count].functionInfoList.append(function_info)
                   else:
