@@ -3,8 +3,10 @@
 v3.9.7
 -------------------
 * make sure --config can point to a config file in any directory
-* Minor fix: log missing Javadoc for views only if config has verification logging on
-* Javadoc verification for stand-alone functions and procedures
+! Minor fix: log missing Javadoc for views only if config has verification logging on
++ Javadoc verification for stand-alone functions and procedures
+! functions/procedures were not detected if the preceding keyword (CRATE/REPLACE)
+  wasn't uppercased (didn't anyone notice all those years?!?)
 
 v3.9.6 (11.07.2016)
 -------------------

@@ -538,7 +538,7 @@ def ScanFilesForObjects():
               # find functions
               for token_index in range(len(token_list)):
                 if token_list[token_index].upper() == 'FUNCTION' \
-                and (package_count != -1 or (token_index>0 and token_list[token_index-1] in ['CREATE','REPLACE'])):
+                and (package_count != -1 or (token_index>0 and token_list[token_index-1].upper() in ['CREATE','REPLACE'])):
                   if len(token_list)>token_index+1: function_name = token_list[token_index+1]
                   else: function_name = token_list1[0]
                   function_name = function_name.split('(')[0] # some are "name(" and some are "name ("
@@ -611,7 +611,7 @@ def ScanFilesForObjects():
               # find procedures
               for token_index in range(len(token_list)):
                 if token_list[token_index].upper() == 'PROCEDURE' \
-                and (package_count != -1 or (token_index>0 and token_list[token_index-1] in ['CREATE','REPLACE'])):
+                and (package_count != -1 or (token_index>0 and token_list[token_index-1].upper() in ['CREATE','REPLACE'])):
                   if len(token_list)>token_index+1: procedure_name = token_list[token_index+1]
                   else: procedure_name = token_list1[0]
                   procedure_name = procedure_name.split('(')[0] # some are "name(" and some are "name ("
