@@ -634,30 +634,48 @@ def ScanFilesForObjects():
                         if abs(ln) < procedure_info.javadoc.lndiff: # this desc is closer to the object
                           procedure_info.javadoc = jdoc[j]
                           procedure_info.javadoc.lndiff = abs(ln)
+                  pi = procedure_info
+                  jd = pi.javadoc
+                  mname = jd.name or pi.name
+                  mands = jd.verify_mandatory()
+                  if JavaDocVars['verification']:
+                    fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)\s*[ia]s')
+                    cparms = re.findall(fupatt,filetextnoc)
                   if not procedure_info.javadoc.ignore and package_count != -1: ###TODO: need alternative for standalone
-                    pi = procedure_info
-                    jd = pi.javadoc
                     appendGlobalTasks('proc',file_info.packageInfoList[package_count],jd,pi.uniqueNumber)
-                    mname = jd.name or pi.name
-                    mands = jd.verify_mandatory()
                     for mand in mands:
                         file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
                     if JavaDocVars['javadoc_mandatory'] and jd.isDefault() and 'proc' in JavaDocVars['javadoc_mandatory_objects']:
                         if JavaDocVars['verification_log']: logger.warn(_('Procedure %(procedure)s in package %(package)s has no JavaDoc information attached'), {'procedure': mname, 'package': file_info.packageInfoList[package_count].name})
                         file_info.packageInfoList[package_count].verification.addProc(mname,_('No JavaDoc information available'),jd.author,pi.uniqueNumber)
                     if JavaDocVars['verification']:
-                        fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)\s*[ia]s')
-                        cparms = re.findall(fupatt,filetextnoc)
                         if len(cparms)==0:
                             mands = jd.verify_params([])
                         elif len(cparms)==1:
                             cparms = cparms[0].split(',')
                             mands = jd.verify_params(cparms)
                         else:
-                            if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for function %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
+                            if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for procedure %(package)s.%(function)s, parameters not verified'), {'function': mname, 'package': file_info.packageInfoList[package_count].name})
                         if len(cparms)<200: # 2016-03-16: With its initial commit (1e0ecb5 on 2010-03-15), this was limited to "<2" parameters. Why is this relevant here?
                             for mand in mands:
                                 file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
+                  else: # StandAlone procedure
+                    for mand in mands:
+                        procedure_info.verification.addItem(mname,mand,jd.author,pi.uniqueNumber)
+                    if JavaDocVars['javadoc_mandatory'] and jd.isDefault() and 'proc' in JavaDocVars['javadoc_mandatory_objects']:
+                        if JavaDocVars['verification_log']: logger.warn(_('StandAlone Procedure %(procedure)s has no JavaDoc information attached'), {'procedure': mname})
+                        procedure_info.verification.addItem(mname,_('No JavaDoc information available'),jd.author,pi.uniqueNumber)
+                    if JavaDocVars['verification']:
+                        if len(cparms)==0:
+                            mands = jd.verify_params([])
+                        elif len(cparms)==1:
+                            cparms = cparms[0].split(',')
+                            mands = jd.verify_params(cparms)
+                        else:
+                            if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for stand-alone procedure %(function)s, parameters not verified'), {'function': mname})
+                        if len(cparms)<200: # 2016-03-16: With its initial commit (1e0ecb5 on 2010-03-15), this was limited to "<2" parameters. Why is this relevant here?
+                            for mand in mands:
+                                procedure_info.verification.addItem(mname,mand,jd.author,pi.uniqueNumber)
                   if package_count != -1:
                     if not procedure_info.javadoc.ignore: file_info.packageInfoList[package_count].procedureInfoList.append(procedure_info)
                   else:
