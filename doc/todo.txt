@@ -2,7 +2,4 @@ TO-DO LIST
 ==========
 * C++ files need doxygen hyperlinks for where used pages
 * Scan Java files for where used
-* Handle Types
-* JavaDoc verification for stand-alone objects
-* @ignore only ignores javadoc verification. Do we need some @unlist tag to exclude objects
-  completely from being listed?
+* Fully handle Types (see: limitations.txt)
