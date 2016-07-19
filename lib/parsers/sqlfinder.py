@@ -602,7 +602,7 @@ def ScanFilesForObjects():
                             if JavaDocVars['verification_log']: logger.debug(_('Multiple definitions for stand-alone function %(function)s, parameters not verified'), {'function': mname})
                         if len(cparms)<200: # 2016-07-18: With its initial commit (1e0ecb5 on 2010-03-15), this was limited to "<2" parameters. Why is this relevant here?
                             for mand in mands:
-                                function_info.verification.addFunc(mname,mand,jd.author,fi.uniqueNumber)
+                                function_info.verification.addItem(mname,mand,jd.author,fi.uniqueNumber)
                   if package_count != -1:
                     if not function_info.javadoc.ignore: file_info.packageInfoList[package_count].functionInfoList.append(function_info)
                   else:
@@ -641,7 +641,7 @@ def ScanFilesForObjects():
                   if JavaDocVars['verification']:
                     fupatt = re.compile('(?ims)procedure\s+'+mname+'\s*\((.*?)\)\s*[ia]s')
                     cparms = re.findall(fupatt,filetextnoc)
-                  if not procedure_info.javadoc.ignore and package_count != -1: ###TODO: need alternative for standalone
+                  if not procedure_info.javadoc.ignore and package_count != -1: # Package.Procedure
                     appendGlobalTasks('proc',file_info.packageInfoList[package_count],jd,pi.uniqueNumber)
                     for mand in mands:
                         file_info.packageInfoList[package_count].verification.addProc(mname,mand,jd.author,pi.uniqueNumber)
