@@ -8,6 +8,7 @@ v3.9.7
 ! functions/procedures were not detected if the preceding keyword (CREATE/REPLACE)
   wasn't uppercased (didn't anyone notice all those years?!?)
 * some minor doc/ cleanup
+! usage scan didn't consider "CREATE .. EDITIONABLE VIEW" as CREATE statement
 
 v3.9.6 (11.07.2016)
 -------------------

@@ -1030,7 +1030,7 @@ def ScanFilesForUsage():
                 # look for CREATE VIEW, REPLACE VIEW, FORCE VIEW
                 if metaInfo.indexPage['view'] != '' and len(token_list) > token_index+1 \
                 and token_list[token_index+1].upper() == "VIEW" \
-                and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE']:
+                and token_list[token_index].upper() in ['CREATE','REPLACE','FORCE','EDITIONABLE']:
                     # we are creating, forcing, or replacing - not using.  Set flag to 0
                     usage_flag = 0
 
