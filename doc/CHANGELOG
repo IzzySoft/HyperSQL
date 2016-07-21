@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.9.7
+v3.9.7 (21.07.2016)
 -------------------
 * make sure --config can point to a config file in any directory
 ! Minor fix: log missing Javadoc for views only if config has verification logging on
