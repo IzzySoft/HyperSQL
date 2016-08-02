@@ -68,7 +68,7 @@ class hyperopts(object):
         log.add_option('--logfile',dest='logfile',help=_('use the specified file to write our log into'))
         log.add_option('--progress',dest='progress',action='store_true',help=_('write progress information to STDOUT'))
         log.add_option('--noprogress',dest='progress',action='store_false',help=_('do not write progress information to STDOUT'))
-        log.add_option('-q','--quiet',dest='bequiet',action='store_true',help=_('suppress all output to STDOUT. This is equivalent to --noprogress --screen-loglevel NONE'))
+        log.add_option('-q','--quiet',dest='quiet',action='store_true',help=_('suppress all output to STDOUT. This is equivalent to --noprogress --screen-loglevel NONE'))
         log.add_option('--screen-loglevel',dest='screenLogLevel',choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL','NONE'],help=_('log level to use for STDOUT'))
         log.add_option('--verification-log',dest='verificationLog',action='store_true',help=_('log javadoc verification messages'))
         log.add_option('--noverification-log',dest='verificationLog',action='store_false',help=_('do not log javadoc verification messages'))
