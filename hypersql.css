@@ -137,6 +137,8 @@ h2 { font-size: 16px; }
 h3 { font-size: 15px; }
 h4 { font-size: 14px; font-style: italic; }
 
+#infotitle { margin-top:100px; }
+
 /*
  * Charts
  */

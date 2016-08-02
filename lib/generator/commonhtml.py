@@ -292,7 +292,7 @@ def CreateIndexPage():
     outfile = fopen(os_path.join(metaInfo.htmlDir,'index.html'), 'w', metaInfo.encoding)
     outfile.write(MakeHTMLHeader('Index'))
 
-    outfile.write('<H1 STYLE="margin-top:100px">' + metaInfo.title_prefix + ' '+_('HyperSQL Reference')+'</H1>\n')
+    outfile.write('<H1 ID="infotitle">' + metaInfo.title_prefix + ' '+_('HyperSQL Reference')+'</H1>\n')
 
     outfile.write('<BR><BR>\n')
     outfile.write('<TABLE ID="projectinfo" ALIGN="center"><TR><TD VALIGN="middle" ALIGN="center">\n')
