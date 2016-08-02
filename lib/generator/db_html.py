@@ -602,7 +602,7 @@ def CreateHyperlinkedSourceFilePages():
         else:
             iname += (item.javadoc.name or item.name)
             idesc = ''
-        outfile.write(' <TR CLASS="tr%d"><TD><DIV STYLE="margin-left:15px;text-indent:-15px;">%s' % (i % 2, iname))
+        outfile.write(' <TR CLASS="tr%d"><TD><DIV CLASS="objdef">%s' % (i % 2, iname))
         if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or fsize <= metaInfo.includeSourceLimit ):
             outfile.write(' <SUP><A HREF="#L'+str(item.lineNumber)+'">#</A></SUP>')
         outfile.write(' (')

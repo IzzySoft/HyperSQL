@@ -1,5 +1,10 @@
 # History of Changes for HyperSQL
 
+v3.9.8
+-------------------
+* moved some hard-coded styling to CSS
+* fixed wrong option assignment (--quiet)
+
 v3.9.7 (21.07.2016)
 -------------------
 * make sure --config can point to a config file in any directory

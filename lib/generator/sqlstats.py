@@ -110,7 +110,7 @@ def generateOutput(outfile):
     totalObj = tabs + views + mviews + synonyms + sequences + funcs + procs + triggers
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('Object Statistics')+'</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart120"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     if totalObj > 0:
         barposy = pieposy - 4*pie_rad/3
@@ -284,7 +284,7 @@ def generateOutput(outfile):
     totalObj = jwarns + jbugs + jtodo
     outfile.write("<TABLE CLASS='apilist stat'>\n")
     outfile.write('  <TR><TH COLSPAN="4">'+_('JavaDoc Statistics')+'</TH></TR>\n')
-    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart" STYLE="height:120px;"><DIV CLASS="pie_chart">\n')
+    outfile.write('  <TR><TH CLASS="sub">'+_('Name')+'</TH><TH CLASS="sub">'+_('Value')+'</TH><TH CLASS="sub">'+_('Pct')+'</TH><TD ROWSPAN="8" CLASS="pie_chart120"><DIV CLASS="pie_chart">\n')
     js = '<SCRIPT Language="JavaScript" TYPE="text/javascript">\n'
     if totalObj > 0:
         pieposy = 0

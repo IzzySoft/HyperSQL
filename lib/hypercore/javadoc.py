@@ -272,7 +272,7 @@ class JavaDoc(object):
           html += ' <DT>'+_('Private')+'</DT><DD>'+_('Just used internally.')+'</DD>'
 
         if 'param' in JavaDocVars['otypes'][self.objectType]['otags']:
-          html += '  <DT>'+_('Syntax')+':</DT><DD><DIV STYLE="margin-left:15px;text-indent:-15px;">' + self.name + ' ('
+          html += '  <DT>'+_('Syntax')+':</DT><DD><DIV CLASS="objdef">' + self.name + ' ('
           for p in range(len(self.params)):
             html += self.params[p].name
             if p<len(self.params)-1:
