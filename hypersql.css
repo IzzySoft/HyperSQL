@@ -27,6 +27,14 @@ dt {
   text-indent:-15px;
 }
 
+.jdreturn {
+  list-style-type:none;
+  margin-left:-40px;
+}
+.jd_objname {
+  margin-bottom:10px;
+}
+
 /*
  * Code Formatting
  */

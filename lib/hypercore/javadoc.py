@@ -263,7 +263,7 @@ class JavaDoc(object):
             return ''
         html = ''
         if self.objectType not in JavaDocVars['supertypes']:
-          html = '<A NAME="'+aname+'"></A><TABLE CLASS="apilist" STYLE="margin-bottom:10px" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
+          html = '<A NAME="'+aname+'"></A><TABLE CLASS="apilist" CLASS="jd_objname" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if len(self.desc) > 0:
           html += '  <DIV CLASS="jd_desc">' + ' '.join(self.desc) + '</DIV>\n'
@@ -295,7 +295,7 @@ class JavaDoc(object):
             html += '</TABLE></DD>\n'
 
         if 'return' in JavaDocVars['otypes'][self.objectType]['otags']:
-          html += ' <DT>'+_('Return values')+':</DT><DD><UL STYLE="list-style-type:none;margin-left:-40px;">'
+          html += ' <DT>'+_('Return values')+':</DT><DD><UL CLASS="jdreturn">'
           for p in range(len(self.retVals)):
             html += '<LI>' + self.retVals[p].sqltype + ' <B>' + self.retVals[p].name + '</B>'
             if self.retVals[p].desc != '':
