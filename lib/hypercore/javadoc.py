@@ -63,7 +63,8 @@ def HyperScan(text):
     (the latter two depending on configuration of ticket_url and wiki_url)
     @param string text to scan
     """
-    refpatt = re.compile("[^'\">](http\:\/\/\S+)+")    # URL-Regexp
+    if not JavaDocVars['link_urls']: return text
+    refpatt = re.compile("[^'\"\w\=>](https?\:\/\/[^\s<>\(\)\{\}'\"]+)+")    # URL-Regexp
     result = refpatt.search(text)
     while result != None:
         for g in range(len(result.groups())):
@@ -391,7 +392,7 @@ class JavaDoc(object):
         if len(self.verbatim) > 0:
             html += '<DT>'+_('Verbatim')+':</DT>'
             for p in range(len(self.verbatim)):
-                html += '<DD class="verbatim">' + self.verbatim[p] + '</DD>'
+                html += '<DD class="verbatim">' + HyperScan(self.verbatim[p]) + '</DD>'
         if len(self.ticket) > 0:
           html += '<DT>'+_('Ticket')+':</DT>'
           for i in range(len(self.ticket)):
@@ -424,7 +425,6 @@ class JavaDoc(object):
         if self.objectType not in JavaDocVars['supertypes']:
           html += '<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV>\n'
           html += '</TD></TR></TABLE>\n'
-        if JavaDocVars['link_urls']: html = re.sub(r"(\s)(https?://[^\s<>\(\)\{\}'\"]+)",r'\1<a href="\2">\2</a>',html)
         return html
     def getShortDesc(self):
         """

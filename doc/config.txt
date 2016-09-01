@@ -98,6 +98,11 @@ This section is about "cosmetical stuff" (how content is displayed).
    compatibility": this was the previously hardcoded value). If you want the
    navigation bar to automatically adjust to screen width, set this to 0 to
    disable "hard line breaks".
+ * link_url: Whether URLs in your Javadoc comments should be made clickable
+   (1, default) or not (0). This does not affect the first parameters to the
+   @ticket and @wiki tags, which are always converted to "clickable links"
+   according to the rules defined – and of course is neither applied to the
+   syntax-highlighted source code.
 
 Process
 -------
