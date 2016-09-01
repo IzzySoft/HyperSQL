@@ -3,7 +3,8 @@
 v3.9.8
 -------------------
 * moved some hard-coded styling to CSS
-* fixed wrong option assignment (--quiet)
+! fixed wrong option assignment (--quiet)
++ new config keyword link_urls in Display section to have urls in Javadoc descriptions automatically linked
 
 v3.9.7 (21.07.2016)
 -------------------

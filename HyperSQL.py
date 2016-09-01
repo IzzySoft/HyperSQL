@@ -169,6 +169,7 @@ def configRead():
     # Sections PAGES and PAGENAMES are handled indirectly via confPage() in section FileNames
     # Section DISPLAY
     metaInfo.navbar_elems_per_row = abs(config.getInt('Display','navbar_elems_per_row',4))
+    JavaDocVars['link_urls'] = config.getBool('Display','link_urls',False)
     # Section PROCESS
     if metaInfo.cmdOpts.blind_offset is None:
         metaInfo.blindOffset = abs(config.getInt('Process','blind_offset',0)) # we need a positive integer

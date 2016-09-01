@@ -145,7 +145,8 @@ class HyperConf(IniParser):
         )
         # Section DISPLAY
         display = dict (
-            navbar_elems_per_row = '4'
+            navbar_elems_per_row = '4',
+            link_urls = '0'
         )
         # Section PROCESS
         process = dict (

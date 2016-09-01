@@ -32,6 +32,7 @@ JavaDocVars = dict(
     mandatory_tags = [],
     mandatory_code_tags = [],
     mandatory_codetag_objects = [],
+    link_urls = False,
     otypes = {}, # supported object types
     supertypes = [], # object types with subobjects
     tags   = ['param', 'return', 'version', 'author', 'info', 'example',
@@ -423,6 +424,7 @@ class JavaDoc(object):
         if self.objectType not in JavaDocVars['supertypes']:
           html += '<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV>\n'
           html += '</TD></TR></TABLE>\n'
+        if JavaDocVars['link_urls']: html = re.sub(r"(\s)(https?://[^\s<>\(\)\{\}'\"]+)",r'\1<a href="\2">\2</a>',html)
         return html
     def getShortDesc(self):
         """
