@@ -6,6 +6,7 @@ v3.9.8
 ! fixed wrong option assignment (--quiet)
 + new config keyword link_urls in Display section to have urls in Javadoc descriptions automatically linked
 * improve formatting for @verbatim (keep indentions and empty lines)
+* some minor cleanups in generated HTML
 
 v3.9.7 (21.07.2016)
 -------------------

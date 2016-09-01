@@ -874,7 +874,7 @@ def CreateHyperlinkedSourceFilePages():
         else: codesize = file_info.bytes
         if metaInfo.includeSource and ( metaInfo.includeSourceLimit==0 or codesize <= metaInfo.includeSourceLimit ):
             outfile.write('\n<H2>'+_('Source')+'</H2>\n')
-            outfile.write('<CODE><PRE>')
+            outfile.write('<PRE>')
             if metaInfo.useCache:
                 if cache.check(file_info.fileName,'code'):
                     code = cache.get(file_info.fileName,'code')
@@ -910,7 +910,7 @@ def CreateHyperlinkedSourceFilePages():
             except UnicodeEncodeError, detail:
                 logger.error(_('Encoding trouble writing sourcecode of %s:'), file_info.fileName)
                 logger.error(detail)
-            outfile.write('</PRE></CODE>\n')
+            outfile.write('</PRE>\n')
             outfile.write('<DIV CLASS="toppagelink"><A HREF="#topOfPage">'+_('^ Top')+'</A></DIV><BR>\n')
 
         outfile.write(MakeHTMLFooter(file_info.fileName[len(top_level_directory)+1:]))

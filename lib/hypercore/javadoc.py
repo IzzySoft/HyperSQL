@@ -265,7 +265,7 @@ class JavaDoc(object):
             return ''
         html = ''
         if self.objectType not in JavaDocVars['supertypes']:
-          html = '<A NAME="'+aname+'"></A><TABLE CLASS="apilist" CLASS="jd_objname" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
+          html = '<A NAME="'+aname+'"></A><TABLE CLASS="apilist jd_objname" WIDTH="95%"><TR><TH>' + self.name + '</TH>\n'
           html += '<TR><TD>\n';
         if len(self.desc) > 0:
           html += '  <DIV CLASS="jd_desc">' + ' '.join(self.desc) + '</DIV>\n'
