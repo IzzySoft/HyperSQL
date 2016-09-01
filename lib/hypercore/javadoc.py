@@ -746,9 +746,11 @@ def ScanJavaDoc(text,fileName,lineNo=0):
     if is_list(text): text = ''.join(text)
     reTagEnd    = r'(\n\s*\**\s*@|\*\/)' # end of tag/desc definition
     reLineStart = r'(\n\s*\**\s*)'       # start of a line, incl. optional '*'
+    reLineStartPre = r'(\n\s*\**)'       # start of a line for preformatted text (e.g. @verbatim), incl. optional '*'
     pattLeading = re.compile(r'^\s*\**\s*')
     pattTag     = re.compile(reLineStart+r'(@\w+)([ \t\f\v]*)([^\n]*.*?)\s*'+reTagEnd, re.M|re.S|re.I)
     pattBreak   = re.compile(reLineStart) # line break inside a tag desc
+    pattBreakPre = re.compile(reLineStartPre) # line break inside a preformatted tag desc (e.g. @verbatim)
 
     blocks = []
     items  = []
@@ -777,8 +779,10 @@ def ScanJavaDoc(text,fileName,lineNo=0):
         taglines = 0
         while tags != None:
             tag  = tags.group(2)[1:].lower().strip()
-            cont = pattBreak.sub(' ',tags.group(4))
-            if tag!='verbatim':
+            if tag=='verbatim':
+                cont = pattBreakPre.sub(' ',tags.group(4))
+            else:
+                cont = pattBreak.sub(' ',tags.group(4))
                 cont = cont.strip()
             taglines = tags.group(0).strip().count('\n')
             end = tags.start()+len(tags.group(1)+tags.group(2)+tags.group(3)+tags.group(4))
