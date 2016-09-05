@@ -294,7 +294,6 @@ def CreateIndexPage():
 
     outfile.write('<H1 ID="infotitle">' + metaInfo.title_prefix + ' '+_('HyperSQL Reference')+'</H1>\n')
 
-    outfile.write('<BR><BR>\n')
     outfile.write('<TABLE ID="projectinfo" ALIGN="center"><TR><TD VALIGN="middle" ALIGN="center">\n')
     if metaInfo.projectLogo != '':
       logoname = os_path.split(metaInfo.projectLogo)[1]
