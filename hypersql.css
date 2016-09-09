@@ -82,7 +82,7 @@ td.navbar { width: 600px; }
 }
 
 .topend { margin-bottom: 20px; }
-.bottomstart { margin-top: 20px; }
+.bottomstart { margin-top: 3em; }
 #bottombar { text-align: center; }
 
 #generated {

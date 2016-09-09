@@ -300,7 +300,6 @@ def CreateIndexPage():
       outfile.write('  <IMG ALIGN="center" SRC="' + logoname + '" ALT="Logo"><BR><BR><BR>\n')
     outfile.write(metaInfo.projectInfo)
     outfile.write('</TD></TR></TABLE>\n')
-    outfile.write('<BR><BR>\n')
 
     outfile.write(MakeHTMLFooter('Index'))
     outfile.close()
