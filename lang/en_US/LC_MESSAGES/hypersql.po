@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hypersql\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-04-17 12:19+0200\n"
-"PO-Revision-Date: 2016-04-17 12:21+0100\n"
+"POT-Creation-Date: 2016-09-10 00:33+0200\n"
+"PO-Revision-Date: 2016-09-10 00:36+0100\n"
 "Last-Translator: Andreas Itzchak Rehberg <izzysoft@qumran.org>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -35,14 +35,18 @@ msgstr "%s lines and more"
 msgid "%s obsolete files removed from cache"
 msgstr "%s obsolete files removed from cache"
 
-#: ../../../lib/generator/commonhtml.py:446
+#: ../../../lib/generator/commonhtml.py:444
 msgid "Access from"
 msgstr "Access from"
 
-#: ../../../lib/generator/db_html.py:298
-#: ../../../lib/generator/db_html.py:394
+#: ../../../lib/generator/db_html.py:299
+#: ../../../lib/generator/db_html.py:395
 msgid "ApiDoc"
 msgstr "ApiDoc"
+
+#: ../../../lib/generator/db_html.py:523
+msgid "Author"
+msgstr "Author"
 
 #: ../../../lib/generator/sqlstats.py:246
 msgid "Avg Bytes"
@@ -52,7 +56,7 @@ msgstr "Avg Bytes"
 msgid "Avg Lines"
 msgstr "Avg Lines"
 
-#: ../../../lib/hypercore/config.py:116
+#: ../../../lib/hypercore/config.py:117
 msgid "Bug List"
 msgstr "Bug List"
 
@@ -74,12 +78,12 @@ msgid "Checking cache for copies of already deleted/moved files"
 msgstr "Checking cache for copies of already deleted/moved files"
 
 #: ../../../lib/generator/sqlstats.py:71
-#: ../../../lib/generator/db_html.py:291
-#: ../../../lib/generator/db_html.py:387
+#: ../../../lib/generator/db_html.py:292
+#: ../../../lib/generator/db_html.py:388
 msgid "Code"
 msgstr "Code"
 
-#: ../../../lib/hypercore/config.py:119
+#: ../../../lib/hypercore/config.py:120
 msgid "Code Statistics"
 msgstr "Code Statistics"
 
@@ -91,33 +95,33 @@ msgstr "Comment"
 msgid "Copying static files"
 msgstr "Copying static files"
 
-#: ../../../lib/parsers/sqlfinder.py:762
+#: ../../../lib/parsers/sqlfinder.py:808
 #, python-format
 msgid "Could not find filename for %(otype)s %(name)s"
 msgstr "Could not find filename for %(otype)s %(name)s"
 
-#: ../../../lib/generator/db_html.py:269
+#: ../../../lib/generator/db_html.py:270
 msgid "Creating \"package with functions and procedures\" index"
 msgstr "Creating detailed package index"
 
-#: ../../../lib/generator/db_html.py:1084
+#: ../../../lib/generator/db_html.py:1089
 msgid "Creating \"where used\" pages"
 msgstr "Creating 'where used' pages"
 
-#: ../../../lib/generator/db_html.py:41
-#: ../../../lib/generator/db_html.py:112
-#: ../../../lib/generator/db_html.py:114
-#: ../../../lib/generator/db_html.py:327
+#: ../../../lib/generator/db_html.py:42
+#: ../../../lib/generator/db_html.py:113
+#: ../../../lib/generator/db_html.py:115
+#: ../../../lib/generator/db_html.py:328
 #, python-format
 msgid "Creating %s index"
 msgstr "Creating %s index"
 
-#: ../../../lib/generator/db_html.py:430
+#: ../../../lib/generator/db_html.py:431
 #, python-format
 msgid "Creating %s list"
 msgstr "Creating %s list"
 
-#: ../../../lib/generator/commonhtml.py:383
+#: ../../../lib/generator/commonhtml.py:381
 msgid "Creating dependency graphs"
 msgstr "Creating dependency graphs"
 
@@ -125,19 +129,19 @@ msgstr "Creating dependency graphs"
 msgid "Creating file list"
 msgstr "Creating file list"
 
-#: ../../../lib/generator/commonhtml.py:332
+#: ../../../lib/generator/commonhtml.py:330
 msgid "Creating filename by path index"
 msgstr "Creating filename by path index"
 
-#: ../../../lib/generator/commonhtml.py:329
+#: ../../../lib/generator/commonhtml.py:327
 msgid "Creating filename no path index"
 msgstr "Creating filename no path index"
 
-#: ../../../lib/generator/db_html.py:367
+#: ../../../lib/generator/db_html.py:368
 msgid "Creating full form index"
 msgstr "Creating detailed form index"
 
-#: ../../../lib/generator/db_html.py:650
+#: ../../../lib/generator/db_html.py:655
 msgid "Creating hyperlinked source file pages"
 msgstr "Creating hyperlinked source file pages"
 
@@ -145,7 +149,7 @@ msgstr "Creating hyperlinked source file pages"
 msgid "Creating output subdirectories"
 msgstr "Creating output subdirectories"
 
-#: ../../../lib/generator/db_html.py:229
+#: ../../../lib/generator/db_html.py:230
 msgid "Creating package index"
 msgstr "Creating package index"
 
@@ -157,34 +161,34 @@ msgstr "Creating site index page"
 msgid "Creating statistics page"
 msgstr "Creating statistics page"
 
-#: ../../../lib/parsers/sqlfinder.py:818
+#: ../../../lib/parsers/sqlfinder.py:864
 #, python-format
 msgid "DepGraph: could not set properties for element %(object)s (to file %(file)s)"
 msgstr "DepGraph: could not set properties for element %(object)s (to file %(file)s)"
 
-#: ../../../lib/parsers/sqlfinder.py:836
+#: ../../../lib/parsers/sqlfinder.py:882
 #, python-format
 msgid "DepGraph: could not set properties for objects %(object)s/%(info)s"
 msgstr "DepGraph: could not set properties for objects %(object)s/%(info)s"
 
-#: ../../../lib/parsers/sqlfinder.py:803
+#: ../../../lib/parsers/sqlfinder.py:849
 #, python-format
 msgid "DepGraph: could not set properties from element %(object)s to file %(file)s line %(line)d"
 msgstr "DepGraph: could not set properties from element %(object)s to file %(file)s line %(line)d"
 
-#: ../../../lib/generator/commonhtml.py:444
-#: ../../../lib/generator/commonhtml.py:462
+#: ../../../lib/generator/commonhtml.py:442
+#: ../../../lib/generator/commonhtml.py:460
 msgid "Dependency Graph"
 msgstr "Dependency Graph"
 
-#: ../../../lib/hypercore/config.py:120
+#: ../../../lib/hypercore/config.py:121
 msgid "Dependency Graphs"
 msgstr "Dependency Graphs"
 
-#: ../../../lib/generator/db_html.py:72
-#: ../../../lib/generator/db_html.py:169
-#: ../../../lib/generator/db_html.py:245
-#: ../../../lib/generator/db_html.py:333
+#: ../../../lib/generator/db_html.py:73
+#: ../../../lib/generator/db_html.py:170
+#: ../../../lib/generator/db_html.py:246
+#: ../../../lib/generator/db_html.py:334
 msgid "Details"
 msgstr "Details"
 
@@ -196,38 +200,38 @@ msgstr "Empty"
 msgid "Empty Lines"
 msgstr "Empty Lines"
 
-#: ../../../lib/generator/db_html.py:906
+#: ../../../lib/generator/db_html.py:911
 #, python-format
 msgid "Encoding trouble writing sourcecode of %s:"
 msgstr "Encoding trouble writing sourcecode of %s:"
 
-#: ../../../lib/generator/commonhtml.py:412
+#: ../../../lib/generator/commonhtml.py:410
 #, python-format
 msgid "Error while copying %s from cache"
 msgstr "Error while copying %s from cache"
 
-#: ../../../lib/generator/commonhtml.py:422
+#: ../../../lib/generator/commonhtml.py:420
 #, python-format
 msgid "Error while copying %s to cache"
 msgstr "Error while copying %s to cache"
 
-#: ../../../lib/parsers/sqlfinder.py:852
+#: ../../../lib/parsers/sqlfinder.py:898
 msgid "Excluding strings from where_used scan"
 msgstr "Excluding strings from where_used scan"
 
-#: ../../../lib/generator/db_html.py:1180
+#: ../../../lib/generator/db_html.py:1185
 msgid "Extracting Unit-Tests"
 msgstr "Extracting Unit-Tests"
 
-#: ../../../lib/generator/db_html.py:936
+#: ../../../lib/generator/db_html.py:941
 msgid "File"
 msgstr "File"
 
-#: ../../../lib/hypercore/config.py:101
+#: ../../../lib/hypercore/config.py:102
 msgid "File Name Index"
 msgstr "File Names"
 
-#: ../../../lib/hypercore/config.py:102
+#: ../../../lib/hypercore/config.py:103
 msgid "File Names by Path Index"
 msgstr "File Names by Path"
 
@@ -245,82 +249,82 @@ msgstr "Files between %(from)s and %(to)s"
 msgid "Files larger than %s"
 msgstr "Files larger than %s"
 
-#: ../../../lib/generator/db_html.py:333
-#: ../../../lib/generator/db_html.py:553
-#: ../../../lib/generator/db_html.py:1064
+#: ../../../lib/generator/db_html.py:334
+#: ../../../lib/generator/db_html.py:558
+#: ../../../lib/generator/db_html.py:1069
 msgid "Form"
 msgstr "Form"
 
-#: ../../../lib/generator/db_html.py:806
+#: ../../../lib/generator/db_html.py:811
 msgid "Form Functions"
 msgstr "Form Functions"
 
-#: ../../../lib/generator/db_html.py:555
+#: ../../../lib/generator/db_html.py:560
 msgid "Form General"
 msgstr "Form General"
 
-#: ../../../lib/hypercore/config.py:114
+#: ../../../lib/hypercore/config.py:115
 msgid "Form Index"
 msgstr "Forms"
 
-#: ../../../lib/generator/db_html.py:736
+#: ../../../lib/generator/db_html.py:741
 msgid "Form Overview"
 msgstr "Form Overview"
 
-#: ../../../lib/generator/db_html.py:763
+#: ../../../lib/generator/db_html.py:768
 msgid "Form Packages"
 msgstr "Form Packages"
 
-#: ../../../lib/generator/db_html.py:819
+#: ../../../lib/generator/db_html.py:824
 msgid "Form Procedures"
 msgstr "Form Procedures"
 
-#: ../../../lib/hypercore/config.py:115
+#: ../../../lib/hypercore/config.py:116
 msgid "Full Forms Listing"
 msgstr "Full Forms Listing"
 
-#: ../../../lib/hypercore/config.py:111
+#: ../../../lib/hypercore/config.py:112
 msgid "Full Package Listing"
 msgstr "Full Package Listing"
 
-#: ../../../lib/generator/db_html.py:46
-#: ../../../lib/generator/db_html.py:306
-#: ../../../lib/generator/db_html.py:405
-#: ../../../lib/generator/db_html.py:532
-#: ../../../lib/generator/db_html.py:1052
-#: ../../../lib/generator/db_html.py:1058
+#: ../../../lib/generator/db_html.py:47
+#: ../../../lib/generator/db_html.py:307
+#: ../../../lib/generator/db_html.py:406
+#: ../../../lib/generator/db_html.py:537
+#: ../../../lib/generator/db_html.py:1057
+#: ../../../lib/generator/db_html.py:1063
 msgid "Function"
 msgstr "Function"
 
-#: ../../../lib/parsers/sqlfinder.py:567
+#: ../../../lib/parsers/sqlfinder.py:576
 #, python-format
 msgid "Function %(function)s in package %(package)s has no JavaDoc information attached"
 msgstr "Function %(function)s in package %(package)s has no JavaDoc information attached"
 
-#: ../../../lib/hypercore/config.py:112
+#: ../../../lib/hypercore/config.py:113
 msgid "Function Index"
 msgstr "Functions"
 
 #: ../../../lib/generator/sqlstats.py:131
 #: ../../../lib/generator/sqlstats.py:161
-#: ../../../lib/generator/db_html.py:306
-#: ../../../lib/generator/db_html.py:405
-#: ../../../lib/generator/db_html.py:524
-#: ../../../lib/generator/db_html.py:558
-#: ../../../lib/generator/db_html.py:724
-#: ../../../lib/generator/db_html.py:752
-#: ../../../lib/generator/db_html.py:787
-#: ../../../lib/generator/db_html.py:808
-#: ../../../lib/generator/db_html.py:846
-#: ../../../lib/generator/db_html.py:847
+#: ../../../lib/generator/db_html.py:307
+#: ../../../lib/generator/db_html.py:406
+#: ../../../lib/generator/db_html.py:529
+#: ../../../lib/generator/db_html.py:563
+#: ../../../lib/generator/db_html.py:729
+#: ../../../lib/generator/db_html.py:757
+#: ../../../lib/generator/db_html.py:792
+#: ../../../lib/generator/db_html.py:813
+#: ../../../lib/generator/db_html.py:851
+#: ../../../lib/generator/db_html.py:852
 msgid "Functions"
 msgstr "Functions"
 
-#: ../../../lib/generator/commonhtml.py:424
+#: ../../../lib/generator/commonhtml.py:422
 msgid "Graphviz threw an error:"
 msgstr "Graphviz threw an error:"
 
-#: ../../../lib/generator/commonhtml.py:379
+#: ../../../lib/generator/commonhtml.py:377
 msgid "Graphviz trouble - unable to generate the graph"
 msgstr "Graphviz trouble - unable to generate the graph"
 
@@ -335,12 +339,12 @@ msgstr "HTML-Dir"
 msgid "HyperSQL Reference"
 msgstr "HyperSQL Reference"
 
-#: ../../../HyperSQL.py:435
+#: ../../../HyperSQL.py:440
 #, python-format
 msgid "HyperSQL v%s exiting normally"
 msgstr "HyperSQL v%s exiting normally"
 
-#: ../../../HyperSQL.py:362
+#: ../../../HyperSQL.py:367
 #, python-format
 msgid "HyperSQL v%s initialized"
 msgstr "HyperSQL v%s initialized"
@@ -353,72 +357,72 @@ msgstr "HyperSQL v%s initialized"
 msgid "I/O error while copying %(source)s to %(target)s"
 msgstr "I/O error while copying %(source)s to %(target)s"
 
-#: ../../../lib/parsers/sqlfinder.py:851
+#: ../../../lib/parsers/sqlfinder.py:897
 msgid "Including strings in where_used scan"
 msgstr "Including strings in where_used scan"
 
-#: ../../../lib/generator/commonhtml.py:330
+#: ../../../lib/generator/commonhtml.py:328
 msgid "Index Of All Files By File Name"
 msgstr "Index Of All Files By File Name"
 
-#: ../../../lib/generator/commonhtml.py:333
+#: ../../../lib/generator/commonhtml.py:331
 msgid "Index Of All Files By Path Name"
 msgstr "Index Of All Files By Path Name"
 
-#: ../../../lib/generator/db_html.py:331
+#: ../../../lib/generator/db_html.py:332
 msgid "Index Of All Forms"
 msgstr "Index Of All Forms"
 
-#: ../../../lib/generator/db_html.py:45
+#: ../../../lib/generator/db_html.py:46
 msgid "Index Of All Functions"
 msgstr "Index Of All Functions"
 
-#: ../../../lib/generator/db_html.py:129
+#: ../../../lib/generator/db_html.py:130
 msgid "Index Of All Materialized Views"
 msgstr "Index Of All Materialized Views"
 
-#: ../../../lib/generator/db_html.py:243
+#: ../../../lib/generator/db_html.py:244
 msgid "Index Of All Packages"
 msgstr "Index Of All Packages"
 
-#: ../../../lib/generator/db_html.py:283
+#: ../../../lib/generator/db_html.py:284
 msgid "Index Of All Packages, Their Functions And Procedures"
 msgstr "Index Of All Packages, Their Functions And Procedures"
 
-#: ../../../lib/generator/db_html.py:48
+#: ../../../lib/generator/db_html.py:49
 msgid "Index Of All Procedures"
 msgstr "Index Of All Procedures"
 
-#: ../../../lib/generator/db_html.py:132
+#: ../../../lib/generator/db_html.py:133
 msgid "Index Of All Sequences"
 msgstr "Index Of All Sequences"
 
-#: ../../../lib/generator/db_html.py:135
+#: ../../../lib/generator/db_html.py:136
 msgid "Index Of All Synonyms"
 msgstr "Index Of All Synonyms"
 
-#: ../../../lib/generator/db_html.py:123
+#: ../../../lib/generator/db_html.py:124
 msgid "Index Of All Tables"
 msgstr "Index Of All Tables"
 
-#: ../../../lib/generator/db_html.py:117
+#: ../../../lib/generator/db_html.py:118
 msgid "Index Of All Triggers"
 msgstr "Index Of All Trigger"
 
-#: ../../../lib/generator/db_html.py:120
+#: ../../../lib/generator/db_html.py:121
 msgid "Index Of All Types"
 msgstr "Index Of All Types"
 
-#: ../../../lib/generator/db_html.py:126
+#: ../../../lib/generator/db_html.py:127
 msgid "Index Of All Views"
 msgstr "Index Of All Views"
 
-#: ../../../lib/generator/db_html.py:138
+#: ../../../lib/generator/db_html.py:139
 #, python-format
 msgid "Index for unknown object type %s"
 msgstr "Index for unknown object type %s"
 
-#: ../../../lib/generator/db_html.py:371
+#: ../../../lib/generator/db_html.py:372
 msgid "Index of all Forms including their ProgramUnits"
 msgstr "Index of all Forms including their ProgramUnits"
 
@@ -431,7 +435,7 @@ msgstr "Invalid object type \"%(otype)s\" passed to appendGlobalTasks for %(joty
 msgid "JavaDoc Statistics"
 msgstr "JavaDoc Statistics"
 
-#: ../../../lib/generator/db_html.py:505
+#: ../../../lib/generator/db_html.py:506
 msgid "JavaDoc Validation Report"
 msgstr "JavaDoc Validation Report"
 
@@ -455,7 +459,7 @@ msgstr "Known Bugs (from your @bug tags)"
 msgid "Largest"
 msgstr "Largest"
 
-#: ../../../lib/generator/db_html.py:936
+#: ../../../lib/generator/db_html.py:941
 msgid "Line"
 msgstr "Line"
 
@@ -471,11 +475,11 @@ msgstr "Lines of Code"
 msgid "Lines with Code and Comments"
 msgstr "Lines with Code and Comments"
 
-#: ../../../lib/generator/db_html.py:501
+#: ../../../lib/generator/db_html.py:502
 msgid "List of open Bugs"
 msgstr "List of open Bugs"
 
-#: ../../../lib/generator/db_html.py:503
+#: ../../../lib/generator/db_html.py:504
 msgid "List of things ToDo"
 msgstr "List of things ToDo"
 
@@ -483,7 +487,7 @@ msgstr "List of things ToDo"
 msgid "Longest"
 msgstr "Longest"
 
-#: ../../../lib/generator/db_html.py:536
+#: ../../../lib/generator/db_html.py:541
 msgid "MView"
 msgstr "MView"
 
@@ -496,17 +500,17 @@ msgstr "MViews"
 msgid "Main Index"
 msgstr "Start Page"
 
-#: ../../../lib/generator/db_html.py:130
-#: ../../../lib/generator/db_html.py:1033
+#: ../../../lib/generator/db_html.py:131
+#: ../../../lib/generator/db_html.py:1038
 msgid "Materialized View"
 msgstr "Materialized View"
 
-#: ../../../lib/hypercore/config.py:104
+#: ../../../lib/hypercore/config.py:105
 msgid "Materialized View Index"
 msgstr "Materialized Views"
 
 #: ../../../lib/generator/sqlstats.py:159
-#: ../../../lib/generator/db_html.py:700
+#: ../../../lib/generator/db_html.py:705
 msgid "Materialized Views"
 msgstr "Materialized Views"
 
@@ -514,11 +518,25 @@ msgstr "Materialized Views"
 msgid "Mixed"
 msgstr "Mixed"
 
-#: ../../../lib/parsers/sqlfinder.py:578
-#: ../../../lib/parsers/sqlfinder.py:633
+#: ../../../lib/parsers/sqlfinder.py:585
 #, python-format
 msgid "Multiple definitions for function %(package)s.%(function)s, parameters not verified"
 msgstr "Multiple definitions for function %(package)s.%(function)s, parameters not verified"
+
+#: ../../../lib/parsers/sqlfinder.py:658
+#, python-format
+msgid "Multiple definitions for procedure %(package)s.%(function)s, parameters not verified"
+msgstr "Multiple definitions for procedure %(package)s.%(function)s, parameters not verified"
+
+#: ../../../lib/parsers/sqlfinder.py:602
+#, python-format
+msgid "Multiple definitions for stand-alone function %(function)s, parameters not verified"
+msgstr "Multiple definitions for stand-alone function %(function)s, parameters not verified"
+
+#: ../../../lib/parsers/sqlfinder.py:675
+#, python-format
+msgid "Multiple definitions for stand-alone procedure %(function)s, parameters not verified"
+msgstr "Multiple definitions for stand-alone procedure %(function)s, parameters not verified"
 
 #: ../../../lib/generator/sqlstats.py:50
 #: ../../../lib/generator/sqlstats.py:113
@@ -527,26 +545,28 @@ msgstr "Multiple definitions for function %(package)s.%(function)s, parameters n
 msgid "Name"
 msgstr "Name"
 
-#: ../../../lib/generator/db_html.py:803
-#: ../../../lib/generator/db_html.py:815
-#: ../../../lib/generator/db_html.py:828
-#: ../../../lib/parsers/sqlfinder.py:568
-#: ../../../lib/parsers/sqlfinder.py:623
+#: ../../../lib/generator/db_html.py:808
+#: ../../../lib/generator/db_html.py:820
+#: ../../../lib/generator/db_html.py:833
+#: ../../../lib/parsers/sqlfinder.py:577
+#: ../../../lib/parsers/sqlfinder.py:594
+#: ../../../lib/parsers/sqlfinder.py:650
+#: ../../../lib/parsers/sqlfinder.py:667
 msgid "No JavaDoc information available"
 msgstr "No JavaDoc information available"
 
-#: ../../../HyperSQL.py:352
-#: ../../../HyperSQL.py:368
+#: ../../../HyperSQL.py:357
+#: ../../../HyperSQL.py:373
 msgid "No config file found, using defaults."
 msgstr "No config file found, using defaults."
 
-#: ../../../lib/generator/commonhtml.py:431
+#: ../../../lib/generator/commonhtml.py:429
 #, python-format
 msgid "No dependency data for %s"
 msgstr "No dependency data for %s"
 
-#: ../../../lib/generator/db_html.py:139
-#: ../../../lib/generator/db_html.py:936
+#: ../../../lib/generator/db_html.py:140
+#: ../../../lib/generator/db_html.py:941
 msgid "Object"
 msgstr "Object"
 
@@ -554,7 +574,7 @@ msgstr "Object"
 msgid "Object Statistics"
 msgstr "Object Statistics"
 
-#: ../../../lib/generator/db_html.py:1193
+#: ../../../lib/generator/db_html.py:1198
 #, python-format
 msgid "Object type %(otype)s is not supported for unit-tests, skipping \"%(oname)s\""
 msgstr "Object type %(otype)s is not supported for unit-tests, skipping \"%(oname)s\""
@@ -563,37 +583,37 @@ msgstr "Object type %(otype)s is not supported for unit-tests, skipping \"%(onam
 msgid "Oracle Forms are not considered for statistics"
 msgstr "Oracle Forms are not considered for statistics"
 
-#: ../../../lib/generator/db_html.py:750
+#: ../../../lib/generator/db_html.py:755
 msgid "PL/SQL Code"
 msgstr "PL/SQL Code"
 
-#: ../../../lib/generator/db_html.py:245
-#: ../../../lib/generator/db_html.py:401
-#: ../../../lib/generator/db_html.py:519
-#: ../../../lib/generator/db_html.py:1048
+#: ../../../lib/generator/db_html.py:246
+#: ../../../lib/generator/db_html.py:402
+#: ../../../lib/generator/db_html.py:524
+#: ../../../lib/generator/db_html.py:1053
 msgid "Package"
 msgstr "Package"
 
-#: ../../../lib/parsers/sqlfinder.py:524
+#: ../../../lib/parsers/sqlfinder.py:530
 #, python-format
 msgid "Package %s has no JavaDoc information attached"
 msgstr "Package %s has no JavaDoc information attached"
 
-#: ../../../lib/generator/db_html.py:521
+#: ../../../lib/generator/db_html.py:526
 msgid "Package General"
 msgstr "Package General"
 
-#: ../../../lib/hypercore/config.py:110
+#: ../../../lib/hypercore/config.py:111
 msgid "Package Index"
 msgstr "Packages"
 
-#: ../../../lib/generator/db_html.py:835
+#: ../../../lib/generator/db_html.py:840
 msgid "Package Overview"
 msgstr "Package Overview"
 
-#: ../../../lib/generator/db_html.py:401
-#: ../../../lib/generator/db_html.py:751
-#: ../../../lib/generator/db_html.py:764
+#: ../../../lib/generator/db_html.py:402
+#: ../../../lib/generator/db_html.py:756
+#: ../../../lib/generator/db_html.py:769
 msgid "Packages"
 msgstr "Packages"
 
@@ -612,36 +632,36 @@ msgstr "Plain Code"
 msgid "Plain Comments"
 msgstr "Plain Comments"
 
-#: ../../../lib/generator/db_html.py:49
-#: ../../../lib/generator/db_html.py:312
-#: ../../../lib/generator/db_html.py:409
-#: ../../../lib/generator/db_html.py:533
-#: ../../../lib/generator/db_html.py:1055
-#: ../../../lib/generator/db_html.py:1061
+#: ../../../lib/generator/db_html.py:50
+#: ../../../lib/generator/db_html.py:313
+#: ../../../lib/generator/db_html.py:410
+#: ../../../lib/generator/db_html.py:538
+#: ../../../lib/generator/db_html.py:1060
+#: ../../../lib/generator/db_html.py:1066
 msgid "Procedure"
 msgstr "Procedure"
 
-#: ../../../lib/parsers/sqlfinder.py:622
+#: ../../../lib/parsers/sqlfinder.py:649
 #, python-format
 msgid "Procedure %(procedure)s in package %(package)s has no JavaDoc information attached"
 msgstr "Procedure %(procedure)s in package %(package)s has no JavaDoc information attached"
 
-#: ../../../lib/hypercore/config.py:113
+#: ../../../lib/hypercore/config.py:114
 msgid "Procedure Index"
 msgstr "Procedures"
 
 #: ../../../lib/generator/sqlstats.py:132
 #: ../../../lib/generator/sqlstats.py:162
-#: ../../../lib/generator/db_html.py:312
-#: ../../../lib/generator/db_html.py:409
-#: ../../../lib/generator/db_html.py:527
-#: ../../../lib/generator/db_html.py:561
-#: ../../../lib/generator/db_html.py:730
-#: ../../../lib/generator/db_html.py:753
-#: ../../../lib/generator/db_html.py:797
-#: ../../../lib/generator/db_html.py:821
-#: ../../../lib/generator/db_html.py:855
-#: ../../../lib/generator/db_html.py:856
+#: ../../../lib/generator/db_html.py:313
+#: ../../../lib/generator/db_html.py:410
+#: ../../../lib/generator/db_html.py:532
+#: ../../../lib/generator/db_html.py:566
+#: ../../../lib/generator/db_html.py:735
+#: ../../../lib/generator/db_html.py:758
+#: ../../../lib/generator/db_html.py:802
+#: ../../../lib/generator/db_html.py:826
+#: ../../../lib/generator/db_html.py:860
+#: ../../../lib/generator/db_html.py:861
 msgid "Procedures"
 msgstr "Procedures"
 
@@ -658,17 +678,17 @@ msgstr "Removing files generated by previous run"
 msgid "Scanning source files for views and packages"
 msgstr "Scanning source files for objects"
 
-#: ../../../lib/parsers/sqlfinder.py:847
+#: ../../../lib/parsers/sqlfinder.py:893
 msgid "Scanning source files for where views and packages are used"
 msgstr "Scanning source files for where objects are used"
 
-#: ../../../lib/generator/db_html.py:133
-#: ../../../lib/generator/db_html.py:537
-#: ../../../lib/generator/db_html.py:1039
+#: ../../../lib/generator/db_html.py:134
+#: ../../../lib/generator/db_html.py:542
+#: ../../../lib/generator/db_html.py:1044
 msgid "Sequence"
 msgstr "Sequence"
 
-#: ../../../lib/hypercore/config.py:109
+#: ../../../lib/hypercore/config.py:110
 msgid "Sequence Index"
 msgstr "Sequences"
 
@@ -690,49 +710,59 @@ msgstr "Skipped unknown form unit type \"%(type)s\" in %(file)s"
 msgid "Smallest"
 msgstr "Smallest"
 
-#: ../../../lib/generator/db_html.py:871
+#: ../../../lib/generator/db_html.py:876
 msgid "Source"
 msgstr "Source"
 
-#: ../../../lib/generator/db_html.py:652
+#: ../../../lib/generator/db_html.py:657
 #, python-format
 msgid "Source code inclusion is limited to files smaller than %s"
 msgstr "Source code inclusion is limited to files smaller than %s"
 
-#: ../../../lib/generator/db_html.py:748
+#: ../../../lib/parsers/sqlfinder.py:593
+#, python-format
+msgid "StandAlone Function %(function)s has no JavaDoc information attached"
+msgstr "StandAlone Function %(function)s has no JavaDoc information attached"
+
+#: ../../../lib/parsers/sqlfinder.py:666
+#, python-format
+msgid "StandAlone Procedure %(procedure)s has no JavaDoc information attached"
+msgstr "StandAlone Procedure %(procedure)s has no JavaDoc information attached"
+
+#: ../../../lib/generator/db_html.py:753
 msgid "Statistics"
 msgstr "Statistics"
 
-#: ../../../lib/generator/db_html.py:136
-#: ../../../lib/generator/db_html.py:538
-#: ../../../lib/generator/db_html.py:1036
+#: ../../../lib/generator/db_html.py:137
+#: ../../../lib/generator/db_html.py:543
+#: ../../../lib/generator/db_html.py:1041
 msgid "Synonym"
 msgstr "Synonym"
 
-#: ../../../lib/hypercore/config.py:108
+#: ../../../lib/hypercore/config.py:109
 msgid "Synonym Index"
 msgstr "Synonyms"
 
 #: ../../../lib/generator/sqlstats.py:133
 #: ../../../lib/generator/sqlstats.py:163
-#: ../../../lib/generator/db_html.py:706
+#: ../../../lib/generator/db_html.py:711
 msgid "Synonyms"
 msgstr "Synonyms"
 
-#: ../../../lib/generator/db_html.py:112
-#: ../../../lib/generator/db_html.py:124
-#: ../../../lib/generator/db_html.py:534
-#: ../../../lib/generator/db_html.py:1027
+#: ../../../lib/generator/db_html.py:113
+#: ../../../lib/generator/db_html.py:125
+#: ../../../lib/generator/db_html.py:539
+#: ../../../lib/generator/db_html.py:1032
 msgid "Table"
 msgstr "Table"
 
-#: ../../../lib/hypercore/config.py:105
+#: ../../../lib/hypercore/config.py:106
 msgid "Table Index"
 msgstr "Tables"
 
 #: ../../../lib/generator/sqlstats.py:128
 #: ../../../lib/generator/sqlstats.py:158
-#: ../../../lib/generator/db_html.py:688
+#: ../../../lib/generator/db_html.py:693
 msgid "Tables"
 msgstr "Tables"
 
@@ -740,7 +770,7 @@ msgstr "Tables"
 msgid "Todo Items"
 msgstr "Todo Items"
 
-#: ../../../lib/hypercore/config.py:117
+#: ../../../lib/hypercore/config.py:118
 msgid "Todo List"
 msgstr "Todo List"
 
@@ -760,50 +790,50 @@ msgstr "Total Bytes"
 msgid "Total Files"
 msgstr "Total Files"
 
-#: ../../../lib/generator/db_html.py:118
-#: ../../../lib/generator/db_html.py:539
-#: ../../../lib/generator/db_html.py:1042
+#: ../../../lib/generator/db_html.py:119
+#: ../../../lib/generator/db_html.py:544
+#: ../../../lib/generator/db_html.py:1047
 msgid "Trigger"
 msgstr "Trigger"
 
-#: ../../../lib/hypercore/config.py:106
+#: ../../../lib/hypercore/config.py:107
 msgid "Trigger Index"
 msgstr "Trigger"
 
 #: ../../../lib/generator/sqlstats.py:135
 #: ../../../lib/generator/sqlstats.py:165
-#: ../../../lib/generator/db_html.py:712
-#: ../../../lib/generator/db_html.py:754
+#: ../../../lib/generator/db_html.py:717
+#: ../../../lib/generator/db_html.py:759
 msgid "Triggers"
 msgstr "Trigger"
 
-#: ../../../lib/generator/db_html.py:121
-#: ../../../lib/generator/db_html.py:540
-#: ../../../lib/generator/db_html.py:1045
+#: ../../../lib/generator/db_html.py:122
+#: ../../../lib/generator/db_html.py:545
+#: ../../../lib/generator/db_html.py:1050
 msgid "Type"
 msgstr "Type"
 
-#: ../../../lib/hypercore/config.py:107
+#: ../../../lib/hypercore/config.py:108
 msgid "Type Index"
 msgstr "Types"
 
-#: ../../../lib/generator/db_html.py:718
+#: ../../../lib/generator/db_html.py:723
 msgid "Types"
 msgstr "Types"
 
-#: ../../../lib/generator/db_html.py:72
-#: ../../../lib/generator/db_html.py:169
-#: ../../../lib/generator/db_html.py:204
-#: ../../../lib/generator/db_html.py:245
-#: ../../../lib/generator/db_html.py:333
+#: ../../../lib/generator/db_html.py:73
+#: ../../../lib/generator/db_html.py:170
+#: ../../../lib/generator/db_html.py:205
+#: ../../../lib/generator/db_html.py:246
+#: ../../../lib/generator/db_html.py:334
 msgid "Usage"
 msgstr "Usage"
 
-#: ../../../HyperSQL.py:366
+#: ../../../HyperSQL.py:371
 msgid "Using config file(s) "
 msgstr "Using config file(s) "
 
-#: ../../../lib/hypercore/config.py:118
+#: ../../../lib/hypercore/config.py:119
 msgid "Validation Report"
 msgstr "Validation Report"
 
@@ -813,19 +843,19 @@ msgstr "Validation Report"
 msgid "Value"
 msgstr "Value"
 
-#: ../../../lib/generator/db_html.py:127
-#: ../../../lib/generator/db_html.py:535
-#: ../../../lib/generator/db_html.py:1030
+#: ../../../lib/generator/db_html.py:128
+#: ../../../lib/generator/db_html.py:540
+#: ../../../lib/generator/db_html.py:1035
 msgid "View"
 msgstr "View"
 
-#: ../../../lib/hypercore/config.py:103
+#: ../../../lib/hypercore/config.py:104
 msgid "View Index"
 msgstr "Views"
 
 #: ../../../lib/generator/sqlstats.py:130
 #: ../../../lib/generator/sqlstats.py:160
-#: ../../../lib/generator/db_html.py:694
+#: ../../../lib/generator/db_html.py:699
 msgid "Views"
 msgstr "Views"
 
@@ -833,44 +863,44 @@ msgstr "Views"
 msgid "Warnings"
 msgstr "Warnings"
 
-#: ../../../lib/generator/db_html.py:934
-#: ../../../lib/generator/db_html.py:1022
+#: ../../../lib/generator/db_html.py:939
+#: ../../../lib/generator/db_html.py:1027
 #, python-format
 msgid "What Used List for %s"
 msgstr "Objects used by %s"
 
-#: ../../../lib/generator/db_html.py:932
-#: ../../../lib/generator/db_html.py:1017
+#: ../../../lib/generator/db_html.py:937
+#: ../../../lib/generator/db_html.py:1022
 #, python-format
 msgid "Where Used List for %s"
 msgstr "Objects using %s"
 
-#: ../../../lib/generator/db_html.py:749
+#: ../../../lib/generator/db_html.py:754
 msgid "XML Size"
 msgstr "XML Size"
 
-#: ../../../lib/generator/db_html.py:446
-#: ../../../lib/generator/db_html.py:529
-#: ../../../lib/generator/db_html.py:563
-#: ../../../lib/generator/db_html.py:909
+#: ../../../lib/generator/db_html.py:447
+#: ../../../lib/generator/db_html.py:534
+#: ../../../lib/generator/db_html.py:568
+#: ../../../lib/generator/db_html.py:914
 msgid "^ Top"
 msgstr "^ Top"
 
-#: ../../../lib/generator/commonhtml.py:426
-#: ../../../lib/generator/commonhtml.py:448
+#: ../../../lib/generator/commonhtml.py:424
+#: ../../../lib/generator/commonhtml.py:446
 msgid "file to file"
 msgstr "file to file"
 
-#: ../../../lib/generator/commonhtml.py:427
-#: ../../../lib/generator/commonhtml.py:450
+#: ../../../lib/generator/commonhtml.py:425
+#: ../../../lib/generator/commonhtml.py:448
 msgid "file to object"
 msgstr "file to object"
 
-#: ../../../lib/generator/db_html.py:72
-#: ../../../lib/generator/db_html.py:1051
-#: ../../../lib/generator/db_html.py:1052
-#: ../../../lib/generator/db_html.py:1054
-#: ../../../lib/generator/db_html.py:1055
+#: ../../../lib/generator/db_html.py:73
+#: ../../../lib/generator/db_html.py:1056
+#: ../../../lib/generator/db_html.py:1057
+#: ../../../lib/generator/db_html.py:1059
+#: ../../../lib/generator/db_html.py:1060
 msgid "from package"
 msgstr "from package"
 
@@ -883,7 +913,7 @@ msgstr "javascript file"
 msgid "less than %s lines"
 msgstr "less than %s lines"
 
-#: ../../../lib/generator/db_html.py:1066
+#: ../../../lib/generator/db_html.py:1071
 #, python-format
 msgid "makeUsagePage called for undefined type \"%s\""
 msgstr "makeUsagePage called for undefined type \"%s\""
@@ -892,13 +922,13 @@ msgstr "makeUsagePage called for undefined type \"%s\""
 msgid "no use found"
 msgstr "no use found"
 
-#: ../../../lib/generator/commonhtml.py:428
-#: ../../../lib/generator/commonhtml.py:452
+#: ../../../lib/generator/commonhtml.py:426
+#: ../../../lib/generator/commonhtml.py:450
 msgid "object to file"
 msgstr "object to file"
 
-#: ../../../lib/generator/commonhtml.py:429
-#: ../../../lib/generator/commonhtml.py:454
+#: ../../../lib/generator/commonhtml.py:427
+#: ../../../lib/generator/commonhtml.py:452
 msgid "object to object"
 msgstr "object to object"
 
@@ -906,12 +936,12 @@ msgstr "object to object"
 msgid "project logo"
 msgstr "project logo"
 
-#: ../../../HyperSQL.py:376
+#: ../../../HyperSQL.py:381
 #, python-format
 msgid "top_level_directory \"%s\" does not exist - terminating."
 msgstr "top_level_directory \"%s\" does not exist - terminating."
 
-#: ../../../lib/generator/commonhtml.py:430
+#: ../../../lib/generator/commonhtml.py:428
 msgid "unknown dependency graph type"
 msgstr "unknown dependency graph type"
 
@@ -923,11 +953,11 @@ msgstr "what used"
 msgid "where used"
 msgstr "where used"
 
-#: ../../../HyperSQL.py:372
+#: ../../../HyperSQL.py:377
 msgid "where_used shortref scan disabled"
 msgstr "where_used shortref scan disabled"
 
-#: ../../../HyperSQL.py:370
+#: ../../../HyperSQL.py:375
 msgid "where_used shortref scan enabled"
 msgstr "where_used shortref scan enabled"
 
