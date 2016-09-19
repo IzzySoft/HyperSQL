@@ -1,6 +1,6 @@
 # History of Changes for HyperSQL
 
-v3.9.8
+v3.9.8 (19.09.2016)
 -------------------
 * moved some hard-coded styling to CSS
 ! fixed wrong option assignment (--quiet)
