@@ -41,7 +41,7 @@ the code to *Github*, to make this part easier – especially as there are times
 * checks validity of your JavaDoc style comments up to a certain degree, and you even may define "mandatory tags"
 * generates XML for UnitTests from your JavaDoc-embedded `@testcase`s
 
-[![Code Statistics](https://i.imgur.com/m1UhJvwm.png)](https://i.imgur.com/m1UhJvw.png) [![Dependency Graphs](https://i.imgur.com/oM1CYkZm.png)](https://i.imgur.com/oM1CYkZ.png)
+[![Code Statistics](https://i.imgur.com/mQV7B44m.png)](https://i.imgur.com/mQV7B44.png) [![Dependency Graphs](https://i.imgur.com/54kPRzCm.png)](https://i.imgur.com/54kPRzC.png)
 
 
 ## License
