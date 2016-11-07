@@ -6,6 +6,12 @@ Known issues and limitations
 - filtering "/* block comments */" on parameter parse doesn't filter "/* nested /* comments */ */" correctly
 - used_by for types not always recognized (e.g. not in RETURNS of functions, with "PIPE ROW( <type>",
   or when used by other types)
+- some pages might not render correctly in MSIE, which sometimes runs in "compatibility mode" (especially on
+  Intranet sites). HyperSQL tries to snap it out of that via the "X-UA-Compatible" Meta tag, but MSIE does
+  not always honor that – nothing HyperSQL can do about that. If you're running into that issue, please
+  see https://stackoverflow.com/a/16365626/2533433 for a work-around (in short: have your web server send
+  the same setting with the HTTP headers).
+
 
 Known, but intended:
 --------------------

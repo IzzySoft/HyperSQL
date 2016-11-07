@@ -1,5 +1,12 @@
 # History of Changes for HyperSQL
 
+v3.9.9
+-------------------
+* adding X-UA-Compatible Meta tag to HTML header to force MSIE out of "compatibility
+  mode" on Intranet sites ("IE=Edge", so it renders according to the latest standards).
+  If it still gets stuck for you, see doc/limits.txt for details.
+
+
 v3.9.8 (19.09.2016)
 -------------------
 * moved some hard-coded styling to CSS

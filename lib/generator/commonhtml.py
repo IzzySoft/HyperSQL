@@ -155,11 +155,12 @@ def MakeHTMLHeader(title_name, charts=False, onload=''):
 
     s  = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'
     s += '<HTML><HEAD>\n'
+    s += '  <META http-equiv="X-UA-Compatible" content="IE=edge">\n'    # required for MSIE on Intranet sites to render CSS correctly. Must come directly after HEAD!
+    s += '  <META HTTP-EQUIV="Content-Type" CONTENT="text/html;charset='+metaInfo.encoding+'">\n'
     s += '  <TITLE>' + metaInfo.title_prefix + ': ' + title_text + '</TITLE>\n'
     s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + metaInfo.css_file + '">\n'
     for css in metaInfo.custom_css_files:
         s += '  <LINK REL="stylesheet" TYPE="text/css" HREF="' + os_path.split(css)[1] + '">\n'
-    s += '  <META HTTP-EQUIV="Content-Type" CONTENT="text/html;charset='+metaInfo.encoding+'">\n'
     if charts:
         s += '  <SCRIPT Language="JavaScript" src="diagram.js" TYPE="text/javascript"></SCRIPT>\n'
     if onload=='':
