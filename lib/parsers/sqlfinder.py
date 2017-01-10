@@ -290,6 +290,8 @@ def ScanFilesForObjects():
         infile.close()
         file_info.lines = len(fileLines)
         file_info.bytes  = os.path.getsize(file_info.fileName)
+        if file_info.lines < 1:
+            continue            # skip empty files
 
         # scan this file for possible JavaDoc style comments
         if metaInfo.useJavaDoc:
