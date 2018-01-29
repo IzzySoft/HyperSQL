@@ -9,6 +9,8 @@ designed for initially) as well, though I've not tested that. If you do not main
 inside the database), some scripts in the `tools/` directory of the HyperSQL distribution might help you extract those from your Oracle database.
 For objects you can `COMMENT ON` (tables, views) they even create basic JavaDoc comments along.
 
+Further details as well as a documentation can be found in [the project's wiki](https://github.com/IzzySoft/HyperSQL/wiki).
+
 
 ## History
 The original version (1.0) was written by Randy Phillips in September 2001. A customer of mine required a script like this, but some additions
@@ -20,8 +22,7 @@ me completely). It was (and still is) using the GPL, so there were no problems f
 ***HyperSQL***, but felt it needs some polish. So on one day in February 2010, I sat down and wrote version 1.1. Versions 1.2 and 1.3 followed
 the next day - and as you can see here, development still goes on (with a few breaks sometimes).
 
-For quite a while, I was using SVN on my own server to maintain the code, and you can still find the project pages over there [at
-IzzySoft.DE](http://projects.izzysoft.de/trac/hypersql). But due to demand of other users who wanted to participate, I've decided to move
+For quite a while, I was using SVN on my own server to maintain the code. But due to demand of other users who wanted to participate, I've decided to move
 the code to *Github*, to make this part easier – especially as there are times I do not work myself on the project (due to lack of demand).
 
 
